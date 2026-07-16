@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const articleApprovalRequest_controllers_1 = require("../controllers/articleApprovalRequest.controllers");
+const auth_middlewares_1 = require("../middlewares/auth.middlewares");
+const checkRequiredFields_middlewares_1 = require("../middlewares/checkRequiredFields.middlewares");
+const validateObjectId_middlewares_1 = require("../middlewares/validateObjectId.middlewares");
+const constants_1 = require("../constants");
+const router = (0, express_1.Router)();
+router.post('/:_articleId', (0, auth_middlewares_1.VerifyJWT)([constants_1.ADMINISTRATOR_ROLE.Editor]), (0, checkRequiredFields_middlewares_1.checkRequiredFields)(['message', 'receiverId'], checkRequiredFields_middlewares_1.FIELD_SOURCE.body), (0, checkRequiredFields_middlewares_1.checkRequiredFields)(['_articleId'], checkRequiredFields_middlewares_1.FIELD_SOURCE.params), (0, validateObjectId_middlewares_1.validateObjectId)(['_articleId'], checkRequiredFields_middlewares_1.FIELD_SOURCE.params), (0, validateObjectId_middlewares_1.validateObjectId)(['receiverId'], checkRequiredFields_middlewares_1.FIELD_SOURCE.body), articleApprovalRequest_controllers_1.createRequest);
+router.get('/received', (0, auth_middlewares_1.VerifyJWT)([constants_1.ADMINISTRATOR_ROLE.Admin, constants_1.ADMINISTRATOR_ROLE.Owner]), articleApprovalRequest_controllers_1.getReceivedRequests);
+router.get('/my', (0, auth_middlewares_1.VerifyJWT)([constants_1.ADMINISTRATOR_ROLE.Editor]), articleApprovalRequest_controllers_1.getMyRequests);
+router.put('/:_id/reject', (0, auth_middlewares_1.VerifyJWT)([constants_1.ADMINISTRATOR_ROLE.Admin, constants_1.ADMINISTRATOR_ROLE.Owner]), (0, checkRequiredFields_middlewares_1.checkRequiredFields)(['_id'], checkRequiredFields_middlewares_1.FIELD_SOURCE.params), (0, validateObjectId_middlewares_1.validateObjectId)(['_id'], checkRequiredFields_middlewares_1.FIELD_SOURCE.params), articleApprovalRequest_controllers_1.setReject);
+router.delete('/:_id', (0, auth_middlewares_1.VerifyJWT)([constants_1.ADMINISTRATOR_ROLE.Editor]), (0, checkRequiredFields_middlewares_1.checkRequiredFields)(['_id'], checkRequiredFields_middlewares_1.FIELD_SOURCE.params), (0, validateObjectId_middlewares_1.validateObjectId)(['_id'], checkRequiredFields_middlewares_1.FIELD_SOURCE.params), articleApprovalRequest_controllers_1.deleteRequest);
+exports.default = router;

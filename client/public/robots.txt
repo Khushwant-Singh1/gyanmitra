@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /administrator/
+Disallow: /edit/
+Allow: /
+
+Sitemap: https://gyanmitranews.com/sitemap-news.xml

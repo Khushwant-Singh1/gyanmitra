@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+/dist/
+**/dist/
+/build/
+**/build/
+/.vite/
+**/.vite/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Uploads / runtime data
+server/uploads/
+server/public/temp/
+
+# Coverage / test
+coverage/
+
+# Editor files
+.vscode/
+.idea/
+
+# Misc
+*.local
+*.tsbuildinfo

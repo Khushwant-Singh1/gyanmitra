@@ -1,0 +1,12 @@
+Your Verification Code
+
+Company Logo: "https://gyanmitranews.com/assets/gyanmitra.png"
+Company Name: Gyanmitra
+
+Your verification code is: {verificationCode}
+
+Please enter this code to verify your email account.
+
+If you have any questions, feel free to contact us at gyanmitranews@gmail.com.
+
+© {currentYear} Gyanmitranews. All rights reserved.

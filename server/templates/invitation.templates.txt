@@ -1,0 +1,16 @@
+
+Company Logo: "https://gyanmitranews.com/assets/gyanmitra.png"
+Company Name: Gyanmitra
+
+Invitation for {receiverRole}
+
+You have been invited by {senderName} ({senderRole}).
+
+Message: {message}
+
+To register, please click the link below or copy and paste it into your browser:
+{tokenLink}
+
+If you have any questions, feel free to contact us at gyanmitranews@gmail.com.
+
+© {currentYear} Gyanmitranews. All rights reserved.

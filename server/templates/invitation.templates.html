@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      body {
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+      }
+      .email-container {
+        background-color: #f4f4f4;
+        text-align: center;
+        padding: 20px;
+      }
+      .email-content {
+        background: #001f3f;
+        color: #ffffff;
+        border-radius: 8px;
+        padding: 30px;
+        max-width: 600px;
+        margin: auto;
+        font-family: Arial, sans-serif;
+      }
+      .logo {
+        margin-bottom: 20px;
+      }
+      .logo img {
+        max-width: 100px;
+        margin-bottom: 10px;
+      }
+      .logo h2 {
+        margin: 0;
+        font-size: 24px;
+        color: #ffffff;
+      }
+      h1 {
+        text-decoration: underline;
+        margin-bottom: 20px;
+        color: #ffffff;
+      }
+      p {
+        font-size: 16px;
+        line-height: 1.5;
+        color: #ffffff;
+      }
+      a.button {
+        background: #28a745;
+        padding: 12px 24px;
+        border-radius: 5px;
+        text-decoration: none;
+        color: #ffffff;
+        font-size: 18px;
+        font-weight: bold;
+        display: inline-block;
+        margin-bottom: 20px;
+      }
+      .link-text {
+        font-size: 14px;
+        color: #007bff;
+        word-break: break-all;
+      }
+      .footer {
+        margin-top: 20px;
+        color: #555555;
+        font-size: 14px;
+        font-family: Arial, sans-serif;
+      }
+      .footer a {
+        color: #007bff;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <div class="email-content">
+        <!-- Company Logo and Name -->
+        <div class="logo">
+          <img
+            src="https://gyanmitranews.com/assets/gyanmitra.png"
+            alt="Company Logo"
+          />
+          <h2 style="color: #ffffff">Gyanmitra</h2>
+        </div>
+
+        <h1 style="color: #ffffff">Invitation for {receiverRole}</h1>
+        <p style="color: #ffffff">
+          You have been invited by <strong>{senderName}</strong> ({senderRole}).
+        </p>
+        <p style="color: #ffffff">Message: {message}</p>
+        <a href="{tokenLink}" class="button">Register Now</a>
+        <p style="font-size: 14px; color: #ffffff">
+          If the button doesn't work, copy and paste the link below into your
+          browser:
+        </p>
+        <p class="link-text">
+          <a href="{tokenLink}">{tokenLink}</a>
+        </p>
+
+        <div class="footer">
+          <p>
+            If you have any questions, feel free to
+            <a href="https://gyanmitranews.com/contact-us">contact us</a>.
+          </p>
+          <p>&copy; {currentYear} Gyanmitranews. All rights reserved.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
