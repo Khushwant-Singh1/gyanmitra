@@ -39,3 +39,6 @@ coverage/
 # Misc
 *.local
 *.tsbuildinfo
+
+# SSH Keys
+github-actions-deploy*

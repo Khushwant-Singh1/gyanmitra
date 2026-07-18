@@ -19,3 +19,8 @@ pnpm-debug.log*
 # OS files
 .DS_Store
 Thumbs.db
+
+# Service Account Credentials / Backups
+src/service-account.json
+src/service-account.json.bak
+*.bak

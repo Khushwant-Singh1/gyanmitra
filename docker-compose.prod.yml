@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  server:
+    image: ghcr.io/khushwant-singh1/gyanmitra-server:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - NODE_ENV=production
+      - PORT=8000
+      - CLIENT_URL=http://frontend:3000
+    volumes:
+      - ./uploads:/usr/src/app/uploads
+    restart: unless-stopped
+
+  client:
+    image: ghcr.io/khushwant-singh1/gyanmitra-client:latest
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+  frontend:
+    image: ghcr.io/khushwant-singh1/gyanmitra-frontend:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - API_URL=http://server:8000
+      - WEBSITE_URL=http://localhost:3000
+    depends_on:
+      - server
+      - client
+    restart: unless-stopped
+
+networks:
+  default:
+    driver: bridge
