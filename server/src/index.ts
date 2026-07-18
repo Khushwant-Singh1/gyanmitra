@@ -9,6 +9,7 @@ import { app } from "./app";
 console.log("🟢 app imported");
 
 import { initializeDB } from "./db/index.db";
+import { initMinio } from "./utils/minioClient";
 console.log("🟢 initializeDB imported");
 
 // Indexing function import karein
@@ -23,6 +24,10 @@ const PORT = Number(process.env.PORT) || 8000;
     console.log("➡️ Before initializeDB");
     await initializeDB();
     console.log("➡️ After initializeDB");
+
+    console.log("➡️ Before initMinio");
+    await initMinio();
+    console.log("➡️ After initMinio");
 
     app.listen(PORT, () => {
       console.log(`🚀 Backend running on port ${PORT}`);

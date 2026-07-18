@@ -1,6 +1,19 @@
 version: '3.8'
 
 services:
+  minio:
+    image: quay.io/minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - ./minio_data:/data
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+
   server:
     build:
       context: .
@@ -14,6 +27,15 @@ services:
       - NODE_ENV=production
       - PORT=8000
       - CLIENT_URL=http://frontend:3000
+      - MINIO_ENDPOINT=minio
+      - MINIO_PORT=9000
+      - MINIO_USE_SSL=false
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_BUCKET=gyanmitra
+      - MINIO_PUBLIC_URL=http://localhost:9000/gyanmitra
+    depends_on:
+      - minio
     volumes:
       - ./uploads:/usr/src/app/uploads
     restart: unless-stopped

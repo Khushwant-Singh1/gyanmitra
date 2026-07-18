@@ -6,6 +6,8 @@ import { ApiResponse } from '../utils/ApiResponse.utils';
 import { Competition } from '../models/competition.models';
 import { Participant } from '../models/participant.models';
 import { isValidObjectId } from 'mongoose';
+import { promises as fs } from 'fs';
+import { uploadFileToMinio } from '../utils/minioClient';
 
 /**
  * 1. Get All Competitions (Public & Admin Dashboard)
@@ -74,7 +76,17 @@ export const registerParticipant = AsyncHandler(
   async (req: Request, res: Response) => {
     // 1. competitionId ko alag karein taaki use schema ke 'competition' field mein map kar sakein
     const { competitionId, ...otherData } = req.body; 
-    const filePath = req.file ? `/uploads/${req.file.filename}` : null;
+    
+    let filePath = null;
+    if (req.file) {
+      try {
+        filePath = await uploadFileToMinio(req.file.path, req.file.filename);
+        await fs.unlink(req.file.path);
+      } catch (err) {
+        console.error('MinIO registration file upload error:', err);
+        throw new ApiError(500, 'Failed to upload registration file to storage');
+      }
+    }
 
     // 2. Duplicate registration check (competitionId ka use karke)
     const alreadyRegistered = await Participant.findOne({ 

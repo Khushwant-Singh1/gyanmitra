@@ -9,6 +9,7 @@ import { MEDIA_FILE_TYPES } from '../constants';
 import { isValidObjectId, type ObjectId } from 'mongoose';
 import path from 'path';
 import { Article } from '../models/article.models';
+import { uploadFileToMinio, deleteFileFromMinio } from '../utils/minioClient';
 
 export const uploadFile = AsyncHandler(
   async (req: IJwtRequest, res: Response, next: NextFunction) => {
@@ -39,7 +40,16 @@ export const uploadFile = AsyncHandler(
     name = name ? name : file.originalname;
 
     const storedFileName = path.basename(file.path.replace(/\\/g, '/'));
-    const fileUrl = `/uploads/${storedFileName}`;
+    
+    // Upload file to MinIO and get public URL
+    const fileUrl = await uploadFileToMinio(file.path, storedFileName);
+
+    // Delete temporary local file
+    try {
+      await fs.unlink(file.path);
+    } catch (err) {
+      console.error('Temp file unlink error:', err);
+    }
 
     const mediaFile = await MediaFile.create({
       fileSize: file.size,
@@ -95,17 +105,11 @@ export const deleteFile = AsyncHandler(
         'This media file is being used in an article. Please remove it from the article before deleting.'
       );
 
-    const mainFilePath = path.join(
-      __dirname,
-      '../../uploads',
-      path.basename(mediaFile.publicId)
-    );
-
     try {
-      await fs.unlink(mainFilePath);
+      await deleteFileFromMinio(mediaFile.publicId);
     } catch (err) {
-      console.error('Main file deletion error:', err);
-      throw new ApiError(500, 'Failed to delete main file');
+      console.error('MinIO main file deletion error:', err);
+      throw new ApiError(500, 'Failed to delete main file from storage');
     }
 
     // Delete thumbnail if it's a video and has a thumbnail
@@ -113,17 +117,11 @@ export const deleteFile = AsyncHandler(
       const thumbnail = await MediaFile.findById(mediaFile.thumbnail);
       if (!thumbnail) throw new ApiError(400, 'Thumbnail ID does not exist');
 
-      const thumbPath = path.join(
-        __dirname,
-        '../../uploads',
-        path.basename(thumbnail.publicId)
-      );
-
       try {
-        await fs.unlink(thumbPath);
+        await deleteFileFromMinio(thumbnail.publicId);
       } catch (err) {
-        console.error('Thumbnail deletion error:', err);
-        throw new ApiError(500, 'Failed to delete thumbnail file');
+        console.error('MinIO thumbnail deletion error:', err);
+        throw new ApiError(500, 'Failed to delete thumbnail file from storage');
       }
 
       await MediaFile.findByIdAndDelete(thumbnail._id);
