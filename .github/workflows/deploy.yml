@@ -38,8 +38,8 @@ jobs:
       - name: Build and Push Server Image
         uses: docker/build-push-action@v5
         with:
-          context: apps
-          file: apps/server/Dockerfile
+          context: .
+          file: server/Dockerfile
           push: true
           tags: ghcr.io/${{ steps.prep.outputs.owner }}/gyanmitra-server:latest
           cache-from: type=gha
@@ -48,8 +48,8 @@ jobs:
       - name: Build and Push Client Image
         uses: docker/build-push-action@v5
         with:
-          context: apps
-          file: apps/client/Dockerfile
+          context: .
+          file: client/Dockerfile
           push: true
           tags: ghcr.io/${{ steps.prep.outputs.owner }}/gyanmitra-client:latest
           cache-from: type=gha
@@ -58,8 +58,8 @@ jobs:
       - name: Build and Push Frontend Image
         uses: docker/build-push-action@v5
         with:
-          context: apps
-          file: apps/frontend-server/Dockerfile
+          context: .
+          file: frontend-server/Dockerfile
           push: true
           tags: ghcr.io/${{ steps.prep.outputs.owner }}/gyanmitra-frontend:latest
           cache-from: type=gha
@@ -75,7 +75,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Prepare production docker-compose
-        run: cp apps/docker-compose.prod.yml apps/docker-compose.yml
+        run: cp docker-compose.prod.yml docker-compose.yml
 
       - name: Copy docker-compose.yml to VPS
         uses: appleboy/scp-action@v0.1.7
@@ -84,9 +84,8 @@ jobs:
           username: ${{ secrets.HOSTINGER_SSH_USERNAME }}
           key: ${{ secrets.HOSTINGER_SSH_KEY }}
           port: ${{ secrets.HOSTINGER_SSH_PORT || 22 }}
-          source: "apps/docker-compose.yml"
+          source: "docker-compose.yml"
           target: "${{ secrets.HOSTINGER_DEPLOY_PATH }}"
-          strip_components: 1
 
       - name: SSH Deploy to Hostinger VPS
         uses: appleboy/ssh-action@v1.0.3
