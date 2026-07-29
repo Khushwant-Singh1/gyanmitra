@@ -9,13 +9,16 @@ RUN apt-get update && \
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
-# Copy sources and install
-COPY server/package.json server/pnpm-lock.yaml server/pnpm-workspace.yaml ./
+# Copy package files first for caching
+COPY server/package.json server/pnpm-lock.yaml server/pnpm-workspace.yaml* ./
+
+# Configure network retries and install dependencies
+RUN pnpm config set fetch-retries 5 && pnpm config set fetch-retry-mintimeout 20000 && pnpm install --frozen-lockfile --unsafe-perm
+
+# Copy source files after installing dependencies
 COPY server/tsconfig.json ./
 COPY server/src ./src
 
-# Allow native build scripts to run and install dependencies
-RUN pnpm install --frozen-lockfile --unsafe-perm
 RUN pnpm run build
 
 FROM node:22-bullseye-slim
@@ -28,3 +31,4 @@ COPY server/package.json ./package.json
 
 EXPOSE 8000
 CMD ["node", "dist/index.js"]
+

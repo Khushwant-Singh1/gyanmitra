@@ -4,17 +4,25 @@ WORKDIR /app
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
-# Copy client and frontend-server sources so we can build both
+# Copy package files first for optimal layer caching
+COPY client/package.json client/pnpm-lock.yaml ./client/
+COPY frontend-server/package.json frontend-server/pnpm-lock.yaml ./frontend-server/
+
+# Configure pnpm network retries to prevent registry download timeouts
+RUN pnpm config set fetch-retries 5 && pnpm config set fetch-retry-mintimeout 20000
+
+# Install client and frontend-server dependencies
+RUN cd client && pnpm install --frozen-lockfile
+RUN cd frontend-server && pnpm install --frozen-lockfile
+
+# Copy full source files
 COPY client ./client
-COPY frontend-server/package.json frontend-server/pnpm-lock.yaml ./
 COPY frontend-server/tsconfig.json frontend-server/ ./frontend-server/
 COPY frontend-server/src ./frontend-server/src
 
-# Build client
-RUN cd client && pnpm install --frozen-lockfile && pnpm run build
-
-# Build frontend-server
-RUN cd frontend-server && pnpm install --frozen-lockfile && pnpm run build
+# Build client and frontend-server
+RUN cd client && pnpm run build
+RUN cd frontend-server && pnpm run build
 
 FROM node:22-alpine
 WORKDIR /app
@@ -26,8 +34,9 @@ COPY frontend-server/package.json frontend-server/pnpm-lock.yaml ./
 
 # Install corepack & pnpm to set up production dependencies
 RUN corepack enable && corepack prepare pnpm@latest --activate
-RUN pnpm install --prod --frozen-lockfile
+RUN pnpm config set fetch-retries 5 && pnpm config set fetch-retry-mintimeout 20000 && pnpm install --prod --frozen-lockfile
 
 ENV NODE_ENV=production
 EXPOSE 3000
 CMD ["node", "dist/server.js"]
+
