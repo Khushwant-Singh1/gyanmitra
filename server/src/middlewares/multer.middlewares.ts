@@ -2,12 +2,20 @@ import multer, { FileFilterCallback } from 'multer';
 import { v4 as uuid } from 'uuid';
 import { Request } from 'express';
 import path from 'path';
+import fs from 'fs';
+import { ApiError } from '../utils/ApiError.utils';
+
+// Ensure './uploads' folder exists
+const uploadsDir = './uploads';
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // 1. Storage Configuration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     // Files './uploads' folder mein save hongi
-    cb(null, './uploads');
+    cb(null, uploadsDir);
   },
   filename: function (req, file, cb) {
     const ext = path.extname(file.originalname);
@@ -44,7 +52,7 @@ function fileFilter(
     cb(null, true);
   } else {
     // Agar format galat hai toh error return karein
-    cb(new Error('Format not supported! Only common image, video, and PDF files are allowed.'));
+    cb(new ApiError(400, 'Format not supported! Only common image, video, and PDF files are allowed.') as any);
   }
 }
 

@@ -41,15 +41,8 @@ export const uploadFile = AsyncHandler(
 
     const storedFileName = path.basename(file.path.replace(/\\/g, '/'));
     
-    // Upload file to MinIO and get public URL
+    // Upload file to MinIO (or fallback to local storage) and get URL
     const fileUrl = await uploadFileToMinio(file.path, storedFileName);
-
-    // Delete temporary local file
-    try {
-      await fs.unlink(file.path);
-    } catch (err) {
-      console.error('Temp file unlink error:', err);
-    }
 
     const mediaFile = await MediaFile.create({
       fileSize: file.size,

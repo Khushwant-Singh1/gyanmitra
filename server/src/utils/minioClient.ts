@@ -1,5 +1,7 @@
 import { Client } from 'minio';
 import dotenv from 'dotenv';
+import { promises as fs, existsSync } from 'fs';
+import path from 'path';
 
 dotenv.config();
 
@@ -46,32 +48,54 @@ export const initMinio = async () => {
       console.log(`Bucket "${bucketName}" already exists.`);
     }
   } catch (error) {
-    console.error('Failed to initialize MinIO bucket:', error);
+    console.warn('MinIO initialization warning (MinIO may be offline):', (error as Error).message);
   }
 };
 
 /**
- * Uploads a local file to MinIO bucket and returns its public URL
+ * Uploads a local file to MinIO bucket and returns its public URL.
+ * If MinIO is unavailable, gracefully falls back to local storage URL.
  */
 export const uploadFileToMinio = async (tempFilePath: string, destinationName: string): Promise<string> => {
   try {
     await minioClient.fPutObject(bucketName, destinationName, tempFilePath);
+    // Delete temporary local file after successful MinIO upload
+    try {
+      await fs.unlink(tempFilePath);
+    } catch (unlinkErr) {
+      console.error('Temp file unlink error:', unlinkErr);
+    }
     return `${publicUrl}/${destinationName}`;
   } catch (error) {
-    console.error(`Error uploading file "${destinationName}" to MinIO:`, error);
-    throw error;
+    console.warn(
+      `MinIO upload unavailable for "${destinationName}". Falling back to local storage:`,
+      (error as Error).message
+    );
+    // Return relative local storage path soExpress static route serves it
+    return `/uploads/${destinationName}`;
   }
 };
 
 /**
- * Deletes a file from MinIO bucket
+ * Deletes a file from MinIO bucket and/or local storage
  */
 export const deleteFileFromMinio = async (destinationName: string): Promise<void> => {
   try {
     await minioClient.removeObject(bucketName, destinationName);
     console.log(`Deleted file "${destinationName}" from MinIO.`);
   } catch (error) {
-    console.error(`Error deleting file "${destinationName}" from MinIO:`, error);
-    throw error;
+    console.warn(`MinIO deletion notice for "${destinationName}":`, (error as Error).message);
+  }
+
+  // Also clean up local file if present
+  try {
+    const localFilePath = path.join(process.cwd(), 'uploads', destinationName);
+    if (existsSync(localFilePath)) {
+      await fs.unlink(localFilePath);
+      console.log(`Deleted local file "${destinationName}".`);
+    }
+  } catch (err) {
+    console.error(`Local file cleanup error for "${destinationName}":`, err);
   }
 };
+

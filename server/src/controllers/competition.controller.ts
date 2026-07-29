@@ -79,13 +79,7 @@ export const registerParticipant = AsyncHandler(
     
     let filePath = null;
     if (req.file) {
-      try {
-        filePath = await uploadFileToMinio(req.file.path, req.file.filename);
-        await fs.unlink(req.file.path);
-      } catch (err) {
-        console.error('MinIO registration file upload error:', err);
-        throw new ApiError(500, 'Failed to upload registration file to storage');
-      }
+      filePath = await uploadFileToMinio(req.file.path, req.file.filename);
     }
 
     // 2. Duplicate registration check (competitionId ka use karke)

@@ -58,6 +58,9 @@ import ArticleRequestRouter from './routes/articleRequest.routers';
 import { ApiResponse } from './utils/ApiResponse.utils';
 import CompetitionRouter from './routes/competition.routes'; //
 
+import multer from 'multer';
+import { ApiError } from './utils/ApiError.utils';
+
 app.use('/api/competition', CompetitionRouter); //
 app.use('/api/categories', CategoryRouter);
 app.use('/api/comments', CommentRouter);
@@ -71,6 +74,33 @@ app.get('/api/time', (req, res) => {
   res
     .status(200)
     .json(new ApiResponse(200, { time: new Date().toISOString() }));
+});
+
+// Global Error Handler Middleware
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (err instanceof ApiError) {
+    return res.status(err.statusCode).json({
+      success: err.success,
+      message: err.message,
+      errors: err.errors,
+      statusCode: err.statusCode,
+    });
+  }
+
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({
+      success: false,
+      message: `File upload error: ${err.message}`,
+      statusCode: 400,
+    });
+  }
+
+  console.error('Unhandled Error:', err);
+  return res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message || 'Internal Server Error',
+    statusCode: err.statusCode || 500,
+  });
 });
 
 console.log("🟢 app.ts fully executed");
