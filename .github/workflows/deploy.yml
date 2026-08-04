@@ -124,8 +124,8 @@ jobs:
             # Pull the prebuilt Docker images from GHCR
             docker compose pull
             
-            # Re-launch the containers
-            docker compose up -d
+            # Re-launch the containers with newly pulled images
+            docker compose up -d --force-recreate
             
             # Clean up old/unused images to save disk space
             docker image prune -f
