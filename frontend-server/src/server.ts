@@ -56,15 +56,7 @@ app.get('*', async (req, res) => {
     <html lang="hi">
     <head>
       <meta charset="UTF-8" />
-      <!-- Google tag (gtag.js) -->
-      <script async src="https://www.googletagmanager.com/gtag/js?id=G-L99Z0DH2LB"></script>
-      <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-
-        gtag('config', 'G-L99Z0DH2LB');
-      </script>
+      <!-- Google tag is injected at the edge by Cloudflare Google tag gateway (/gmetrics) -->
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <meta http-equiv="X-UA-Compatible" content="IE=edge" />
       <meta name="description" content="${

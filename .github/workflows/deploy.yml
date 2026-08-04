@@ -114,8 +114,12 @@ jobs:
             # Pull the prebuilt Docker images from GHCR
             docker compose pull
             
+            # Drop stray containers from older deploys still holding our published ports
+            docker ps -q --filter publish=8000 --filter publish=3000 --filter publish=8080 | xargs -r docker rm -f
+            ss -ltnp 2>/dev/null | grep -E ':(8000|3000|8080)\b' || true
+
             # Re-launch the containers with newly pulled images
-            docker compose up -d --force-recreate
+            docker compose up -d --force-recreate --remove-orphans
             
             # Clean up old/unused images to save disk space
             docker image prune -f

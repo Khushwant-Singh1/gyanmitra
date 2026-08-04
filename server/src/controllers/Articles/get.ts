@@ -12,6 +12,7 @@ import {
   ARTICLE_STATUS,
   getMediaLookupPipeline,
   MEDIA_FILE_TYPES,
+  USER_ROLE,
 } from '../../constants';
 import { trackArticleView } from '../articleViews.controllers';
 
@@ -109,6 +110,26 @@ export const getArticlePageContent = AsyncHandler(
             },
             {
               $lookup: {
+                from: 'users',
+                localField: 'coAuthorIds',
+                foreignField: '_id',
+                pipeline: [
+                  {
+                    $project: {
+                      _id: 1,
+                      name: { $concat: ['$firstName', ' ', '$lastName'] },
+                      firstName: 1,
+                      lastName: 1,
+                      avatar: 1,
+                      role: 1,
+                    },
+                  },
+                ],
+                as: 'coAuthors',
+              },
+            },
+            {
+              $lookup: {
                 from: 'comments',
                 let: { articleId: '$_id' },
                 pipeline: [
@@ -167,6 +188,14 @@ export const getArticlePageContent = AsyncHandler(
                 authorName: {
                   $concat: ['$author.firstName', ' ', '$author.lastName'],
                 },
+                authorInfo: {
+                  _id: '$author._id',
+                  name: { $concat: ['$author.firstName', ' ', '$author.lastName'] },
+                  firstName: '$author.firstName',
+                  lastName: '$author.lastName',
+                  avatar: '$author.avatar',
+                  role: '$author.role',
+                },
               },
             },
             {
@@ -186,6 +215,9 @@ export const getArticlePageContent = AsyncHandler(
                 contentData: 1,
                 featuredMediaInfo: 1,
                 authorName: 1,
+                authorInfo: 1,
+                coAuthors: 1,
+                coAuthorIds: 1,
                 _id: 1
               },
             },
@@ -372,11 +404,21 @@ export const getAllArticles = AsyncHandler(
 
 export const getDraftArticles = AsyncHandler(
   async (req: IJwtRequest, res: Response, next: NextFunction) => {
+    const isOwnerOrAdmin =
+      req.user.role === USER_ROLE.Owner || req.user.role === USER_ROLE.Admin;
+
     const articles = await Article.aggregate([
       {
         $match: {
-          authorId: req.user._id,
           status: ARTICLE_STATUS.Draft,
+          ...(isOwnerOrAdmin
+            ? {}
+            : {
+                $or: [
+                  { authorId: req.user._id },
+                  { coAuthorIds: req.user._id },
+                ],
+              }),
         },
       },
 
@@ -461,6 +503,7 @@ export const getDraftArticle = AsyncHandler(
           description: 1,
           categoryId: 1,
           featuredMediaId: 1,
+          coAuthorIds: 1,
           metaTitle: 1,
           focusKeyword: 1,
           canonicalUrl: 1,

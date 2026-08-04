@@ -167,8 +167,19 @@ export const Article: React.FC = () => {
             <div className="flex flex-wrap items-center justify-between border-t border-zinc-200 py-4 gap-4">
               <div className="flex items-center gap-4">
                 <div className="flex flex-col">
-                  <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Writer</span>
-                  <span className="font-bold text-xs text-zinc-900">{article.authorName}</span>
+                  <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">
+                    {article.coAuthors && article.coAuthors.length > 0 ? 'Writers / Contributors' : 'Writer'}
+                  </span>
+                  <span className="font-bold text-xs text-zinc-900">
+                    {article.coAuthors && article.coAuthors.length > 0
+                      ? [
+                          article.authorName,
+                          ...article.coAuthors.map(
+                            (c) => c.name || `${c.firstName || ''} ${c.lastName || ''}`.trim()
+                          ),
+                        ].join(', ')
+                      : article.authorName}
+                  </span>
                 </div>
                 <Separator orientation="vertical" className="h-6" />
                 <div className="flex flex-col">

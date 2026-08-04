@@ -105,6 +105,23 @@ export interface IApiArticle {
       thumbnail?: string;
     };
     authorName: string;
+    authorInfo?: {
+      _id: string;
+      name: string;
+      firstName?: string;
+      lastName?: string;
+      avatar?: string;
+      role?: string;
+    };
+    coAuthors?: {
+      _id: string;
+      name: string;
+      firstName?: string;
+      lastName?: string;
+      avatar?: string;
+      role?: string;
+    }[];
+    coAuthorIds?: string[];
     
     // --- New SEO Fields Added Here ---
     metaTitle?: string;
@@ -256,6 +273,7 @@ export interface IApiEditArticle {
   description: string;
   categoryId: string;
   featuredMedia: string;
+  coAuthorIds?: string[];
   // --- New SEO Fields ---
   metaTitle?: string;
   focusKeyword?: string;

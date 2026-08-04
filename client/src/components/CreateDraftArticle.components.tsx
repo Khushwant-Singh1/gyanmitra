@@ -32,6 +32,7 @@ import { IApiResponse } from '@/api/client.api';
 import { toast } from 'sonner';
 import { SelectMediaFile } from './SelectMediaFile.components';
 import { CategoryCombobox } from './CategoryCombobox.components';
+import { CoAuthorSelect } from './CoAuthorSelect.components';
 
 export const FormSchema = z.object({
   headline: z.string().min(1, 'Headline is required'),
@@ -51,6 +52,7 @@ export const FormSchema = z.object({
   categoryId: z.string().min(1, 'Category is required'),
   featuredMediaId: z.string().min(1, 'Featured File is required'),
   scheduledPublishDate: z.string().optional(),
+  coAuthorIds: z.array(z.string()).optional(),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -69,6 +71,7 @@ export const CreateDraftArticle: React.FC = () => {
       categoryId: '',
       featuredMediaId: '',
       scheduledPublishDate: '',
+      coAuthorIds: [],
     },
   });
 
@@ -273,6 +276,26 @@ export const CreateDraftArticle: React.FC = () => {
                   </FormControl>
                   <FormDescription>
                     Schedule when this article should be published. Leave empty to publish immediately upon approval.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="coAuthorIds"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Co-Authors / Contributors (Optional)</FormLabel>
+                  <FormControl>
+                    <CoAuthorSelect
+                      selectedCoAuthorIds={field.value || []}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Select other team members who contributed to writing this article.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

@@ -18,6 +18,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { SelectMediaFile } from '@/components/SelectMediaFile.components';
 import { CategoryCombobox } from '@/components/CategoryCombobox.components';
+import { CoAuthorSelect } from '@/components/CoAuthorSelect.components';
 
 const formatDateForInput = (dateString?: string) => {
   if (!dateString) return '';
@@ -61,6 +62,7 @@ export const EditArticle: React.FC = () => {
     description: '',
     featuredMediaId: '',
     categoryId: '',
+    coAuthorIds: [] as string[],
     // --- SEO Fields ---
     metaTitle: '',
     focusKeyword: '',
@@ -140,6 +142,7 @@ export const EditArticle: React.FC = () => {
         description: data.data.description || '',
         featuredMediaId: data.data.featuredMedia,
         categoryId: data.data.categoryId,
+        coAuthorIds: data.data.coAuthorIds || [],
         // Map from API if exists, else defaults
         metaTitle: (data.data as any).metaTitle || data.data.headline,
         focusKeyword: (data.data as any).focusKeyword || '',
@@ -269,6 +272,14 @@ export const EditArticle: React.FC = () => {
                 value={formData.scheduledPublishDate} 
                 onChange={(e) => handleInputChange('scheduledPublishDate', e.target.value)} 
                 className="bg-white text-xs" 
+              />
+            </div>
+
+            <div>
+              <Label className="text-xs mb-1 block">Co-Authors / Contributors (Optional)</Label>
+              <CoAuthorSelect
+                selectedCoAuthorIds={formData.coAuthorIds}
+                onChange={(selectedIds) => setFormData((prev) => ({ ...prev, coAuthorIds: selectedIds }))}
               />
             </div>
 

@@ -14,6 +14,7 @@ import {
   ARTICLE_STATUS,
   REQUEST_STATUS,
   SLUGIFY_OPTIONS,
+  USER_ROLE,
 } from '../../constants';
 import slugify from 'slugify';
 import { ArticleContent } from '../../models/articleContent.models';
@@ -43,6 +44,7 @@ interface ICreateArticle {
   content: string;
   description: string;
   contentType: ARTICLE_CONTENT_TYPES;
+  coAuthorIds?: Types.ObjectId[];
   // SEO Fields
   metaTitle?: string;
   focusKeyword?: string;
@@ -69,6 +71,7 @@ export const create = AsyncHandler(
       content = '',
       contentType: content_type,
       description = '',
+      coAuthorIds = [],
       // Destructure SEO fields from body
       metaTitle,
       focusKeyword,
@@ -87,6 +90,10 @@ export const create = AsyncHandler(
 
     const articleContent = await ArticleContent.create({ data: content });
 
+    const filteredCoAuthors = (coAuthorIds || []).filter(
+      (id) => id.toString() !== req.user._id.toString()
+    );
+
     const article = await Article.create({
       headline,
       slug: slug
@@ -99,6 +106,7 @@ export const create = AsyncHandler(
       contentId: articleContent._id,
       contentType: content_type,
       authorId: req.user._id,
+      coAuthorIds: filteredCoAuthors,
       // Save SEO fields
       metaTitle: metaTitle || headline,
       focusKeyword,
@@ -127,6 +135,7 @@ interface IEditArticle {
   content?: string;
   description?: string;
   slug?: string;
+  coAuthorIds?: Types.ObjectId[];
   // SEO Fields
   metaTitle?: string;
   focusKeyword?: string;
@@ -145,6 +154,7 @@ export const edit = AsyncHandler(
       slug,
       content,
       description,
+      coAuthorIds,
       // Destructure SEO fields
       metaTitle,
       focusKeyword,
@@ -161,7 +171,15 @@ export const edit = AsyncHandler(
     if (article.status !== ARTICLE_STATUS.Draft)
       throw new ApiError(403, 'Only draft articles can be edited');
 
-    if (article.authorId.toString() !== userId.toString()) {
+    const isOwnerOrAdmin =
+      req.user.role === USER_ROLE.Owner || req.user.role === USER_ROLE.Admin;
+    const isPrimaryAuthor =
+      article.authorId.toString() === userId.toString();
+    const isCoAuthor = article.coAuthorIds?.some(
+      (id) => id.toString() === userId.toString()
+    );
+
+    if (!isOwnerOrAdmin && !isPrimaryAuthor && !isCoAuthor) {
       throw new ApiError(401, 'Unauthorized request');
     }
 
@@ -194,6 +212,16 @@ export const edit = AsyncHandler(
       );
     }
 
+    let newCoAuthorIds = article.coAuthorIds || [];
+    if (coAuthorIds !== undefined) {
+      newCoAuthorIds = coAuthorIds.filter(
+        (id) => id.toString() !== article.authorId.toString()
+      );
+    }
+    if (!isPrimaryAuthor && !newCoAuthorIds.some((id) => id.toString() === userId.toString())) {
+      newCoAuthorIds.push(userId);
+    }
+
     const updatedArticle = await Article.findByIdAndUpdate(
       article._id,
       {
@@ -203,6 +231,7 @@ export const edit = AsyncHandler(
         categoryId: categoryId || article.categoryId,
         tags: tags || article.tags,
         description: description || article.description,
+        coAuthorIds: newCoAuthorIds,
         // Update SEO fields
         metaTitle: metaTitle !== undefined ? metaTitle : article.metaTitle,
         focusKeyword: focusKeyword !== undefined ? focusKeyword : article.focusKeyword,
