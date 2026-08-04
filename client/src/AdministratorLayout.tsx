@@ -14,6 +14,8 @@ import { toast } from 'sonner';
 import type { IApiCurrentUserSession } from './api/client.api';
 import { useQueryClient } from '@tanstack/react-query';
 
+import { GoogleAnalyticsTracker } from '@/components/GoogleAnalyticsTracker';
+
 export default function AdministratorLayout() {
   const location = useLocation();
   const clientQuery = useQueryClient();
@@ -39,6 +41,7 @@ export default function AdministratorLayout() {
   if (user.user)
     return (
       <SidebarProvider>
+        <GoogleAnalyticsTracker />
         <AppSidebar />
         <main className="flex w-full flex-col gap-2 p-2">
           <div className="sticky top-0 z-50 flex flex-row items-center justify-between bg-zinc-50 p-2 text-sm">
