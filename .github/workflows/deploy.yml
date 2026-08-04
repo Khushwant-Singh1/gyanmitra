@@ -72,22 +72,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Prepare production docker-compose
-        run: cp docker-compose.prod.yml docker-compose.yml
-
-      - name: Copy docker-compose.yml to VPS
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.HOSTINGER_SSH_HOST }}
-          username: ${{ secrets.HOSTINGER_SSH_USERNAME }}
-          key: ${{ secrets.HOSTINGER_SSH_KEY }}
-          port: ${{ secrets.HOSTINGER_SSH_PORT || 22 }}
-          source: "docker-compose.yml"
-          target: "${{ secrets.HOSTINGER_DEPLOY_PATH }}"
-
       - name: SSH Deploy to Hostinger VPS
         uses: appleboy/ssh-action@v1.0.3
         env:
@@ -99,27 +83,31 @@ jobs:
           username: ${{ secrets.HOSTINGER_SSH_USERNAME }}
           key: ${{ secrets.HOSTINGER_SSH_KEY }}
           port: ${{ secrets.HOSTINGER_SSH_PORT || 22 }}
+          command_timeout: 10m
           envs: GHCR_USERNAME,GHCR_TOKEN,HOSTINGER_DEPLOY_PATH
           script: |
-            # Log in to GHCR on the VPS using the Personal Access Token (PAT)
-            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
-            
             # Determine base and target directories
             BASE_DIR="$HOSTINGER_DEPLOY_PATH"
             if [[ "$BASE_DIR" == */apps ]]; then
               TARGET_DIR="$BASE_DIR"
-              SOURCE_DIR="$BASE_DIR"
             else
               TARGET_DIR="$BASE_DIR/apps"
-              SOURCE_DIR="$BASE_DIR"
             fi
 
-            # If docker-compose.yml was copied to the parent dir, move it to target
-            if [ -f "$SOURCE_DIR/docker-compose.yml" ] && [ "$SOURCE_DIR" != "$TARGET_DIR" ]; then
-              mv "$SOURCE_DIR/docker-compose.yml" "$TARGET_DIR/docker-compose.yml"
+            cd "$TARGET_DIR" || cd "$BASE_DIR"
+
+            # Pull latest git changes on VPS if git repo exists
+            if [ -d ".git" ]; then
+              git pull origin main || git pull
             fi
 
-            cd "$TARGET_DIR"
+            # Prepare production docker-compose
+            if [ -f "docker-compose.prod.yml" ]; then
+              cp docker-compose.prod.yml docker-compose.yml
+            fi
+
+            # Log in to GHCR on the VPS using the Personal Access Token (PAT)
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
             
             # Pull the prebuilt Docker images from GHCR
             docker compose pull
