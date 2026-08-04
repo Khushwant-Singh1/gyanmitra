@@ -2,7 +2,7 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
 # Copy package files first for optimal layer caching
 COPY client/package.json client/pnpm-lock.yaml ./client/
@@ -33,7 +33,7 @@ COPY --from=builder /app/client/dist ./client/dist
 COPY frontend-server/package.json frontend-server/pnpm-lock.yaml ./
 
 # Install corepack & pnpm to set up production dependencies
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9 --activate
 RUN pnpm config set fetch-retries 5 && pnpm config set fetch-retry-mintimeout 20000 && pnpm install --prod --frozen-lockfile
 
 ENV NODE_ENV=production
