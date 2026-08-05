@@ -66,4 +66,15 @@ router.get(
   UserController.getUsersName
 );
 
+router.patch(
+  '/profile',
+  VerifyJWT([
+    ADMINISTRATOR_ROLE.Owner,
+    ADMINISTRATOR_ROLE.Admin,
+    ADMINISTRATOR_ROLE.Editor,
+    USER_ROLE.Viewer,
+  ]),
+  UserController.updateProfile
+);
+
 export default router;

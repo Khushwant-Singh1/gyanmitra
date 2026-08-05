@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { AsyncHandler } from '../../utils/asyncHandler.utils';
 import { ApiError } from '../../utils/ApiError.utils';
+import { IJwtRequest } from '../../middlewares/auth.middlewares';
 import {
   EMAIL_SUBJECTS,
   USER_FIELDS_TO_HIDE,
@@ -275,5 +276,35 @@ export const reSendEmailVerification = AsyncHandler(
           'successfully sended email verification'
         )
       );
+  }
+);
+
+interface IUpdateProfile {
+  firstName?: string;
+  lastName?: string;
+}
+
+export const updateProfile = AsyncHandler(
+  async (req: IJwtRequest, res: Response, next: NextFunction) => {
+    const { firstName, lastName }: IUpdateProfile = req.body;
+    const userId = req.user._id;
+
+    if (!firstName?.trim() && !lastName?.trim()) {
+      throw new ApiError(400, 'First name or last name is required');
+    }
+
+    const updateData: Record<string, any> = {};
+    if (firstName && firstName.trim()) updateData.firstName = firstName.trim();
+    if (lastName && lastName.trim()) updateData.lastName = lastName.trim();
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+    }).select(USER_FIELDS_TO_HIDE);
+
+    if (!updatedUser) throw new ApiError(404, 'User not found');
+
+    return res.status(200).json(
+      new ApiResponse(200, { user: updatedUser }, 'Profile updated successfully')
+    );
   }
 );
