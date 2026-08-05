@@ -44,9 +44,9 @@ import { Badge } from './ui/badge';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios, { isAxiosError } from 'axios';
 import { toast } from 'sonner';
-import { Input } from './ui/input';
 import { DataTablePagination } from './DataTablePagination.components';
 import { Textarea } from './ui/textarea';
+import { ScheduleArticleModal } from './ScheduleArticleModal.components';
 
 interface ArticleTableProps {
   articles: IApiArticleManage[];
@@ -58,6 +58,11 @@ export const ArticleTable: React.FC<ArticleTableProps> = ({
   navigate,
 }) => {
   const queryClient = useQueryClient();
+
+  const [scheduleTarget, setScheduleTarget] = useState<{
+    id: string;
+    headline: string;
+  } | null>(null);
 
   // Mutations
   const cloneArticle = useMutation({
@@ -418,6 +423,16 @@ export const ArticleTable: React.FC<ArticleTableProps> = ({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() =>
+                setScheduleTarget({
+                  id: row.original._id,
+                  headline: row.original.headline,
+                })
+              }
+            >
+              Schedule
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
                 row.original.status === ARTICLE_STATUS.Private
                   ? publishArticle.mutate({ _id: row.original._id })
                   : privateArticle.mutate({ _id: row.original._id })
@@ -570,6 +585,15 @@ export const ArticleTable: React.FC<ArticleTableProps> = ({
           <DataTablePagination table={table} />
         </div>
       </div>
+
+      {scheduleTarget && (
+        <ScheduleArticleModal
+          articleId={scheduleTarget.id}
+          headline={scheduleTarget.headline}
+          open={!!scheduleTarget}
+          onOpenChange={(open) => !open && setScheduleTarget(null)}
+        />
+      )}
     </div>
   );
 };

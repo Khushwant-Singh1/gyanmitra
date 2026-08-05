@@ -22,6 +22,10 @@ import { Report } from '../../models/report.models';
 import { ArticleApprovalRequest } from '../../models/articleApprovalRequest.models';
 import { ArticleView } from '../../models/articleView.models';
 import { Comment } from '../../models/comment.models';
+import {
+  scheduleArticleTimer,
+  cancelArticleTimer,
+} from '../../services/scheduler.services';
 
 const validateCategoryAndMedia = async (
   categoryId: Types.ObjectId,
@@ -302,10 +306,13 @@ export const publish = AsyncHandler(
       });
       await article.save();
       
+      scheduleArticleTimer(article._id.toString(), article.scheduledPublishDate);
+
       return res
         .status(200)
         .json(new ApiResponse(200, article, 'Article scheduled successfully'));
     } else {
+      cancelArticleTimer(article._id.toString());
       article.status = ARTICLE_STATUS.Published;
       article.lastPublishedDate = new Date(Date.now());
       article.scheduledPublishDate = undefined;
@@ -321,6 +328,30 @@ export const publish = AsyncHandler(
         .status(200)
         .json(new ApiResponse(200, article, 'Article published successfully'));
     }
+  }
+);
+
+export const cancelSchedule = AsyncHandler(
+  async (req: IJwtRequest, res: Response, next: NextFunction) => {
+    const articleId = req.params._id;
+
+    const article = await Article.findById(articleId);
+    if (!article) throw new ApiError(404, 'Article not found');
+
+    if (article.status !== ARTICLE_STATUS.Scheduled) {
+      throw new ApiError(400, 'Article is not currently scheduled');
+    }
+
+    cancelArticleTimer(article._id.toString());
+
+    article.status = ARTICLE_STATUS.Draft;
+    article.scheduledPublishDate = undefined;
+
+    await article.save();
+
+    return res.status(200).json(
+      new ApiResponse(200, article, 'Article schedule cancelled successfully')
+    );
   }
 );
 

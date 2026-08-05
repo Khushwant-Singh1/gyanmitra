@@ -168,6 +168,9 @@ ArticleSchema.index({
   focusKeyword: 'text' 
 });
 
+// Compound Index for high-performance scheduled article queries
+ArticleSchema.index({ status: 1, scheduledPublishDate: 1 });
+
 ArticleSchema.pre<IArticle>('save', function (next) {
   if (!this.slug) {
     this.slug = slugify(this.headline, SLUGIFY_OPTIONS);

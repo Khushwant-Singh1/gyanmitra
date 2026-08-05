@@ -11,6 +11,7 @@ import {
   faTags,
   faUsers,
   faTrophy, // 🏆 Competition icon added
+  faClock,
 } from '@fortawesome/free-solid-svg-icons';
 import { USER_ROLE } from './index.constants';
 
@@ -42,7 +43,12 @@ export const ADMINISTRATOR_SIDEBAR: {
     icon: faNewspaper,
     access: [USER_ROLE.Admin, USER_ROLE.Owner],
   },
-
+  {
+    title: 'Scheduled',
+    url: '/administrator/articles-scheduled',
+    icon: faClock,
+    access: [USER_ROLE.Admin, USER_ROLE.Owner, USER_ROLE.Editor],
+  },
   {
     title: 'Drafts',
     url: '/administrator/articles-draft',

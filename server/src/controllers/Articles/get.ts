@@ -9,6 +9,7 @@ import { Article } from '../../models/article.models';
 import { ApiError } from '../../utils/ApiError.utils';
 import { ApiResponse } from '../../utils/ApiResponse.utils';
 import {
+  ADMINISTRATOR_ROLE,
   ARTICLE_STATUS,
   getMediaLookupPipeline,
   MEDIA_FILE_TYPES,
@@ -608,5 +609,74 @@ export const getQuery = AsyncHandler(
     ]);
 
     return res.status(200).send(new ApiResponse(200, articles));
+  }
+);
+
+export const getScheduledArticles = AsyncHandler(
+  async (req: IJwtRequest, res: Response, next: NextFunction) => {
+    const user = req.user;
+
+    const filter: Record<string, any> = {
+      status: ARTICLE_STATUS.Scheduled,
+    };
+
+    if (user.role === ADMINISTRATOR_ROLE.Editor) {
+      filter.$or = [
+        { authorId: user._id },
+        { coAuthorIds: user._id },
+      ];
+    }
+
+    const scheduledArticles = await Article.aggregate([
+      { $match: filter },
+      { $sort: { scheduledPublishDate: 1 } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'authorId',
+          foreignField: '_id',
+          as: 'author',
+        },
+      },
+      {
+        $unwind: {
+          path: '$author',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'categoryId',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      {
+        $unwind: {
+          path: '$category',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          headline: 1,
+          slug: 1,
+          description: 1,
+          scheduledPublishDate: 1,
+          status: 1,
+          categoryName: '$category.name',
+          authorName: {
+            $concat: ['$author.firstName', ' ', '$author.lastName'],
+          },
+          lastUpdated: '$updatedAt',
+        },
+      },
+    ]);
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, scheduledArticles, 'Scheduled articles fetched successfully'));
   }
 );

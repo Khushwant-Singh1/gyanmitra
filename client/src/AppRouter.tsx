@@ -18,6 +18,7 @@ import { ManageMembers } from './pages/ManageMembers.pages';
 import { SignUp } from './pages/SignUp.pages';
 import { EmailVerify } from './pages/EmailVerify.pages';
 import CompetitionsPage from './pages/Competitions.page';
+import { ScheduledArticles } from './pages/ScheduledArticles.pages';
 
 import PageNotFounded from './pages/PageNotFounded.pages';
 import { PrivacyPolicy } from './pages/PrivacyPolicy.pages';
@@ -107,6 +108,7 @@ const router = createBrowserRouter(
 
           <Route path="article-requests" element={<ArticleRequests />} />
           <Route path="articles-draft" element={<DraftArticle />} />
+          <Route path="articles-scheduled" element={<ScheduledArticles />} />
           <Route path="competitions" element={<CompetitionsPage />} />
           
           <Route element={<ProtectedRoute allowedRole={[USER_ROLE.Owner]} />}>

@@ -34,6 +34,16 @@ router.get(
 );
 
 router.get(
+  '/scheduled',
+  VerifyJWT([
+    ADMINISTRATOR_ROLE.Admin,
+    ADMINISTRATOR_ROLE.Editor,
+    ADMINISTRATOR_ROLE.Owner,
+  ]),
+  ArticleController.getScheduledArticles
+);
+
+router.get(
   '/draft/:_id',
   checkRequiredFields(['_id'], FIELD_SOURCE.params),
   validateObjectId(['_id'], FIELD_SOURCE.params),
@@ -118,6 +128,15 @@ router.put(
   checkRequiredFields(['_id'], FIELD_SOURCE.params),
   validateObjectId(['_id'], FIELD_SOURCE.params),
   ArticleController.publish
+);
+
+// Cancel Article Schedule
+router.put(
+  '/:_id/cancel-schedule',
+  VerifyJWT([ADMINISTRATOR_ROLE.Admin, ADMINISTRATOR_ROLE.Owner]),
+  checkRequiredFields(['_id'], FIELD_SOURCE.params),
+  validateObjectId(['_id'], FIELD_SOURCE.params),
+  ArticleController.cancelSchedule
 );
 
 // Set Article as Private
