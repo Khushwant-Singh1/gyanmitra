@@ -11,7 +11,14 @@ const app = express();
 
 app.use(express.static('public'));
 
-const distPath = path.join(__dirname, '../../client/dist');
+// The Docker image collapses `frontend-server/dist` and `client/dist` to
+// `/app/dist` and `/app/client/dist` (one level up from __dirname), while
+// running from source in dev nests them two levels up instead. Try the
+// Docker layout first and fall back to the dev layout.
+const dockerDistPath = path.join(__dirname, '../client/dist');
+const distPath = fs.existsSync(dockerDistPath)
+  ? dockerDistPath
+  : path.join(__dirname, '../../client/dist');
 const assetsPath = path.join(distPath, 'assets');
 const indexHtmlPath = path.join(distPath, 'index.html');
 
@@ -58,7 +65,13 @@ interface IMetaData {
 }
 
 const fetchMetaData = async (slug: string): Promise<IMetaData> => {
-  const baseURL = (process.env.WEBSITE_URL || 'https://gyanmitranews.com').replace(/\/+$/, '');
+  // Same guard as the server's CLIENT_URL handling: never treat an internal
+  // Docker/localhost address as the public site URL, even if WEBSITE_URL is
+  // misconfigured to one — social crawlers can't reach it.
+  const configuredWebsiteUrl = (process.env.WEBSITE_URL || '').replace(/\/+$/, '');
+  const baseURL = /localhost|127\.0\.0\.1|frontend:3000|server:8000/.test(configuredWebsiteUrl)
+    ? 'https://gyanmitranews.com'
+    : configuredWebsiteUrl || 'https://gyanmitranews.com';
   const apiUrl = (process.env.API_URL || 'http://server:8000').replace(/\/+$/, '');
 
   // Check if the slug corresponds to an article route
