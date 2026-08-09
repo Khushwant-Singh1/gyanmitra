@@ -122,6 +122,9 @@ importers:
       numeral:
         specifier: ^2.0.6
         version: 2.0.6
+      prismjs:
+        specifier: ^1.30.0
+        version: 1.30.0
       react:
         specifier: ^18.3.1
         version: 18.3.1
