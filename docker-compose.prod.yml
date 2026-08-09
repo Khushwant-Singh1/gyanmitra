@@ -23,7 +23,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=8000
-      - CLIENT_URL=http://frontend:3000
+      - CLIENT_URL=https://gyanmitranews.com
       - MINIO_ENDPOINT=minio
       - MINIO_PORT=9000
       - MINIO_USE_SSL=false
@@ -52,7 +52,7 @@ services:
     environment:
       - NODE_ENV=production
       - API_URL=http://server:8000
-      - WEBSITE_URL=http://localhost:3000
+      - WEBSITE_URL=https://gyanmitranews.com
     depends_on:
       - server
       - client

@@ -70,6 +70,7 @@ app.use('/api/articles', ArticleRouter);
 app.use('/api/article-requests', ArticleRequestRouter);
 app.use('/api/media', MediaFileRouter);
 app.use('/api/meta', MetaRouter);
+app.use('/meta', MetaRouter);
 app.get('/api/time', (req, res) => {
   res
     .status(200)

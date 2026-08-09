@@ -13,22 +13,141 @@ app.use(express.static('public'));
 
 const distPath = path.join(__dirname, '../../client/dist');
 const assetsPath = path.join(distPath, 'assets');
+const indexHtmlPath = path.join(distPath, 'index.html');
+
 app.use(express.static(distPath, { index: false }));
 
 if (process.env.NODE_ENV === 'development') {
   app.use(
     '/api',
     createProxyMiddleware({
-      target: process.env.API_URL,
+      target: process.env.API_URL || 'http://localhost:8000',
       changeOrigin: true,
     })
   );
 }
 
+// Helper function to escape HTML special characters in meta tag attributes
+const escapeHtml = (text: string | null | undefined): string => {
+  if (!text) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+};
+
 // Helper function to get file by extension in the assets folder
-const getFileByExtension = (folderPath: string, extension: string) => {
-  const files = fs.readdirSync(folderPath);
-  return files.find((file) => file.endsWith(extension));
+const getFileByExtension = (folderPath: string, extension: string): string => {
+  if (!fs.existsSync(folderPath)) return '';
+  try {
+    const files = fs.readdirSync(folderPath);
+    return files.find((file) => file.endsWith(extension)) || '';
+  } catch {
+    return '';
+  }
+};
+
+interface IMetaData {
+  title: string;
+  description: string;
+  image: string;
+  canonical: string;
+  type: string;
+}
+
+const fetchMetaData = async (slug: string): Promise<IMetaData> => {
+  const baseURL = (process.env.WEBSITE_URL || 'https://gyanmitranews.com').replace(/\/+$/, '');
+  const apiUrl = (process.env.API_URL || 'http://server:8000').replace(/\/+$/, '');
+
+  // Check if the slug corresponds to an article route
+  if (slug.startsWith('/articles/')) {
+    try {
+      // Extract, sanitize, and decode the article slug
+      const rawSlug = slug.replace(/^\/articles\//, '').split('?')[0].replace(/\/+$/, '');
+      const articleSlug = decodeURIComponent(rawSlug);
+
+      if (articleSlug) {
+        // Try fetching metadata from backend API
+        const metaUrl = apiUrl.endsWith('/api')
+          ? `${apiUrl}/meta/articles/${encodeURIComponent(articleSlug)}`
+          : `${apiUrl}/api/meta/articles/${encodeURIComponent(articleSlug)}`;
+
+        const response = await axios.get(metaUrl, { timeout: 5000 });
+
+        if (response.status === 200 && response.data?.data) {
+          const article = response.data.data;
+          let image = article.image || `${baseURL}/assets/gyanmitra.png`;
+
+          // Ensure image URL is absolute and uses public HTTPS domain
+          if (image.startsWith('/')) {
+            image = `${baseURL}${image}`;
+          } else if (
+            image.includes('frontend:3000') ||
+            image.includes('localhost:3000') ||
+            image.includes('server:8000')
+          ) {
+            image = image.replace(
+              /https?:\/\/(frontend:3000|localhost:3000|server:8000)/,
+              baseURL
+            );
+          }
+
+          return {
+            title: article.title ? `${article.title}` : 'Gyanmitra',
+            description:
+              article.description ||
+              'ज्ञानमित्र न्यूज़ - शिक्षा, नवाचार, और नैतिक मूल्यों पर आधारित समाचार।',
+            image,
+            canonical: `${baseURL}/articles/${encodeURIComponent(articleSlug)}`,
+            type: 'article',
+          };
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching article metadata:', (error as any).message);
+    }
+  }
+
+  // Predefined routes and default fallback
+  const metaDataMap: Record<string, IMetaData> = {
+    '/': {
+      title: 'Gyanmitra - Hindi News & Knowledge Portal',
+      description:
+        'ज्ञानमित्र न्यूज़ - शिक्षा, नवाचार, और नैतिक मूल्यों पर आधारित समाचारों का आपका विश्वसनीय स्रोत। प्रेरक कहानियाँ, नवीनतम जानकारी, और सूचनाओं के माध्यम से सकारात्मक बदलाव को बढ़ावा देने वाला प्लेटफ़ॉर्म।',
+      image: `${baseURL}/assets/gyanmitra.png`,
+      canonical: `${baseURL}/`,
+      type: 'website',
+    },
+    '/sign-in': {
+      title: 'Sign In - Gyanmitra',
+      description:
+        'अपने ज्ञानमित्र खाते में साइन इन करें और शिक्षा, नवाचार, और प्रेरणादायक कहानियों तक पहुँच प्राप्त करें।',
+      image: `${baseURL}/assets/gyanmitra.png`,
+      canonical: `${baseURL}/sign-in`,
+      type: 'website',
+    },
+    '/sign-up': {
+      title: 'Sign Up - Gyanmitra',
+      description:
+        'ज्ञानमित्र में शामिल हों और शिक्षा, नवाचार, और प्रेरक सामग्री की हमारी विस्तृत श्रृंखला का हिस्सा बनें।',
+      image: `${baseURL}/assets/gyanmitra.png`,
+      canonical: `${baseURL}/sign-up`,
+      type: 'website',
+    },
+  };
+
+  const defaultMeta: IMetaData = {
+    title: 'Gyanmitra',
+    description:
+      'ज्ञानमित्र न्यूज़ - शिक्षा, नवाचार, और नैतिक मूल्यों पर आधारित समाचारों का आपका विश्वसनीय स्रोत। प्रेरक कहानियाँ, नवीनतम जानकारी, और सूचनाओं के माध्यम से सकारात्मक बदलाव को बढ़ावा देने वाला प्लेटफ़ॉर्म।',
+    image: `${baseURL}/assets/gyanmitra.png`,
+    canonical: `${baseURL}${slug}`,
+    type: 'website',
+  };
+
+  return metaDataMap[slug] || defaultMeta;
 };
 
 app.get('*', async (req, res) => {
@@ -47,7 +166,68 @@ app.get('*', async (req, res) => {
   const slug = req.path;
   const metaData = await fetchMetaData(slug);
 
-  // Get dynamic JS and CSS filenames from the assets folder
+  const metaTagsHtml = `
+    <!-- Primary Meta Tags -->
+    <meta name="description" content="${escapeHtml(metaData.description)}" />
+    <meta name="keywords" content="gyanmitra, news, education, journalism, knowledge" />
+    <meta name="author" content="Gyanmitra" />
+    <link rel="canonical" href="${escapeHtml(metaData.canonical)}" />
+    
+    <!-- Open Graph / WhatsApp / Facebook Meta Tags -->
+    <meta property="og:type" content="${escapeHtml(metaData.type)}" />
+    <meta property="og:site_name" content="Gyanmitra" />
+    <meta property="og:locale" content="hi_IN" />
+    <meta property="og:title" content="${escapeHtml(metaData.title)}" />
+    <meta property="og:description" content="${escapeHtml(metaData.description)}" />
+    <meta property="og:url" content="${escapeHtml(metaData.canonical)}" />
+    <meta property="og:image" content="${escapeHtml(metaData.image)}" />
+    <meta property="og:image:secure_url" content="${escapeHtml(metaData.image)}" />
+    <meta property="og:image:alt" content="${escapeHtml(metaData.title)}" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <!-- Twitter Card Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="${escapeHtml(metaData.title)}" />
+    <meta name="twitter:description" content="${escapeHtml(metaData.description)}" />
+    <meta name="twitter:image" content="${escapeHtml(metaData.image)}" />
+    <meta name="twitter:url" content="${escapeHtml(metaData.canonical)}" />
+  `;
+
+  // If client/dist/index.html exists from Vite build, inject meta tags directly into it
+  if (fs.existsSync(indexHtmlPath)) {
+    try {
+      let indexHtml = fs.readFileSync(indexHtmlPath, 'utf-8');
+
+      // Replace or update lang attribute
+      indexHtml = indexHtml.replace(/<html[^>]*>/i, '<html lang="hi">');
+
+      // Replace title tag
+      if (indexHtml.includes('<title>')) {
+        indexHtml = indexHtml.replace(
+          /<title>.*?<\/title>/i,
+          `<title>${escapeHtml(metaData.title)}</title>`
+        );
+      } else {
+        indexHtml = indexHtml.replace(
+          /<head>/i,
+          `<head><title>${escapeHtml(metaData.title)}</title>`
+        );
+      }
+
+      // Inject open graph and meta tags right before </head>
+      indexHtml = indexHtml.replace('</head>', `${metaTagsHtml}\n</head>`);
+
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.send(indexHtml);
+      return;
+    } catch (err) {
+      console.error('Error reading index.html, using fallback template:', err);
+    }
+  }
+
+  // Fallback HTML template if index.html is not yet built
   const jsFile = getFileByExtension(assetsPath, '.js');
   const cssFile = getFileByExtension(assetsPath, '.css');
 
@@ -56,54 +236,23 @@ app.get('*', async (req, res) => {
     <html lang="hi">
     <head>
       <meta charset="UTF-8" />
-      <!-- Google tag is injected at the edge by Cloudflare Google tag gateway (/gmetrics) -->
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-      <meta name="description" content="${
-        metaData.description || 'Default Description'
-      }" />
-      <meta name="keywords" content="gyanmitra, news, education, journalism, knowledge" />
-      <meta name="author" content="Gyanmitra" />
-      
-      <!-- Open Graph Tags -->
-      <meta property="og:type" content="website" />
-      <meta property="og:title" content="${metaData.title || 'Gyanmitra'}" />
-      <meta property="og:description" content="${
-        metaData.description || 'Default Description'
-      }" />
-      <meta property="og:image" content="${
-        metaData.image || 'https://gyanmitranews.com/assets/gyanmitra.png'
-      }" />
-      <meta property="og:url" content="${metaData.canonical}" />
-      <meta property="og:site_name" content="Gyanmitra" />
-      <meta property="og:locale" content="hi_IN" />
+      <title>${escapeHtml(metaData.title)}</title>
 
+      ${metaTagsHtml}
 
-      <!-- Twitter Card Tags -->
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content="${metaData.title || 'Gyanmitra'}" />
-      <meta name="twitter:description" content="${
-        metaData.description || 'Default Description'
-      }" />
-      <meta name="twitter:image" content="${
-        metaData.image || 'https://gyanmitranews.com/assets/gyanmitra.png'
-      }" />
-      <meta name="twitter:url" content="${metaData.canonical}" />
-
-      <!-- Favicon -->
+      <!-- Favicon & Fonts -->
       <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
       <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
       <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
       <link rel="manifest" href="/site.webmanifest" />
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-      <link rel="canonical" href="${metaData.canonical}" />
-
-      <title>${
-        metaData.title ? metaData.title + ' - Gyanmitra' : 'Gyanmitra'
-      }</title>
-
-      <script type="module" crossorigin src="/assets/${jsFile}"></script>
-      <link rel="stylesheet" crossorigin href="/assets/${cssFile}">
+      ${jsFile ? `<script type="module" crossorigin src="/assets/${jsFile}"></script>` : ''}
+      ${cssFile ? `<link rel="stylesheet" crossorigin href="/assets/${cssFile}">` : ''}
     </head>
     <body>
       <div id="root"></div>
@@ -111,83 +260,12 @@ app.get('*', async (req, res) => {
     </html>
   `;
 
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.send(html);
 });
-
-const fetchMetaData = async (
-  slug: string
-): Promise<{
-  title: string;
-  description: string;
-  image: string;
-  canonical: string;
-}> => {
-  const baseURL = process.env.WEBSITE_URL;
-
-  // Check if the slug corresponds to an article route
-  if (slug.startsWith('/articles/')) {
-    try {
-      // Extract the article ID from the slug
-      const articleSlug = slug.split('/articles/')[1];
-
-      // Fetch metadata from your backend API
-      const response = await axios.get(
-        `${process.env.API_URL}/meta/articles/${articleSlug}`
-      );
-
-      if (response.status === 200) {
-        const article = response.data.data;
-
-        // Return the dynamically fetched metadata
-        return {
-          title: article.title || 'Article',
-          description: article.description || 'Read our latest article.',
-          image: article.image || `${baseURL}/assets/default-article.png`,
-          canonical: `${baseURL}${slug}`,
-        };
-      } else {
-        console.error(`Failed to fetch article metadata: ${response.status}`);
-      }
-    } catch (error) {
-      console.error('Error fetching article metadata:', (error as any).message);
-    }
-  }
-
-  // Default metadata for predefined routes
-  const metaData: Record<string, any> = {
-    '/': {
-      title: 'Home',
-      description: `ज्ञानमित्र न्यूज़ - शिक्षा, नवाचार, और नैतिक मूल्यों पर आधारित समाचारों का आपका विश्वसनीय स्रोत। 
-                    प्रेरक कहानियाँ, नवीनतम जानकारी, और सूचनाओं के माध्यम से सकारात्मक बदलाव को बढ़ावा देने वाला प्लेटफ़ॉर्म।`,
-      image: `${baseURL}/assets/gyanmitra.png`,
-      canonical: `${baseURL}/`,
-    },
-    '/sign-in': {
-      title: 'Sign In',
-      description: `अपने ज्ञानमित्र खाते में साइन इन करें और शिक्षा, नवाचार, और प्रेरणादायक कहानियों तक पहुँच प्राप्त करें।`,
-      image: `${baseURL}/assets/gyanmitra.png`,
-      canonical: `${baseURL}/sign-in`,
-    },
-    '/sign-up': {
-      title: 'Sign Up',
-      description: `ज्ञानमित्र में शामिल हों और शिक्षा, नवाचार, और प्रेरक सामग्री की हमारी विस्तृत श्रृंखला का हिस्सा बनें।`,
-      image: `${baseURL}/assets/gyanmitra.png`,
-      canonical: `${baseURL}/sign-up`,
-    },
-  };
-
-  return (
-    metaData[slug] || {
-      description: `ज्ञानमित्र न्यूज़ - शिक्षा, नवाचार, और नैतिक मूल्यों पर आधारित समाचारों का आपका विश्वसनीय स्रोत। 
-                    प्रेरक कहानियाँ, नवीनतम जानकारी, और सूचनाओं के माध्यम से सकारात्मक बदलाव को बढ़ावा देने वाला प्लेटफ़ॉर्म।`,
-      image: `${baseURL}/assets/gyanmitra.png`,
-      canonical: `${baseURL}${slug}`,
-    }
-  );
-};
 
 const PORT = Number(process.env.PORT) || 3000;
 
 app.listen(PORT, () => {
-  console.log(`Server is running on ${PORT}`);
+  console.log(`Frontend server is running on ${PORT}`);
 });

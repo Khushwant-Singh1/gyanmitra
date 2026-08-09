@@ -544,11 +544,15 @@ export const getArticleMetaData = AsyncHandler(
       },
     ]);
 
-    if (articleMeta[0]?.image) {
-      articleMeta[0].image = articleMeta[0].image.replace(
-        '/uploads',
-        (process.env.CLIENT_URL || '') + '/uploads'
-      );
+    let imageUrl = articleMeta[0]?.image || '';
+    if (imageUrl) {
+      const publicBase = (process.env.CLIENT_URL || 'https://gyanmitranews.com').replace(/\/+$/, '');
+      if (imageUrl.startsWith('/uploads')) {
+        imageUrl = `${publicBase}${imageUrl}`;
+      } else if (imageUrl.includes('frontend:3000') || imageUrl.includes('localhost:3000') || imageUrl.includes('server:8000')) {
+        imageUrl = imageUrl.replace(/https?:\/\/(frontend:3000|localhost:3000|server:8000)/, publicBase);
+      }
+      articleMeta[0].image = imageUrl;
     }
 
     return res.status(200).send(new ApiResponse(200, articleMeta[0]));
