@@ -86,7 +86,7 @@ export const ADMINISTRATOR_SIDEBAR: {
     title: 'Members',
     url: '/administrator/members',
     icon: faUsers,
-    access: [USER_ROLE.Owner],
+    access: [USER_ROLE.Owner, USER_ROLE.Admin],
   },
 
 

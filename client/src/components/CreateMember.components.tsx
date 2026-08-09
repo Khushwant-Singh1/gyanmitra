@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Sheet,
   SheetClose,
@@ -31,49 +31,75 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Textarea } from './ui/textarea';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios, { isAxiosError } from 'axios';
 import type { IApiCurrentUserSession, IApiResponse } from '@/api/client.api';
 import { toast } from 'sonner';
+import { Eye, EyeOff } from 'lucide-react';
 
 const formSchema = z.object({
-  email: z.string().trim().min(1, 'Please enter the email.').email(),
-  message: z
+  firstName: z
     .string()
     .trim()
-    .min(10, 'Please enter a message. Min 10 characters.'),
-  receiverRole: z.enum([USER_ROLE.Admin, USER_ROLE.Editor]),
+    .min(2, 'First name must be at least 2 characters.')
+    .max(50, 'First name must be less than 50 characters.'),
+  lastName: z
+    .string()
+    .trim()
+    .min(2, 'Last name must be at least 2 characters.')
+    .max(50, 'Last name must be less than 50 characters.'),
+  email: z
+    .string()
+    .trim()
+    .min(1, 'Please enter an email.')
+    .email('Please enter a valid email address.'),
+  password: z
+    .string()
+    .min(6, 'Password must be at least 6 characters.'),
+  role: z.enum([USER_ROLE.Admin, USER_ROLE.Editor], {
+    required_error: 'Please select a role.',
+  }),
 });
 
 export const CreateMember: React.FC = () => {
   const clientQuery = useQueryClient();
+  const [showPassword, setShowPassword] = useState(false);
 
-  const user = (clientQuery.getQueryData(['me']) as any)
-    .data as IApiCurrentUserSession;
+  const session = clientQuery.getQueryData(['me']) as any;
+  const user = session?.data as IApiCurrentUserSession | undefined;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      firstName: '',
+      lastName: '',
       email: '',
-      message: '',
-      receiverRole: undefined,
+      password: '',
+      role: USER_ROLE.Editor,
     },
   });
 
   const sheetCloseRef = useRef<HTMLButtonElement | null>(null);
-  const createInvitation = useMutation({
+
+  const createMemberMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
-      return await axios.post<IApiResponse<any>>(`/api/users/invite`, {
+      return await axios.post<IApiResponse<any>>(`/api/users/create`, {
         ...data,
       });
     },
     onSuccess: () => {
-      form.reset();
+      form.reset({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        role: USER_ROLE.Editor,
+      });
+      clientQuery.invalidateQueries({ queryKey: ['users', 'all'] });
       if (sheetCloseRef.current) {
         sheetCloseRef.current.click();
       }
-      toast.success('Invitation created successfully!');
+      toast.success('Member created successfully! You can share their login credentials.');
     },
     onError: (error) => {
       const errorMessage = isAxiosError(error)
@@ -84,52 +110,119 @@ export const CreateMember: React.FC = () => {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    createInvitation.mutate(values);
+    createMemberMutation.mutate(values);
   }
+
+  const isOwner = user?.user.role === USER_ROLE.Owner;
 
   return (
     <Sheet>
       <SheetTrigger asChild>
         <Button>New Member</Button>
       </SheetTrigger>
-      <SheetContent>
+      <SheetContent className="overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Create Invitation</SheetTitle>
+          <SheetTitle>Create New Member</SheetTitle>
           <SheetDescription>
-            Fill in the form below to create a new member invitation. Make sure
-            to provide all the required information.
+            Create a member account directly by setting their email ID and password.
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 py-4">
+            <div className="grid grid-cols-2 gap-3">
+              <FormField
+                control={form.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>First Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Last Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Email (Login ID)</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="you@example.com"
+                      placeholder="member@example.com"
                       type="email"
                       {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    Please enter the email address of the new member.
+                    This will be used as their login email.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
-              name="receiverRole"
+              name="password"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        placeholder="••••••••"
+                        type={showPassword ? 'text' : 'password'}
+                        {...field}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </FormControl>
+                  <FormDescription>
+                    Set a password (min 6 characters) to share with them.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -137,46 +230,31 @@ export const CreateMember: React.FC = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {user?.user.role === USER_ROLE.Owner ? (
-                        <SelectItem value="Admin">Admin</SelectItem>
-                      ) : null}
-                      <SelectItem value="Editor">Editor</SelectItem>
+                      {isOwner && (
+                        <SelectItem value={USER_ROLE.Admin}>Admin</SelectItem>
+                      )}
+                      <SelectItem value={USER_ROLE.Editor}>Editor</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    Please select the role of the new member.
+                    Permissions granted to this member.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="message"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Message</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Write a message..."
-                      className="resize-none"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Please enter a message for the new member.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <SheetFooter>
-              <Button type="submit" disabled={createInvitation.isPending}>
-                {createInvitation.isPending
-                  ? 'Creating...'
-                  : 'Create Invitation'}
+
+            <SheetFooter className="pt-4">
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={createMemberMutation.isPending}
+              >
+                {createMemberMutation.isPending
+                  ? 'Creating Member...'
+                  : 'Create Member'}
               </Button>
-              <SheetClose ref={sheetCloseRef}></SheetClose>
+              <SheetClose ref={sheetCloseRef} className="hidden" />
             </SheetFooter>
           </form>
         </Form>

@@ -116,23 +116,27 @@ export const columns: ColumnDef<IApiManageMembers>[] = [
   },
   {
     accessorKey: 'inviter',
-    header: 'Inviter',
+    header: 'Created By',
     cell: ({ row }) => {
-      if (row.original.inviter.length) {
+      const inviterEmail = Array.isArray(row.original.inviter)
+        ? row.original.inviter[0]
+        : row.original.inviter;
+
+      if (inviterEmail && inviterEmail.length > 0) {
         return (
           <Button
             variant={'ghost'}
             onClick={() => {
               toast.success('Email Copied.');
-              navigator.clipboard.writeText(row.original.inviter);
+              navigator.clipboard.writeText(inviterEmail);
             }}
             className="px-1"
           >
-            {row.original.inviter}
+            {inviterEmail}
           </Button>
         );
       }
-      return 'Not invited';
+      return 'Direct / None';
     },
   },
   {
@@ -264,7 +268,7 @@ export const ManageMembers: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle>Members</CardTitle>
-          <CardDescription>Members invited by you.</CardDescription>
+          <CardDescription>Manage team members and their roles.</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>

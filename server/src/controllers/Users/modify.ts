@@ -3,6 +3,7 @@ import { AsyncHandler } from '../../utils/asyncHandler.utils';
 import { ApiError } from '../../utils/ApiError.utils';
 import { IJwtRequest } from '../../middlewares/auth.middlewares';
 import {
+  ADMINISTRATOR_ROLE,
   EMAIL_SUBJECTS,
   USER_FIELDS_TO_HIDE,
   USER_ROLE,
@@ -308,3 +309,99 @@ export const updateProfile = AsyncHandler(
     );
   }
 );
+
+export const CREATE_MEMBER_REQ_FIELDS = [
+  'firstName',
+  'lastName',
+  'email',
+  'password',
+  'role',
+];
+
+interface ICreateMember {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  role: ADMINISTRATOR_ROLE;
+}
+
+export const createMember = AsyncHandler(
+  async (req: IJwtRequest, res: Response, next: NextFunction) => {
+    const { firstName, lastName, email, password, role }: ICreateMember =
+      req.body;
+
+    if (!firstName || typeof firstName !== 'string' || firstName.trim().length < 2) {
+      throw new ApiError(
+        400,
+        'First name is required and must be at least 2 characters'
+      );
+    }
+
+    if (!lastName || typeof lastName !== 'string' || lastName.trim().length < 2) {
+      throw new ApiError(
+        400,
+        'Last name is required and must be at least 2 characters'
+      );
+    }
+
+    if (!email || !isValidEmail(email)) {
+      throw new ApiError(400, 'A valid email address is required');
+    }
+
+    if (!password || typeof password !== 'string' || password.length < 6) {
+      throw new ApiError(400, 'Password must be at least 6 characters');
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const isEmailExists = await User.exists({ email: normalizedEmail });
+    if (isEmailExists) {
+      throw new ApiError(400, 'A user with this email already exists');
+    }
+
+    if (req.user.role === ADMINISTRATOR_ROLE.Owner) {
+      if (
+        role !== ADMINISTRATOR_ROLE.Admin &&
+        role !== ADMINISTRATOR_ROLE.Editor
+      ) {
+        throw new ApiError(
+          400,
+          'Owner can only create Admin or Editor roles'
+        );
+      }
+    } else if (req.user.role === ADMINISTRATOR_ROLE.Admin) {
+      if (role !== ADMINISTRATOR_ROLE.Editor) {
+        throw new ApiError(403, 'Admin can only create Editor role');
+      }
+    } else {
+      throw new ApiError(403, 'Unauthorized to create members');
+    }
+
+    const member = await User.create({
+      firstName: firstName.trim().toLowerCase(),
+      lastName: lastName.trim().toLowerCase(),
+      email: normalizedEmail,
+      password,
+      role,
+      isEmailVerified: true,
+      inviterId: req.user._id,
+    });
+
+    const cleanMember = await User.findById(member._id).select(
+      USER_FIELDS_TO_HIDE
+    );
+
+    if (!cleanMember) throw new ApiError(500, 'Problem creating member');
+
+    return res
+      .status(201)
+      .json(
+        new ApiResponse(
+          201,
+          { member: cleanMember },
+          'Member created successfully'
+        )
+      );
+  }
+);
+

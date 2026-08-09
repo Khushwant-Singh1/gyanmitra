@@ -111,9 +111,11 @@ const router = createBrowserRouter(
           <Route path="articles-scheduled" element={<ScheduledArticles />} />
           <Route path="competitions" element={<CompetitionsPage />} />
           
+          <Route element={<ProtectedRoute allowedRole={[USER_ROLE.Owner, USER_ROLE.Admin]} />}>
+            <Route path="members" element={<ManageMembers />} />
+          </Route>
           <Route element={<ProtectedRoute allowedRole={[USER_ROLE.Owner]} />}>
             <Route path="categories" element={<ManageCategory />} />
-            <Route path="members" element={<ManageMembers />} />
           </Route>
         </Route>
       </Route>

@@ -17,6 +17,16 @@ const router = Router();
 router.get('/home', UserController.getHomePageContent);
 
 router.post(
+  '/create',
+  VerifyJWT([ADMINISTRATOR_ROLE.Owner, ADMINISTRATOR_ROLE.Admin]),
+  checkRequiredFields(
+    UserController.CREATE_MEMBER_REQ_FIELDS,
+    FIELD_SOURCE.body
+  ),
+  UserController.createMember
+);
+
+router.post(
   '/invite',
   VerifyJWT([ADMINISTRATOR_ROLE.Owner, ADMINISTRATOR_ROLE.Admin]),
   checkRequiredFields(createInvitationReqFields, FIELD_SOURCE.body),
@@ -52,7 +62,7 @@ router.get(
 
 router.get(
   '/',
-  VerifyJWT([ADMINISTRATOR_ROLE.Owner]),
+  VerifyJWT([ADMINISTRATOR_ROLE.Owner, ADMINISTRATOR_ROLE.Admin]),
   UserController.getAllUsers
 );
 
