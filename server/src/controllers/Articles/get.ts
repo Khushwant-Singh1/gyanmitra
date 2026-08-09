@@ -546,11 +546,23 @@ export const getArticleMetaData = AsyncHandler(
 
     let imageUrl = articleMeta[0]?.image || '';
     if (imageUrl) {
-      const publicBase = (process.env.CLIENT_URL || 'https://gyanmitranews.com').replace(/\/+$/, '');
+      // Never trust CLIENT_URL as "public" if it's actually an internal Docker
+      // hostname (misconfigured env) — that would make the rewrite below a no-op
+      // and leave social crawlers with an unreachable image URL.
+      const internalHostPattern = /frontend:3000|localhost:3000|server:8000|127\.0\.0\.1/;
+      const configuredBase = (process.env.CLIENT_URL || '').replace(/\/+$/, '');
+      const publicBase =
+        configuredBase && !internalHostPattern.test(configuredBase)
+          ? configuredBase
+          : 'https://gyanmitranews.com';
+
       if (imageUrl.startsWith('/uploads')) {
         imageUrl = `${publicBase}${imageUrl}`;
-      } else if (imageUrl.includes('frontend:3000') || imageUrl.includes('localhost:3000') || imageUrl.includes('server:8000')) {
-        imageUrl = imageUrl.replace(/https?:\/\/(frontend:3000|localhost:3000|server:8000)/, publicBase);
+      } else if (internalHostPattern.test(imageUrl)) {
+        imageUrl = imageUrl.replace(
+          /https?:\/\/(frontend:3000|localhost:3000|server:8000|127\.0\.0\.1(:\d+)?)/,
+          publicBase
+        );
       }
       articleMeta[0].image = imageUrl;
     }
