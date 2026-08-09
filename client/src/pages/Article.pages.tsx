@@ -21,7 +21,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { faWhatsapp } from '@fortawesome/free-brands-svg-icons';
+import {
+  faWhatsapp,
+  faXTwitter,
+  faFacebookF,
+  faTelegram,
+} from '@fortawesome/free-brands-svg-icons';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { FeaturedMedia } from '@/components/FeaturedMedia.components';
@@ -91,6 +96,25 @@ export const Article: React.FC = () => {
   const seoDescription = article.description || "Read the latest news and articles on Gyanmitra.";
   const canonicalUrl = article.canonicalUrl || `${window.location.origin}/articles/${article.slug}`;
   const robotsSetting = article.robotsTag || "INDEX, FOLLOW";
+  const shareUrl = typeof window !== 'undefined' ? window.location.href : canonicalUrl;
+  const shareText = `${article.headline}\n\n${shareUrl}`;
+
+  const handleNativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: article.headline,
+          text: article.headline,
+          url: shareUrl,
+        });
+      } catch {
+        // User cancelled or share failed, silently ignore
+      }
+    } else {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success('Link Copied to Clipboard!');
+    }
+  };
 
   return (
     <main className="max-w-[1350px] mx-auto px-4 sm:px-6">
@@ -102,18 +126,26 @@ export const Article: React.FC = () => {
         <meta name="robots" content={robotsSetting} />
         
         {/* Open Graph (Social Sharing) */}
+        <meta property="og:site_name" content="Gyanmitra" />
+        <meta property="og:locale" content="hi_IN" />
         <meta property="og:title" content={seoTitle} />
         <meta property="og:description" content={seoDescription} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:type" content="article" />
         <meta property="og:image" content={article.featuredMediaInfo.url} />
+        <meta property="og:image:secure_url" content={article.featuredMediaInfo.url} />
+        <meta property="og:image:alt" content={article.headline} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
         <meta name="author" content={article?.authorName || "Gyanmitra News"} />
+
         {/* Twitter Cards */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={seoTitle} />
         <meta name="twitter:description" content={seoDescription} />
         <meta name="twitter:image" content={article.featuredMediaInfo.url} />
         <meta name="publisher" content="Gyanmitra News" />
+
         {/* Keywords */}
         <meta name="keywords" content={Array.isArray(article.tags) ? article.tags.join(', ') : ''} />
       </Helmet>
@@ -198,15 +230,64 @@ export const Article: React.FC = () => {
                     <FontAwesomeIcon icon={faShareNodes} className="h-3 w-3" /> Share
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="rounded-none">
-                  <DialogHeader><DialogTitle className="text-lg font-bold">Share this News</DialogTitle></DialogHeader>
-                  <div className="flex flex-col gap-2 pt-4">
-                    <Button variant="outline" className="rounded-none justify-start gap-3 text-xs" onClick={() => { navigator.clipboard.writeText(window.location.href); toast.success('Link Copied'); }}>
+                <DialogContent className="rounded-none sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="text-lg font-bold">Share this Article</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-4">
+                    <a
+                      href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`}
+                      target="_blank"
+                      className={cn(buttonVariants({ variant: 'outline' }), "rounded-none justify-start gap-3 text-xs bg-green-50 hover:bg-green-100 text-green-800 border-green-200")}
+                      rel="noopener noreferrer"
+                    >
+                      <FontAwesomeIcon icon={faWhatsapp} className="h-4 w-4 text-green-600" /> WhatsApp
+                    </a>
+                    <a
+                      href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(article.headline)}`}
+                      target="_blank"
+                      className={cn(buttonVariants({ variant: 'outline' }), "rounded-none justify-start gap-3 text-xs bg-sky-50 hover:bg-sky-100 text-sky-800 border-sky-200")}
+                      rel="noopener noreferrer"
+                    >
+                      <FontAwesomeIcon icon={faTelegram} className="h-4 w-4 text-sky-500" /> Telegram
+                    </a>
+                    <a
+                      href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(article.headline)}&url=${encodeURIComponent(shareUrl)}`}
+                      target="_blank"
+                      className={cn(buttonVariants({ variant: 'outline' }), "rounded-none justify-start gap-3 text-xs hover:bg-zinc-100")}
+                      rel="noopener noreferrer"
+                    >
+                      <FontAwesomeIcon icon={faXTwitter} className="h-4 w-4" /> X (Twitter)
+                    </a>
+                    <a
+                      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
+                      target="_blank"
+                      className={cn(buttonVariants({ variant: 'outline' }), "rounded-none justify-start gap-3 text-xs bg-blue-50 hover:bg-blue-100 text-blue-800 border-blue-200")}
+                      rel="noopener noreferrer"
+                    >
+                      <FontAwesomeIcon icon={faFacebookF} className="h-4 w-4 text-blue-600" /> Facebook
+                    </a>
+                  </div>
+                  <div className="flex gap-2 pt-2 border-t border-zinc-100 mt-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 rounded-none justify-center gap-2 text-xs"
+                      onClick={() => {
+                        navigator.clipboard.writeText(shareUrl);
+                        toast.success('Link Copied to Clipboard!');
+                      }}
+                    >
                       <FontAwesomeIcon icon={faLink} className="h-3 w-3" /> Copy Link
                     </Button>
-                    <a href={`https://wa.me/?text=${encodeURIComponent(article.headline)} - ${window.location.href}`} target="_blank" className={cn(buttonVariants({ variant: 'outline' }), "rounded-none justify-start gap-3 text-xs")} rel="noopener noreferrer">
-                      <FontAwesomeIcon icon={faWhatsapp} className="h-3 w-3 text-green-600" /> WhatsApp
-                    </a>
+                    {typeof navigator !== 'undefined' && 'share' in navigator && (
+                      <Button
+                        variant="default"
+                        className="rounded-none justify-center gap-2 text-xs bg-[#e98571] hover:bg-[#d87460] text-white"
+                        onClick={handleNativeShare}
+                      >
+                        <FontAwesomeIcon icon={faShareNodes} className="h-3 w-3" /> More
+                      </Button>
+                    )}
                   </div>
                 </DialogContent>
               </Dialog>
