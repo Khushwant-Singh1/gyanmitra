@@ -46,7 +46,7 @@ export const Category: React.FC = () => {
     );
   }
 
-  if (error || !data) {
+  if (error || !data || !data.data) {
     let errorMessage = 'An error occurred';
 
     if (isAxiosError(error)) {

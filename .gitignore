@@ -28,6 +28,8 @@ Thumbs.db
 # Uploads / runtime data
 server/uploads/
 server/public/temp/
+uploads/
+minio_data/
 
 # Coverage / test
 coverage/

@@ -24,15 +24,25 @@ const indexHtmlPath = path.join(distPath, 'index.html');
 
 app.use(express.static(distPath, { index: false }));
 
-if (process.env.NODE_ENV === 'development') {
-  app.use(
-    '/api',
-    createProxyMiddleware({
-      target: process.env.API_URL || 'http://localhost:8000',
-      changeOrigin: true,
-    })
-  );
-}
+const rawApiUrl = process.env.API_URL || 'http://server:8000';
+const apiBaseTarget = rawApiUrl.replace(/\/api\/?$/, '');
+
+app.use(
+  '/api',
+  createProxyMiddleware({
+    target: `${apiBaseTarget}/api`,
+    changeOrigin: true,
+  })
+);
+
+app.use(
+  '/uploads',
+  createProxyMiddleware({
+    target: `${apiBaseTarget}/uploads`,
+    changeOrigin: true,
+  })
+);
+
 
 // Helper function to escape HTML special characters in meta tag attributes
 const escapeHtml = (text: string | null | undefined): string => {

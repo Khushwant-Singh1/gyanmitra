@@ -24,9 +24,9 @@ const Home: React.FC = () => {
   });
 
   if (isLoading) return <div className="flex h-screen items-center justify-center"><Spinner /></div>;
-  if (error || !data) return <div className="flex h-screen items-center justify-center p-4"><ErrorAlert message="Error loading feed" /></div>;
+  if (error || !data || !data.data) return <div className="flex h-screen items-center justify-center p-4"><ErrorAlert message="Error loading feed" /></div>;
 
-  const { todayPublished = [], recentPublished, articlePublished = [], mixedArticles = [] } = data.data;
+  const { todayPublished = [], recentPublished, articlePublished = [], mixedArticles = [] } = data.data || {};
 
   const breakingNewsList = todayPublished.length > 0 ? todayPublished : articlePublished.slice(0, 5);
 

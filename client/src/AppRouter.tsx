@@ -148,6 +148,7 @@ export const AppRouter: React.FC = () => {
             await axios.get<IApiResponse<{ time: string }>>('/api/time');
           return response.data;
         },
+        retry: 1,
       },
       {
         queryKey: ['categories', 'active'],
@@ -158,6 +159,7 @@ export const AppRouter: React.FC = () => {
           return response.data;
         },
         staleTime: Infinity,
+        retry: 1,
       },
       {
         queryKey: ['subCategories', '67e442af58df1db1ee298769', 'active'],
@@ -168,6 +170,7 @@ export const AppRouter: React.FC = () => {
           return response.data;
         },
         staleTime: Infinity,
+        retry: 1,
       },
     ],
   });

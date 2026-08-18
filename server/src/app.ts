@@ -8,23 +8,45 @@ import { getNewsSitemap, getImageSitemap } from './controllers/sitemap.controlle
 const app = express();
 console.log("🟢 app.ts file loaded");
 
-// 1. Nginx proxy se aane wali real IP ko trust karne ke liye (ZAROORI)
-app.set('trust proxy', 1);
+// 1. Trust proxy (Cloudflare, Nginx, Docker)
+app.set('trust proxy', true);
 
 // 2. Sitemap ko Limiter se PEHLE rakhein taaki ye kabhi block na ho
 app.get('/sitemap-news.xml', getNewsSitemap);
 app.get('/sitemap-images.xml', getImageSitemap);
 
-// 3. Rate Limiter Configuration
+// 3. Helper to get real visitor IP behind Cloudflare & Reverse Proxies
+const getClientIp = (req: express.Request): string => {
+  const cfIp = req.headers['cf-connecting-ip'];
+  if (cfIp) return Array.isArray(cfIp) ? cfIp[0] : cfIp;
+  
+  const xForwardedFor = req.headers['x-forwarded-for'];
+  if (xForwardedFor) {
+    const ips = (Array.isArray(xForwardedFor) ? xForwardedFor[0] : xForwardedFor).split(',');
+    return ips[0].trim();
+  }
+
+  return req.ip || req.socket.remoteAddress || '127.0.0.1';
+};
+
+// 4. Rate Limiter Configuration (per client IP)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 500, // Limit thodi badha di hai testing ke liye
-  message: 'Too many requests from this IP, please try again later.',
+  max: 3000, // Generous limit per real user IP
+  keyGenerator: (req) => getClientIp(req),
+  validate: { xForwardedForHeader: false, trustProxy: false },
+  handler: (req, res) => {
+    res.status(429).json({
+      statusCode: 429,
+      success: false,
+      message: 'Too many requests from this IP, please try again later.',
+    });
+  },
   standardHeaders: 'draft-7',
   legacyHeaders: false,
 });
 
-// 4. Baki Middleware aur Routes
+// 5. Baki Middleware aur Routes
 app.use(limiter as any);
 app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }));
 

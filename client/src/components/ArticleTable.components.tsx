@@ -46,6 +46,7 @@ import axios, { isAxiosError } from 'axios';
 import { toast } from 'sonner';
 import { DataTablePagination } from './DataTablePagination.components';
 import { Textarea } from './ui/textarea';
+import { Input } from './ui/input';
 import { ScheduleArticleModal } from './ScheduleArticleModal.components';
 
 interface ArticleTableProps {
