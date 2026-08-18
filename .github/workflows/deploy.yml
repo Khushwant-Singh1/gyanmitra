@@ -107,8 +107,10 @@ jobs:
               cp docker-compose.prod.yml docker-compose.yml
             fi
 
-            # Log in to GHCR on the VPS using the Personal Access Token (PAT)
-            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+            # Log in to GHCR on the VPS if credentials exist
+            if [ -n "$GHCR_TOKEN" ] && [ -n "$GHCR_USERNAME" ]; then
+              echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin || true
+            fi
             
             # Pull the prebuilt Docker images from GHCR
             docker compose pull
