@@ -273,6 +273,7 @@ app.get('*', async (req, res) => {
       <link rel="preconnect" href="https://fonts.googleapis.com">
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1463940399847759" crossorigin="anonymous"></script>
 
       ${jsFile ? `<script type="module" crossorigin src="/assets/${jsFile}"></script>` : ''}
       ${cssFile ? `<link rel="stylesheet" crossorigin href="/assets/${cssFile}">` : ''}
