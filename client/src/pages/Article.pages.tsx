@@ -37,7 +37,7 @@ import { MDToHTMLConverter } from '@/utils/MDToHTML.utils';
 import { ArticleCommentsSection } from '@/components/ArticleComments.components';
 import { motion } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Feather, Users, Clock, BookOpen } from 'lucide-react';
+import { Feather, Users, Clock, BookOpen, Edit3 } from 'lucide-react';
 
 const getInitials = (name?: string, firstName?: string, lastName?: string) => {
   if (firstName && lastName) {
@@ -223,7 +223,50 @@ export const Article: React.FC = () => {
             {/* --- ARTICLE BYLINE & METADATA BAR --- */}
             <div className="flex flex-wrap items-center justify-between border-y border-zinc-200 py-3.5 gap-4">
               <div className="flex flex-wrap items-center gap-4 sm:gap-6">
-                {/* --- LEAD WRITER / AUTHOR --- */}
+                {/* --- WRITTEN BY (WRITERS / CONTRIBUTORS) --- */}
+                {article.coAuthors && article.coAuthors.length > 0 && (
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex -space-x-2 overflow-hidden shrink-0">
+                      {article.coAuthors.map((c, idx) => {
+                        const name = c.name || `${c.firstName || ''} ${c.lastName || ''}`.trim();
+                        return (
+                          <Avatar
+                            key={c._id || idx}
+                            className="h-9 w-9 border-2 border-white ring-1 ring-black/10 shadow-xs inline-block"
+                          >
+                            <AvatarImage src={c.avatar} alt={name} />
+                            <AvatarFallback className="bg-sky-50 text-sky-800 font-bold text-[10px]">
+                              {getInitials(c.name, c.firstName, c.lastName)}
+                            </AvatarFallback>
+                          </Avatar>
+                        );
+                      })}
+                    </div>
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-1">
+                        <span className="text-[9px] font-black text-sky-600 uppercase tracking-wider flex items-center gap-1">
+                          <Feather className="w-2.5 h-2.5" />
+                          Written By
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1">
+                        {article.coAuthors.map((c, idx) => {
+                          const name = c.name || `${c.firstName || ''} ${c.lastName || ''}`.trim();
+                          return (
+                            <span key={c._id || idx} className="font-bold text-xs md:text-sm text-zinc-800 capitalize leading-tight">
+                              {name}{idx < (article.coAuthors?.length ?? 0) - 1 ? ', ' : ''}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* --- EDITED BY (PRIMARY AUTHOR / EDITOR) --- */}
+                {article.coAuthors && article.coAuthors.length > 0 && (
+                  <Separator orientation="vertical" className="h-7 hidden sm:block bg-zinc-200" />
+                )}
                 <div className="flex items-center gap-2.5">
                   <Avatar className="h-9 w-9 border border-zinc-200 shadow-xs ring-1 ring-black/5 shrink-0">
                     <AvatarImage src={article.authorInfo?.avatar} alt={article.authorInfo?.name || article.authorName} />
@@ -238,8 +281,8 @@ export const Article: React.FC = () => {
                   <div className="flex flex-col">
                     <div className="flex items-center gap-1">
                       <span className="text-[9px] font-black text-[#e98571] uppercase tracking-wider flex items-center gap-1">
-                        <Feather className="w-2.5 h-2.5" />
-                        Writer
+                        <Edit3 className="w-2.5 h-2.5" />
+                        Edited By
                       </span>
                     </div>
                     <span className="font-bold text-xs md:text-sm text-zinc-900 capitalize leading-tight">
@@ -247,49 +290,6 @@ export const Article: React.FC = () => {
                     </span>
                   </div>
                 </div>
-
-                {/* --- CONTRIBUTORS / CO-AUTHORS --- */}
-                {article.coAuthors && article.coAuthors.length > 0 && (
-                  <>
-                    <Separator orientation="vertical" className="h-7 hidden sm:block bg-zinc-200" />
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex -space-x-2 overflow-hidden shrink-0">
-                        {article.coAuthors.map((c, idx) => {
-                          const name = c.name || `${c.firstName || ''} ${c.lastName || ''}`.trim();
-                          return (
-                            <Avatar
-                              key={c._id || idx}
-                              className="h-9 w-9 border-2 border-white ring-1 ring-black/10 shadow-xs inline-block"
-                            >
-                              <AvatarImage src={c.avatar} alt={name} />
-                              <AvatarFallback className="bg-sky-50 text-sky-800 font-bold text-[10px]">
-                                {getInitials(c.name, c.firstName, c.lastName)}
-                              </AvatarFallback>
-                            </Avatar>
-                          );
-                        })}
-                      </div>
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-1">
-                          <span className="text-[9px] font-black text-sky-600 uppercase tracking-wider flex items-center gap-1">
-                            <Users className="w-2.5 h-2.5" />
-                            {article.coAuthors.length === 1 ? 'Contributor' : 'Contributors'}
-                          </span>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-1">
-                          {article.coAuthors.map((c, idx) => {
-                            const name = c.name || `${c.firstName || ''} ${c.lastName || ''}`.trim();
-                            return (
-                              <span key={c._id || idx} className="font-bold text-xs md:text-sm text-zinc-800 capitalize leading-tight">
-                                {name}{idx < (article.coAuthors?.length ?? 0) - 1 ? ', ' : ''}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
 
                 {/* --- TIMELINE & READ TIME --- */}
                 <Separator orientation="vertical" className="h-7 hidden md:block bg-zinc-200" />
@@ -407,47 +407,15 @@ export const Article: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Writer Card */}
-              <div className="flex items-start gap-3.5 bg-white p-4 rounded-sm border border-zinc-200/80 shadow-xs">
-                <Avatar className="h-11 w-11 border border-zinc-200 shadow-sm shrink-0">
-                  <AvatarImage src={article.authorInfo?.avatar} alt={article.authorInfo?.name || article.authorName} />
-                  <AvatarFallback className="bg-[#e98571]/10 text-[#d87460] font-bold text-sm">
-                    {getInitials(
-                      article.authorInfo?.name || article.authorName,
-                      article.authorInfo?.firstName,
-                      article.authorInfo?.lastName
-                    )}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <Badge className="bg-[#e98571] hover:bg-[#d87460] text-white text-[9px] font-black uppercase tracking-wider px-2 py-0 h-4 border-none rounded-none">
-                      Lead Writer
-                    </Badge>
-                    {article.authorInfo?.role && (
-                      <span className="text-[10px] text-zinc-500 font-medium capitalize truncate">
-                        {article.authorInfo.role}
-                      </span>
-                    )}
-                  </div>
-                  <h4 className="font-bold text-sm text-zinc-900 capitalize truncate">
-                    {article.authorInfo?.name || article.authorName}
-                  </h4>
-                  <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed">
-                    Lead author responsible for the primary reporting and composition of this article.
-                  </p>
-                </div>
-              </div>
-
-              {/* Contributors Card (if any) */}
+              {/* Written By Card (Contributors / Co-authors) */}
               {article.coAuthors && article.coAuthors.length > 0 && (
                 <div className="flex flex-col bg-white p-4 rounded-sm border border-zinc-200/80 shadow-xs space-y-3">
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="bg-sky-50 text-sky-800 border-sky-200 text-[9px] font-black uppercase tracking-wider px-2 py-0 h-4 rounded-none">
-                      {article.coAuthors.length === 1 ? 'Contributor' : 'Contributors'}
+                      Written By
                     </Badge>
                     <span className="text-[10px] text-zinc-400 font-medium">
-                      Research & Reporting
+                      Reporting & Writing
                     </span>
                   </div>
 
@@ -467,7 +435,7 @@ export const Article: React.FC = () => {
                               {name}
                             </span>
                             <span className="text-[10px] text-zinc-500 capitalize">
-                              {c.role || 'Contributor'}
+                              {c.role || 'Writer'}
                             </span>
                           </div>
                         </div>
@@ -476,6 +444,41 @@ export const Article: React.FC = () => {
                   </div>
                 </div>
               )}
+
+              {/* Edited By Card (Primary Author / Editor) */}
+              <div className={cn(
+                "flex items-start gap-3.5 bg-white p-4 rounded-sm border border-zinc-200/80 shadow-xs",
+                (!article.coAuthors || article.coAuthors.length === 0) && "md:col-span-2"
+              )}>
+                <Avatar className="h-11 w-11 border border-zinc-200 shadow-sm shrink-0">
+                  <AvatarImage src={article.authorInfo?.avatar} alt={article.authorInfo?.name || article.authorName} />
+                  <AvatarFallback className="bg-[#e98571]/10 text-[#d87460] font-bold text-sm">
+                    {getInitials(
+                      article.authorInfo?.name || article.authorName,
+                      article.authorInfo?.firstName,
+                      article.authorInfo?.lastName
+                    )}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <Badge className="bg-[#e98571] hover:bg-[#d87460] text-white text-[9px] font-black uppercase tracking-wider px-2 py-0 h-4 border-none rounded-none">
+                      Edited By
+                    </Badge>
+                    {article.authorInfo?.role && (
+                      <span className="text-[10px] text-zinc-500 font-medium capitalize truncate">
+                        {article.authorInfo.role}
+                      </span>
+                    )}
+                  </div>
+                  <h4 className="font-bold text-sm text-zinc-900 capitalize truncate">
+                    {article.authorInfo?.name || article.authorName}
+                  </h4>
+                  <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed">
+                    Editor responsible for reviewing, formatting, and editorial oversight of this article.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
