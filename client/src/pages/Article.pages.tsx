@@ -36,6 +36,30 @@ import { Helmet } from 'react-helmet-async';
 import { MDToHTMLConverter } from '@/utils/MDToHTML.utils';
 import { ArticleCommentsSection } from '@/components/ArticleComments.components';
 import { motion } from 'framer-motion';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Feather, Users, Clock, BookOpen } from 'lucide-react';
+
+const getInitials = (name?: string, firstName?: string, lastName?: string) => {
+  if (firstName && lastName) {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  }
+  if (name) {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  }
+  return 'GM';
+};
+
+const getEstimatedReadTime = (content?: string | null) => {
+  if (!content) return '2 min read';
+  const text = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  const wordCount = text ? text.split(' ').length : 0;
+  const minutes = Math.max(1, Math.ceil(wordCount / 180));
+  return `${minutes} min read`;
+};
 
 export const Article: React.FC = () => {
   const { articleSlug } = useParams<{ articleSlug: string }>();
@@ -196,37 +220,100 @@ export const Article: React.FC = () => {
               {article.headline}
             </h1>
             
-            <div className="flex flex-wrap items-center justify-between border-t border-zinc-200 py-4 gap-4">
-              <div className="flex items-center gap-4">
-                <div className="flex flex-col">
-                  <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">
-                    {article.coAuthors && article.coAuthors.length > 0 ? 'Writers / Contributors' : 'Writer'}
-                  </span>
-                  <span className="font-bold text-xs text-zinc-900">
-                    {article.coAuthors && article.coAuthors.length > 0
-                      ? [
-                          article.authorName,
-                          ...article.coAuthors.map(
-                            (c) => c.name || `${c.firstName || ''} ${c.lastName || ''}`.trim()
-                          ),
-                        ].join(', ')
-                      : article.authorName}
-                  </span>
+            {/* --- ARTICLE BYLINE & METADATA BAR --- */}
+            <div className="flex flex-wrap items-center justify-between border-y border-zinc-200 py-3.5 gap-4">
+              <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+                {/* --- LEAD WRITER / AUTHOR --- */}
+                <div className="flex items-center gap-2.5">
+                  <Avatar className="h-9 w-9 border border-zinc-200 shadow-xs ring-1 ring-black/5 shrink-0">
+                    <AvatarImage src={article.authorInfo?.avatar} alt={article.authorInfo?.name || article.authorName} />
+                    <AvatarFallback className="bg-[#e98571]/10 text-[#d87460] font-bold text-xs">
+                      {getInitials(
+                        article.authorInfo?.name || article.authorName,
+                        article.authorInfo?.firstName,
+                        article.authorInfo?.lastName
+                      )}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-1">
+                      <span className="text-[9px] font-black text-[#e98571] uppercase tracking-wider flex items-center gap-1">
+                        <Feather className="w-2.5 h-2.5" />
+                        Writer
+                      </span>
+                    </div>
+                    <span className="font-bold text-xs md:text-sm text-zinc-900 capitalize leading-tight">
+                      {article.authorInfo?.name || article.authorName}
+                    </span>
+                  </div>
                 </div>
-                <Separator orientation="vertical" className="h-6" />
-                <div className="flex flex-col">
-                  <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Timeline</span>
-                  <div className="flex gap-1.5 text-zinc-500 font-bold text-[10px]">
-                     <DateDisplay date={new Date(article.publishedDate)} />
-                     <span className="opacity-30">|</span>
-                     <TimeAgo timestamp={new Date(article.publishedDate)} />
+
+                {/* --- CONTRIBUTORS / CO-AUTHORS --- */}
+                {article.coAuthors && article.coAuthors.length > 0 && (
+                  <>
+                    <Separator orientation="vertical" className="h-7 hidden sm:block bg-zinc-200" />
+                    <div className="flex items-center gap-2.5">
+                      <div className="flex -space-x-2 overflow-hidden shrink-0">
+                        {article.coAuthors.map((c, idx) => {
+                          const name = c.name || `${c.firstName || ''} ${c.lastName || ''}`.trim();
+                          return (
+                            <Avatar
+                              key={c._id || idx}
+                              className="h-9 w-9 border-2 border-white ring-1 ring-black/10 shadow-xs inline-block"
+                            >
+                              <AvatarImage src={c.avatar} alt={name} />
+                              <AvatarFallback className="bg-sky-50 text-sky-800 font-bold text-[10px]">
+                                {getInitials(c.name, c.firstName, c.lastName)}
+                              </AvatarFallback>
+                            </Avatar>
+                          );
+                        })}
+                      </div>
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-1">
+                          <span className="text-[9px] font-black text-sky-600 uppercase tracking-wider flex items-center gap-1">
+                            <Users className="w-2.5 h-2.5" />
+                            {article.coAuthors.length === 1 ? 'Contributor' : 'Contributors'}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1">
+                          {article.coAuthors.map((c, idx) => {
+                            const name = c.name || `${c.firstName || ''} ${c.lastName || ''}`.trim();
+                            return (
+                              <span key={c._id || idx} className="font-bold text-xs md:text-sm text-zinc-800 capitalize leading-tight">
+                                {name}{idx < (article.coAuthors?.length ?? 0) - 1 ? ', ' : ''}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* --- TIMELINE & READ TIME --- */}
+                <Separator orientation="vertical" className="h-7 hidden md:block bg-zinc-200" />
+                <div className="flex flex-col justify-center">
+                  <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1">
+                    <Clock className="w-2.5 h-2.5" />
+                    Timeline
+                  </span>
+                  <div className="flex items-center gap-1.5 text-zinc-500 font-bold text-[10px] sm:text-[11px] leading-tight">
+                    <DateDisplay date={new Date(article.publishedDate)} />
+                    <span className="opacity-30">•</span>
+                    <TimeAgo timestamp={new Date(article.publishedDate)} />
+                    <span className="opacity-30 hidden sm:inline">•</span>
+                    <span className="text-zinc-600 font-semibold hidden sm:inline">
+                      {getEstimatedReadTime(article.contentData)}
+                    </span>
                   </div>
                 </div>
               </div>
 
+              {/* --- SHARE DIALOG BUTTON --- */}
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="ghost" className="rounded-none border-l border-zinc-200 h-8 gap-2 px-4 hover:bg-zinc-100 transition-all text-xs font-black uppercase tracking-widest">
+                  <Button variant="ghost" className="rounded-none border-l border-zinc-200 h-9 gap-2 px-4 hover:bg-zinc-100 transition-all text-xs font-black uppercase tracking-widest shrink-0">
                     <FontAwesomeIcon icon={faShareNodes} className="h-3 w-3" /> Share
                   </Button>
                 </DialogTrigger>
@@ -309,6 +396,88 @@ export const Article: React.FC = () => {
           <div className="prose prose-slate max-w-none pt-4 prose-headings:font-bold prose-p:text-slate-700 prose-p:leading-relaxed prose-strong:text-slate-900" 
                dangerouslySetInnerHTML={{ __html: content || '' }} 
           />
+
+          {/* --- EDITORIAL CREDITS & AUTHORSHIP SECTION --- */}
+          <div className="my-8 rounded-sm border border-zinc-200 bg-zinc-50/70 p-5 sm:p-6 shadow-xs">
+            <div className="flex items-center justify-between pb-3 mb-4 border-b border-zinc-200">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 flex items-center gap-1.5">
+                <BookOpen className="w-3.5 h-3.5 text-[#e98571]" />
+                Editorial Credits & Authorship
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Writer Card */}
+              <div className="flex items-start gap-3.5 bg-white p-4 rounded-sm border border-zinc-200/80 shadow-xs">
+                <Avatar className="h-11 w-11 border border-zinc-200 shadow-sm shrink-0">
+                  <AvatarImage src={article.authorInfo?.avatar} alt={article.authorInfo?.name || article.authorName} />
+                  <AvatarFallback className="bg-[#e98571]/10 text-[#d87460] font-bold text-sm">
+                    {getInitials(
+                      article.authorInfo?.name || article.authorName,
+                      article.authorInfo?.firstName,
+                      article.authorInfo?.lastName
+                    )}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <Badge className="bg-[#e98571] hover:bg-[#d87460] text-white text-[9px] font-black uppercase tracking-wider px-2 py-0 h-4 border-none rounded-none">
+                      Lead Writer
+                    </Badge>
+                    {article.authorInfo?.role && (
+                      <span className="text-[10px] text-zinc-500 font-medium capitalize truncate">
+                        {article.authorInfo.role}
+                      </span>
+                    )}
+                  </div>
+                  <h4 className="font-bold text-sm text-zinc-900 capitalize truncate">
+                    {article.authorInfo?.name || article.authorName}
+                  </h4>
+                  <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed">
+                    Lead author responsible for the primary reporting and composition of this article.
+                  </p>
+                </div>
+              </div>
+
+              {/* Contributors Card (if any) */}
+              {article.coAuthors && article.coAuthors.length > 0 && (
+                <div className="flex flex-col bg-white p-4 rounded-sm border border-zinc-200/80 shadow-xs space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="bg-sky-50 text-sky-800 border-sky-200 text-[9px] font-black uppercase tracking-wider px-2 py-0 h-4 rounded-none">
+                      {article.coAuthors.length === 1 ? 'Contributor' : 'Contributors'}
+                    </Badge>
+                    <span className="text-[10px] text-zinc-400 font-medium">
+                      Research & Reporting
+                    </span>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {article.coAuthors.map((c, idx) => {
+                      const name = c.name || `${c.firstName || ''} ${c.lastName || ''}`.trim();
+                      return (
+                        <div key={c._id || idx} className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8 border border-zinc-200 shadow-xs shrink-0">
+                            <AvatarImage src={c.avatar} alt={name} />
+                            <AvatarFallback className="bg-sky-50 text-sky-800 font-bold text-xs">
+                              {getInitials(c.name, c.firstName, c.lastName)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col min-w-0">
+                            <span className="font-bold text-xs text-zinc-800 capitalize truncate">
+                              {name}
+                            </span>
+                            <span className="text-[10px] text-zinc-500 capitalize">
+                              {c.role || 'Contributor'}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
 
           <div className="pt-10 border-t border-zinc-100">
              <div className="flex flex-wrap gap-2 mb-12">
