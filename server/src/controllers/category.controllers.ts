@@ -244,20 +244,133 @@ export const getAllCategories = AsyncHandler(
   }
 );
 
+const escapeRegex = (string: string): string => {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
+const CATEGORY_SLUG_MAP: Record<string, string[]> = {
+  'top-news': ['top news', 'top-news', 'topnews', 'टॉप न्यूज़', 'टॉप न्यूज', 'प्रमुख समाचार', 'खास खबर', 'मुख्य समाचार', 'breaking', 'ताज़ा खबरें'],
+  'topnews': ['top news', 'top-news', 'topnews', 'टॉप न्यूज़', 'टॉप न्यूज', 'प्रमुख समाचार', 'खास खबर', 'मुख्य समाचार'],
+  'sambhal': ['sambhal', 'संभल', 'chandausi', 'चंदौसी', 'bahjoi', 'बहजोई', 'gunnaur', 'गुन्नौर', 'sambhal news', 'संभल न्यूज़'],
+  'moradabad': ['moradabad', 'मुरादाबाद', 'moradabad news', 'मुरादाबाद न्यूज़'],
+  'amroha': ['amroha', 'अमरोहा', 'jyotiba phule nagar', 'amroha news', 'अमरोहा न्यूज़'],
+  'rampur': ['rampur', 'रामपुर', 'rampur news', 'रामपुर न्यूज़'],
+  'pradesh': ['pradesh', 'प्रदेश', 'uttar pradesh', 'uttarpradesh', 'उत्तरप्रदेश', 'उत्तर प्रदेश', 'up', 'यूपी', 'राज्य'],
+  'uttar-pradesh': ['uttar pradesh', 'uttarpradesh', 'उत्तरप्रदेश', 'उत्तर प्रदेश', 'pradesh', 'प्रदेश', 'up', 'यूपी'],
+  'uttarpradesh': ['uttar pradesh', 'uttarpradesh', 'उत्तरप्रदेश', 'उत्तर प्रदेश', 'pradesh', 'प्रदेश', 'up', 'यूपी'],
+  'desh': ['desh', 'देश', 'national', 'भारत', 'india', 'rashtriya', 'राष्ट्रीय'],
+  'national': ['national', 'desh', 'देश', 'भारत', 'india', 'राष्ट्रीय'],
+  'duniya': ['duniya', 'दुनिया', 'videsh', 'विदेश', 'international', 'world', 'global', 'antar-rashtriya', 'अंतर्राष्ट्रीय'],
+  'videsh': ['videsh', 'विदेश', 'duniya', 'दुनिया', 'international', 'world', 'global'],
+  'international': ['international', 'duniya', 'दुनिया', 'videsh', 'विदेश', 'world'],
+  'khel': ['khel', 'खेल', 'sports', 'cricket', 'क्रिकेट'],
+  'sports': ['sports', 'khel', 'खेल', 'cricket'],
+  'manoranjan': ['manoranjan', 'मनोरंजन', 'entertainment', 'bollywood', 'बॉलीवुड', 'cinema'],
+  'entertainment': ['entertainment', 'manoranjan', 'मनोरंजन', 'bollywood'],
+  'education': ['education', 'शिक्षा', 'career', 'job', 'करियर', 'रोजगार'],
+  'shiksha': ['shiksha', 'शिक्षा', 'education', 'career'],
+  'business': ['business', 'व्यापार', 'कारोबार', 'bazaar', 'बाजार', 'अर्थव्यवस्था', 'economy'],
+  'vyapar': ['vyapar', 'व्यापार', 'business', 'कारोबार'],
+  'tech': ['tech', 'technology', 'तकनीक', 'टेक', 'gadgets'],
+  'technology': ['technology', 'tech', 'तकनीक', 'टेक'],
+  'lifestyle': ['lifestyle', 'जीवनशैली', 'स्वास्थ्य', 'health', 'fitness'],
+  'health': ['health', 'स्वास्थ्य', 'lifestyle', 'fitness'],
+  'crime': ['crime', 'अपराध', 'जुर्म'],
+};
+
 export const getCategoryPageContent = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const categoryName = req.params._name;
+    const rawParam = decodeURIComponent(req.params._name || '').trim();
+    const slugKey = rawParam.toLowerCase().replace(/[\s_]+/g, '-');
+    const spacedParam = rawParam.replace(/[-_]+/g, ' ').trim();
 
-    // Check if the category exists
-    const categoryExists = await Category.exists({
-      name: categoryName.replace(/-/g, ' '),
+    // Collect all candidate search terms (in English, Hindi, and known aliases)
+    const searchTerms = new Set<string>();
+    searchTerms.add(rawParam.toLowerCase());
+    searchTerms.add(spacedParam.toLowerCase());
+
+    const mappedAliases =
+      CATEGORY_SLUG_MAP[slugKey] ||
+      CATEGORY_SLUG_MAP[spacedParam.toLowerCase()] ||
+      [];
+    mappedAliases.forEach((alias) => searchTerms.add(alias.toLowerCase()));
+
+    for (const [key, aliases] of Object.entries(CATEGORY_SLUG_MAP)) {
+      if (
+        key === slugKey ||
+        aliases.some(
+          (a) =>
+            a.toLowerCase() === rawParam.toLowerCase() ||
+            a.toLowerCase() === spacedParam.toLowerCase()
+        )
+      ) {
+        aliases.forEach((a) => searchTerms.add(a.toLowerCase()));
+      }
+    }
+
+    const isTopNews =
+      slugKey === 'top-news' ||
+      slugKey === 'topnews' ||
+      spacedParam.toLowerCase() === 'top news' ||
+      rawParam === 'टॉप न्यूज़' ||
+      rawParam === 'टॉप न्यूज' ||
+      rawParam === 'प्रमुख समाचार';
+
+    // 1. Search for matching Category document(s) in DB
+    const searchRegexes = Array.from(searchTerms).map(
+      (term) => new RegExp(`^${escapeRegex(term)}$`, 'i')
+    );
+    const partialRegexes = Array.from(searchTerms).map(
+      (term) => new RegExp(escapeRegex(term), 'i')
+    );
+
+    let matchedCategories = await Category.find({
+      $or: [
+        { name: { $in: searchRegexes } },
+        { name: { $in: partialRegexes } },
+      ],
     });
-    if (!categoryExists) throw new ApiError(400, 'Category name not found.');
 
-    const categoryId = categoryExists._id;
+    let categoryIds: any[] = [];
+    let displayCategoryName = spacedParam;
+
+    if (matchedCategories.length > 0) {
+      displayCategoryName = matchedCategories[0].name;
+      const matchedIds = matchedCategories.map((c) => c._id);
+      // Also look for subcategories having these as parentId
+      const subcategories = await Category.find({
+        parentId: { $in: matchedIds },
+      });
+      categoryIds = [...matchedIds, ...subcategories.map((sub) => sub._id)];
+    }
+
+    // 2. Determine match criteria for articles
+    let articleMatchQuery: any;
+    if (categoryIds.length > 0) {
+      articleMatchQuery = {
+        categoryId: { $in: categoryIds },
+        status: ARTICLE_STATUS.Published,
+      };
+    } else if (isTopNews) {
+      articleMatchQuery = {
+        status: ARTICLE_STATUS.Published,
+      };
+      displayCategoryName = 'टॉप न्यूज़';
+    } else {
+      const tagRegexes = Array.from(searchTerms).map(
+        (term) => new RegExp(escapeRegex(term), 'i')
+      );
+      articleMatchQuery = {
+        status: ARTICLE_STATUS.Published,
+        $or: [
+          { tags: { $in: tagRegexes } },
+          { headline: { $in: tagRegexes } },
+        ],
+      };
+    }
 
     const trendingArticles = await Article.aggregate([
-      { $match: { categoryId: categoryId, status: ARTICLE_STATUS.Published } },
+      { $match: articleMatchQuery },
       {
         $lookup: {
           from: 'categories',
@@ -266,16 +379,14 @@ export const getCategoryPageContent = AsyncHandler(
           as: 'category',
         },
       },
-      { $unwind: '$category' },
-
+      { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
       ...getMediaLookupPipeline,
-
       {
         $project: {
           title: '$headline',
           slug: '$slug',
           published: '$lastPublishedDate',
-          categoryName: '$category.name',
+          categoryName: { $ifNull: ['$category.name', displayCategoryName] },
           featuredMedia: {
             fileUrl: '$featuredMedia.fileUrl',
             fileType: '$featuredMedia.fileType',
@@ -284,13 +395,13 @@ export const getCategoryPageContent = AsyncHandler(
           },
         },
       },
-      { $sort: { views: -1 } },
+      { $sort: { views: -1, lastPublishedDate: -1 } },
       { $limit: 6 },
     ]);
 
     // Fetch recent posts sorted by published time, including media files
     const recentPosts = await Article.aggregate([
-      { $match: { categoryId: categoryId, status: ARTICLE_STATUS.Published } },
+      { $match: articleMatchQuery },
       {
         $lookup: {
           from: 'categories',
@@ -299,17 +410,15 @@ export const getCategoryPageContent = AsyncHandler(
           as: 'category',
         },
       },
-      { $unwind: '$category' },
-
+      { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
       ...getMediaLookupPipeline,
-
       {
         $project: {
           title: '$headline',
           slug: '$slug',
           published: '$lastPublishedDate',
           description: '$description',
-          categoryName: '$category.name',
+          categoryName: { $ifNull: ['$category.name', displayCategoryName] },
           featuredMedia: {
             fileUrl: '$featuredMedia.fileUrl',
             fileType: '$featuredMedia.fileType',
@@ -325,6 +434,7 @@ export const getCategoryPageContent = AsyncHandler(
     return res.status(200).json({
       success: true,
       data: {
+        categoryName: displayCategoryName,
         trendingArticles,
         recentPosts,
       },

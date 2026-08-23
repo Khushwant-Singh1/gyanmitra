@@ -133,6 +133,43 @@ const fetchMetaData = async (slug: string): Promise<IMetaData> => {
     }
   }
 
+  // Check if the slug corresponds to a category route
+  if (slug.startsWith('/categories/')) {
+    try {
+      const rawCategory = slug.replace(/^\/categories\//, '').split('?')[0].replace(/\/+$/, '');
+      const decodedCategory = decodeURIComponent(rawCategory).replace(/[-_]+/g, ' ').trim();
+      
+      const CATEGORY_NAMES: Record<string, string> = {
+        'top news': 'टॉप न्यूज़ (Top News)',
+        'top-news': 'टॉप न्यूज़ (Top News)',
+        'sambhal': 'संभल (Sambhal)',
+        'moradabad': 'मुरादाबाद (Moradabad)',
+        'amroha': 'अमरोहा (Amroha)',
+        'rampur': 'रामपुर (Rampur)',
+        'pradesh': 'उत्तर प्रदेश (Pradesh)',
+        'uttar pradesh': 'उत्तर प्रदेश (Uttar Pradesh)',
+        'uttar-pradesh': 'उत्तर प्रदेश (Uttar Pradesh)',
+        'desh': 'देश (National News)',
+        'duniya': 'दुनिया (International News)',
+        'videsh': 'विदेश (International News)',
+      };
+
+      const displayName =
+        CATEGORY_NAMES[decodedCategory.toLowerCase()] ||
+        decodedCategory.charAt(0).toUpperCase() + decodedCategory.slice(1);
+
+      return {
+        title: `${displayName} - ताज़ा हिंदी समाचार | Gyanmitra`,
+        description: `पढ़ें ${displayName} की ताज़ा और मुख्य खबरें, ब्रेकिंग न्यूज़ और विशेष कवरेज ज्ञानमित्र न्यूज़ पर।`,
+        image: `${baseURL}/assets/gyanmitra.png`,
+        canonical: `${baseURL}/categories/${encodeURIComponent(rawCategory)}`,
+        type: 'website',
+      };
+    } catch (error) {
+      console.error('Error fetching category metadata:', (error as any).message);
+    }
+  }
+
   // Predefined routes and default fallback
   const metaDataMap: Record<string, IMetaData> = {
     '/': {
