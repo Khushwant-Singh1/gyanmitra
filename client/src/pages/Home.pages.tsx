@@ -24,9 +24,15 @@ interface CategorySectionDef {
   aliases: string[];
 }
 
-// 1. Top News (handled by recentPublished hero)
-// 2. Sambhal, 3. Moradabad, 4. Amroha, 5. Rampur, 6. Pradesh, 7. Desh, 8. Duniya
+// 1. Top News, 2. Sambhal, 3. Moradabad, 4. Amroha, 5. Rampur, 6. Pradesh, 7. Desh, 8. Duniya
 const PRIMARY_SECTIONS: CategorySectionDef[] = [
+  {
+    key: 'top-news',
+    name: 'टॉप न्यूज़',
+    englishName: 'Top News',
+    slug: 'top-news',
+    aliases: ['top news', 'top-news', 'topnews', 'टॉप न्यूज़', 'टॉप न्यूज', 'प्रमुख समाचार', 'खास खबर', 'मुख्य समाचार', 'top'],
+  },
   {
     key: 'sambhal',
     name: 'संभल',
@@ -95,10 +101,22 @@ const Home: React.FC = () => {
   const breakingNewsList = todayPublished.length > 0 ? todayPublished : articlePublished.slice(0, 5);
 
   const getBySection = (section: CategorySectionDef) => {
-    return mixedArticles.filter(a => {
+    const matched = mixedArticles.filter(a => {
       const cat = a.category?.trim().toLowerCase() || '';
       return section.aliases.some(alias => cat === alias.toLowerCase() || cat.includes(alias.toLowerCase()));
-    }).slice(0, 3);
+    });
+
+    if (matched.length > 0) {
+      return matched.slice(0, 3);
+    }
+
+    // Fallback for Top News if no explicit 'top news' category tag is used
+    if (section.key === 'top-news') {
+      const pool = todayPublished.length > 0 ? todayPublished : mixedArticles;
+      return pool.filter(a => a.slug !== recentPublished?.slug).slice(0, 3);
+    }
+
+    return [];
   };
 
   return (
@@ -154,7 +172,7 @@ const Home: React.FC = () => {
           
           {/* MAIN COLUMN */}
           <div className="lg:col-span-8 space-y-12">
-            {/* 1. TOP NEWS (Lead Story / Featured Hero) */}
+            {/* 1. TOP HERO NEWS (Lead Story / Featured Hero) */}
             {recentPublished && (
               <section className="rounded-sm overflow-hidden border border-zinc-100 bg-white p-2 shadow-sm">
                 <CenterCard
@@ -172,16 +190,15 @@ const Home: React.FC = () => {
               </section>
             )}
 
-            {/* 2. Sambhal, 3. Moradabad, 4. Amroha, 5. Rampur, 6. Pradesh, 7. Desh, 8. Duniya */}
+            {/* 1. Top News, 2. Sambhal, 3. Moradabad, 4. Amroha, 5. Rampur, 6. Pradesh, 7. Desh, 8. Duniya */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-12">
               {PRIMARY_SECTIONS.map((section) => {
                 const articles = getBySection(section);
-                const isDuniya = section.key === 'duniya';
 
                 return (
                   <section
                     key={section.key}
-                    className={cn('space-y-4', isDuniya && 'md:col-span-2')}
+                    className="space-y-4"
                   >
                     <div className="flex items-center justify-between border-b-2 border-zinc-900 pb-1">
                       <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-md shadow-xs border border-slate-100">
@@ -201,12 +218,7 @@ const Home: React.FC = () => {
                       </Link>
                     </div>
 
-                    <div
-                      className={cn(
-                        'space-y-5',
-                        isDuniya && 'grid grid-cols-1 md:grid-cols-3 gap-6 space-y-0'
-                      )}
-                    >
+                    <div className="space-y-5">
                       {articles.length > 0 ? (
                         articles.map((article) => (
                           <div
@@ -226,12 +238,7 @@ const Home: React.FC = () => {
                           </div>
                         ))
                       ) : (
-                        <div
-                          className={cn(
-                            'py-6 px-3 border border-dashed border-zinc-200 rounded-sm text-center bg-zinc-50/50',
-                            isDuniya && 'md:col-span-3'
-                          )}
-                        >
+                        <div className="py-6 px-3 border border-dashed border-zinc-200 rounded-sm text-center bg-zinc-50/50">
                           <p className="text-[11px] font-bold text-zinc-400">
                             {section.name} में अभी कोई ताज़ा खबर नहीं है...
                           </p>
