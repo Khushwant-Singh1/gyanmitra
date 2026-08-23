@@ -14,6 +14,70 @@ import { Badge } from '@/components/ui/badge';
 import { Trophy, ArrowUpRight, Hash, Layers, Zap, PlayCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+import { cn } from '@/lib/utils';
+
+interface CategorySectionDef {
+  key: string;
+  name: string;
+  englishName?: string;
+  slug: string;
+  aliases: string[];
+}
+
+// 1. Top News (handled by recentPublished hero)
+// 2. Sambhal, 3. Moradabad, 4. Amroha, 5. Rampur, 6. Pradesh, 7. Desh, 8. Duniya
+const PRIMARY_SECTIONS: CategorySectionDef[] = [
+  {
+    key: 'sambhal',
+    name: 'संभल',
+    englishName: 'Sambhal',
+    slug: 'sambhal',
+    aliases: ['sambhal', 'संभल', 'chandausi', 'चंदौसी', 'bahjoi', 'बहजोई', 'gunnaur', 'गुन्नौर'],
+  },
+  {
+    key: 'moradabad',
+    name: 'मुरादाबाद',
+    englishName: 'Moradabad',
+    slug: 'moradabad',
+    aliases: ['moradabad', 'मुरादाबाद'],
+  },
+  {
+    key: 'amroha',
+    name: 'अमरोहा',
+    englishName: 'Amroha',
+    slug: 'amroha',
+    aliases: ['amroha', 'अमरोहा', 'jyotiba phule nagar'],
+  },
+  {
+    key: 'rampur',
+    name: 'रामपुर',
+    englishName: 'Rampur',
+    slug: 'rampur',
+    aliases: ['rampur', 'रामपुर'],
+  },
+  {
+    key: 'pradesh',
+    name: 'प्रदेश',
+    englishName: 'Uttar Pradesh',
+    slug: 'uttar-pradesh',
+    aliases: ['pradesh', 'प्रदेश', 'uttar pradesh', 'uttarpradesh', 'उत्तरप्रदेश', 'उत्तर प्रदेश', 'up', 'यूपी', 'राज्य'],
+  },
+  {
+    key: 'desh',
+    name: 'देश',
+    englishName: 'National',
+    slug: 'desh',
+    aliases: ['desh', 'देश', 'national', 'भारत', 'india', 'राष्ट्रीय', 'rashtriya'],
+  },
+  {
+    key: 'duniya',
+    name: 'दुनिया',
+    englishName: 'International',
+    slug: 'duniya',
+    aliases: ['duniya', 'दुनिया', 'videsh', 'विदेश', 'international', 'world', 'global', 'अंतर्राष्ट्रीय'],
+  },
+];
+
 const Home: React.FC = () => {
   const { data, isLoading, error } = useQuery<IApiResponse<IApiHome>>({
     queryKey: ['home'],
@@ -30,10 +94,11 @@ const Home: React.FC = () => {
 
   const breakingNewsList = todayPublished.length > 0 ? todayPublished : articlePublished.slice(0, 5);
 
-  const getByCategory = (catName: string) => {
-    return mixedArticles.filter(a => 
-      a.category?.trim().toLowerCase() === catName.trim().toLowerCase()
-    ).slice(0, 3);
+  const getBySection = (section: CategorySectionDef) => {
+    return mixedArticles.filter(a => {
+      const cat = a.category?.trim().toLowerCase() || '';
+      return section.aliases.some(alias => cat === alias.toLowerCase() || cat.includes(alias.toLowerCase()));
+    }).slice(0, 3);
   };
 
   return (
@@ -76,7 +141,7 @@ const Home: React.FC = () => {
                 ))
               ) : (
                 <span className="text-[11px] font-bold uppercase tracking-tight">
-                  ताज़ा खबरों के liye bane रहें...
+                  ताज़ा खबरों के लिए बने रहें...
                 </span>
               )}
             </motion.div>
@@ -89,6 +154,7 @@ const Home: React.FC = () => {
           
           {/* MAIN COLUMN */}
           <div className="lg:col-span-8 space-y-12">
+            {/* 1. TOP NEWS (Lead Story / Featured Hero) */}
             {recentPublished && (
               <section className="rounded-sm overflow-hidden border border-zinc-100 bg-white p-2 shadow-sm">
                 <CenterCard
@@ -106,49 +172,75 @@ const Home: React.FC = () => {
               </section>
             )}
 
+            {/* 2. Sambhal, 3. Moradabad, 4. Amroha, 5. Rampur, 6. Pradesh, 7. Desh, 8. Duniya */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-12">
-              {['देश', 'उत्तरप्रदेश'].map((category) => (
-                <section key={category}>
-                  <div className="flex items-center justify-between mb-4 border-b-2 border-zinc-900 pb-1">
-                    <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-md shadow-sm border border-slate-100">
-                      <div className="bg-[#e98571] p-1.5 rounded-sm shadow-sm">
-                        <Hash className="h-4 w-4 text-white" />
-                      </div>
-                      <h2 className="text-lg font-bold uppercase tracking-wide text-slate-800">
-                        {category} <span className="text-[#e98571]">News</span>
-                      </h2>
-                    </div>
-                    <Link to={`/categories/${category}`} className="text-zinc-300 hover:text-[#e98571] transition-colors">
-                      <ArrowUpRight className="h-4 w-4" />
-                    </Link>
-                  </div>
+              {PRIMARY_SECTIONS.map((section) => {
+                const articles = getBySection(section);
+                const isDuniya = section.key === 'duniya';
 
-                  <div className="space-y-5">
-                    {getByCategory(category).length > 0 ? (
-                      getByCategory(category).map((article) => (
-                        <div key={article.slug} className="rounded-sm hover:bg-zinc-50 transition-all border-b border-zinc-50 last:border-0 pb-4">
-                          <LeftCard 
-                            title={article.headline}
-                            date={new Date(article.uploaded)}
-                            link={`/articles/${article.slug}`}
-                            category={article.category}
-                            thumbnail={article.featuredMedia.thumbnail}
-                            mediaSrc={article.featuredMedia.url}
-                            fileType={article.featuredMedia.fileType}
-                            name={article.featuredMedia.name}
-                          />
+                return (
+                  <section
+                    key={section.key}
+                    className={cn('space-y-4', isDuniya && 'md:col-span-2')}
+                  >
+                    <div className="flex items-center justify-between border-b-2 border-zinc-900 pb-1">
+                      <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-md shadow-xs border border-slate-100">
+                        <div className="bg-[#e98571] p-1.5 rounded-xs shadow-xs text-white">
+                          <Hash className="h-4 w-4" />
                         </div>
-                      ))
-                    ) : (
-                      <div className="py-4 px-2 border border-dashed border-zinc-200 rounded-sm">
-                        <p className="text-[10px] font-bold text-zinc-400 uppercase ">
-                          {category} में अभी कोई ताज़ा खबर नहीं है...
-                        </p>
+                        <h2 className="text-lg font-bold uppercase tracking-wide text-slate-800">
+                          {section.name} <span className="text-[#e98571]">News</span>
+                        </h2>
                       </div>
-                    )}
-                  </div>
-                </section>
-              ))}
+                      <Link
+                        to={`/categories/${section.slug}`}
+                        className="text-zinc-300 hover:text-[#e98571] transition-colors p-1"
+                        title={`View ${section.name} news`}
+                      >
+                        <ArrowUpRight className="h-4 w-4" />
+                      </Link>
+                    </div>
+
+                    <div
+                      className={cn(
+                        'space-y-5',
+                        isDuniya && 'grid grid-cols-1 md:grid-cols-3 gap-6 space-y-0'
+                      )}
+                    >
+                      {articles.length > 0 ? (
+                        articles.map((article) => (
+                          <div
+                            key={article.slug}
+                            className="rounded-xs hover:bg-zinc-50 transition-all border-b border-zinc-50 last:border-0 pb-4"
+                          >
+                            <LeftCard
+                              title={article.headline}
+                              date={new Date(article.uploaded)}
+                              link={`/articles/${article.slug}`}
+                              category={article.category}
+                              thumbnail={article.featuredMedia.thumbnail}
+                              mediaSrc={article.featuredMedia.url}
+                              fileType={article.featuredMedia.fileType}
+                              name={article.featuredMedia.name}
+                            />
+                          </div>
+                        ))
+                      ) : (
+                        <div
+                          className={cn(
+                            'py-6 px-3 border border-dashed border-zinc-200 rounded-sm text-center bg-zinc-50/50',
+                            isDuniya && 'md:col-span-3'
+                          )}
+                        >
+                          <p className="text-[11px] font-bold text-zinc-400">
+                            {section.name} में अभी कोई ताज़ा खबर नहीं है...
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </section>
+                );
+              })}
             </div>
           </div>
 
