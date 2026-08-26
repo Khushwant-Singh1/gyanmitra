@@ -76,7 +76,8 @@ export const AdministratorSignUp: React.FC = () => {
       form.reset();
       toast.success('Account created successfully!');
       const address =
-        data.data.data.user.role === USER_ROLE.Editor
+        data.data.data.user.role === USER_ROLE.Editor ||
+        data.data.data.user.role === USER_ROLE.Reporter
           ? '/administrator/articles-draft'
           : '/administrator';
       navigate(address);

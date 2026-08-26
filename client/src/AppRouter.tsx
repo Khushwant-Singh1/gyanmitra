@@ -50,12 +50,35 @@ function ProtectedRoute({ allowedRole }: { allowedRole: USER_ROLE[] }) {
   const session = clientQuery.getQueryData(['me']) as any;
   const user = session?.data?.user; 
 
-  // Agar user nahi hai ya role match nahi karta
-  if (!user || !allowedRole.includes(user.role)) {
+  if (!user) {
+    return <Navigate to="/sign-in" replace />;
+  }
+
+  if (!allowedRole.includes(user.role)) {
     return <Navigate to="/forbidden" replace />;
   }
 
   return <Outlet />;
+}
+
+function AdminIndex() {
+  const clientQuery = useQueryClient();
+  const session = clientQuery.getQueryData(['me']) as any;
+  const user = session?.data?.user;
+
+  if (!user) {
+    return <Navigate to="/sign-in" replace />;
+  }
+
+  if (user.role === USER_ROLE.Admin || user.role === USER_ROLE.Owner) {
+    return <Dashboard />;
+  }
+
+  if (user.role === USER_ROLE.Editor || user.role === USER_ROLE.Reporter) {
+    return <Navigate to="/administrator/articles-draft" replace />;
+  }
+
+  return <Navigate to="/forbidden" replace />;
 }
 
 // Create the router
@@ -91,7 +114,7 @@ const router = createBrowserRouter(
         />
       </Route>
 
-      {/* Admin Routes Logic Same Rahega */}
+      {/* Admin Routes Logic */}
       <Route
         element={
           <ProtectedRoute
@@ -105,16 +128,17 @@ const router = createBrowserRouter(
         }
       >
         <Route path="/administrator" element={<AdministratorLayout />}>
+          <Route index element={<AdminIndex />} />
+
           <Route element={<ProtectedRoute allowedRole={[USER_ROLE.Admin, USER_ROLE.Owner]} />}>
-            <Route index element={<Dashboard />} />
             <Route path="articles" element={<ManageArticle />} />
             <Route path="comments" element={<ManageComment />} />
+            <Route path="competitions" element={<CompetitionsPage />} />
           </Route>
 
           <Route path="article-requests" element={<ArticleRequests />} />
           <Route path="articles-draft" element={<DraftArticle />} />
           <Route path="articles-scheduled" element={<ScheduledArticles />} />
-          <Route path="competitions" element={<CompetitionsPage />} />
           
           <Route element={<ProtectedRoute allowedRole={[USER_ROLE.Owner, USER_ROLE.Admin]} />}>
             <Route path="members" element={<ManageMembers />} />

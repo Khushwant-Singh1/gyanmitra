@@ -57,7 +57,8 @@ export const SignIn: React.FC = () => {
       const location =
         response.data.data.user.role === USER_ROLE.Viewer
           ? '/'
-          : response.data.data.user.role === USER_ROLE.Editor
+          : response.data.data.user.role === USER_ROLE.Editor ||
+            response.data.data.user.role === USER_ROLE.Reporter
             ? '/administrator/articles-draft'
             : '/administrator';
       window.location.href = location;

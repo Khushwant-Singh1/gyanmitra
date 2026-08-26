@@ -159,7 +159,12 @@ const Header: React.FC = () => {
               </div>
             ) : (
               <Link
-                to={user.role === USER_ROLE.Editor ? '/administrator/articles-draft' : '/administrator'}
+                to={
+                  user.role === USER_ROLE.Editor ||
+                  user.role === USER_ROLE.Reporter
+                    ? '/administrator/articles-draft'
+                    : '/administrator'
+                }
                 className={cn("hidden md:flex items-center gap-2", buttonVariants({ variant: 'ghost' }))}
               >
                 <FontAwesomeIcon icon={faServer} />
@@ -268,7 +273,12 @@ const Header: React.FC = () => {
             </div>
           ) : (
             <Link
-              to={user.role === USER_ROLE.Editor ? '/administrator/articles-draft' : '/administrator'}
+              to={
+                user.role === USER_ROLE.Editor ||
+                user.role === USER_ROLE.Reporter
+                  ? '/administrator/articles-draft'
+                  : '/administrator'
+              }
               className="flex flex-col items-center gap-1 min-w-[60px] text-muted-foreground"
             >
               <FontAwesomeIcon icon={faServer} className="text-xl" />

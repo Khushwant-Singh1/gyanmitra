@@ -425,6 +425,7 @@ export const getUsersName = AsyncHandler(
       USER_ROLE.Admin,
       USER_ROLE.Editor,
       USER_ROLE.Owner,
+      USER_ROLE.Reporter,
     ];
 
     if (roleQuery) {
