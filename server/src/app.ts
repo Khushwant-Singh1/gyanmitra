@@ -58,11 +58,12 @@ app.use(
     path.join(process.cwd(), "public")
   )
 );
-app.use('/uploads', express.static('uploads'));
-app.get('/uploads/:filename', (req, res) => {
-  const filename = req.params.filename;
-  res.redirect(`https://gyanmitranews.com/uploads/${filename}`);
-});
+app.use(
+  '/uploads',
+  express.static(path.join(process.cwd(), 'uploads'), {
+    maxAge: '1d',
+  })
+);
 app.use(cookieParser());
 
 app.get('/', (req, res) => {

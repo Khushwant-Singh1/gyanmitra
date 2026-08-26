@@ -549,8 +549,19 @@ export const getDraftArticle = AsyncHandler(
 export const getArticleMetaData = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const articleSlug = req.params._slug;
+    let decodedSlug = articleSlug;
+    try {
+      decodedSlug = decodeURIComponent(articleSlug);
+    } catch {}
 
-    const articleExits = await Article.findOne({ slug: articleSlug });
+    const articleExits = await Article.findOne({
+      $or: [
+        { slug: articleSlug },
+        { slug: decodedSlug },
+        { slug: encodeURIComponent(articleSlug) },
+        { slug: encodeURIComponent(decodedSlug) },
+      ],
+    });
     if (!articleExits) throw new ApiError(400, 'Article do not exits.');
 
     const articleMeta = await Article.aggregate([
@@ -575,18 +586,21 @@ export const getArticleMetaData = AsyncHandler(
 
     let imageUrl = articleMeta[0]?.image || '';
     if (imageUrl) {
-      // Never trust CLIENT_URL as "public" if it's actually an internal Docker
-      // hostname (misconfigured env) — that would make the rewrite below a no-op
-      // and leave social crawlers with an unreachable image URL.
-      const internalHostPattern = /frontend:3000|localhost:3000|server:8000|127\.0\.0\.1/;
+      const internalHostPattern = /frontend:3000|localhost:3000|server:8000|127\.0\.0\.1|localhost:9000|minio:9000/;
       const configuredBase = (process.env.CLIENT_URL || '').replace(/\/+$/, '');
       const publicBase =
         configuredBase && !internalHostPattern.test(configuredBase)
           ? configuredBase
           : 'https://gyanmitranews.com';
 
-      if (imageUrl.startsWith('/uploads')) {
+      if (imageUrl.startsWith('/')) {
         imageUrl = `${publicBase}${imageUrl}`;
+      } else if (imageUrl.includes('localhost:9000') || imageUrl.includes('minio:9000')) {
+        const minioPublic = (process.env.MINIO_PUBLIC_URL || '').replace(/\/+$/, '');
+        const publicMinioBase = minioPublic && !internalHostPattern.test(minioPublic)
+          ? minioPublic
+          : 'https://api.gyanmitranews.com/minio/gyanmitra';
+        imageUrl = imageUrl.replace(/https?:\/\/(localhost|minio):9000\/gyanmitra/, publicMinioBase);
       } else if (internalHostPattern.test(imageUrl)) {
         imageUrl = imageUrl.replace(
           /https?:\/\/(frontend:3000|localhost:3000|server:8000|127\.0\.0\.1(:\d+)?)/,
