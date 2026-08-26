@@ -32,7 +32,11 @@ export const InvitationSchema = new Schema<IInvitation>(
     },
     receiverRole: {
       type: String,
-      enum: [ADMINISTRATOR_ROLE.Admin, ADMINISTRATOR_ROLE.Editor],
+      enum: [
+        ADMINISTRATOR_ROLE.Admin,
+        ADMINISTRATOR_ROLE.Editor,
+        ADMINISTRATOR_ROLE.Reporter,
+      ],
       required: true,
     },
     registeredAdministratorId: {

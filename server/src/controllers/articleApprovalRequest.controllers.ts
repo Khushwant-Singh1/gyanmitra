@@ -17,11 +17,18 @@ import type { ObjectId } from 'mongoose';
 // 1. Create Request: Editor dwara bheji gayi request
 export const createRequest = AsyncHandler(
   async (req: IJwtRequest, res: Response, next: NextFunction) => {
-    const { message, receiver_id } = req.body;
+    const { message, receiver_id, receiverId } = req.body;
     const articleId = req.params._articleId;
+    const targetReceiverId = receiverId || receiver_id;
 
-    if (req.user.role !== ADMINISTRATOR_ROLE.Editor)
-      throw new ApiError(403, 'Only editors can make article approval requests');
+    if (
+      req.user.role !== ADMINISTRATOR_ROLE.Editor &&
+      req.user.role !== ADMINISTRATOR_ROLE.Reporter
+    )
+      throw new ApiError(
+        403,
+        'Only editors and reporters can make article approval requests'
+      );
 
     // FIX: trim() ek function hai, brackets () zaruri hain
     if (message && message.trim().length > 400)
@@ -30,7 +37,7 @@ export const createRequest = AsyncHandler(
     const article = await Article.findById(articleId);
     if (!article) throw new ApiError(404, 'Article not found');
 
-    const receiverExits = await User.exists(receiver_id);
+    const receiverExits = await User.exists({ _id: targetReceiverId });
     if (!receiverExits) throw new ApiError(400, 'Receiver does not exist');
 
     const reason = article.originalArticleId ? REQUEST_REASON.Update : REQUEST_REASON.Publish;
@@ -39,7 +46,7 @@ export const createRequest = AsyncHandler(
       message,
       reason,
       articleId,
-      receiverId: receiver_id,
+      receiverId: targetReceiverId,
       requesterId: req.user.id,
       status: REQUEST_STATUS.Pending,
     });

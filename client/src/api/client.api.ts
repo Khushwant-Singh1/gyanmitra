@@ -113,6 +113,14 @@ export interface IApiArticle {
       avatar?: string;
       role?: string;
     };
+    editorInfo?: {
+      _id: string;
+      name: string;
+      firstName?: string;
+      lastName?: string;
+      avatar?: string;
+      role?: string;
+    };
     coAuthors?: {
       _id: string;
       name: string;

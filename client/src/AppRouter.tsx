@@ -95,7 +95,12 @@ const router = createBrowserRouter(
       <Route
         element={
           <ProtectedRoute
-            allowedRole={[USER_ROLE.Admin, USER_ROLE.Owner, USER_ROLE.Editor]} 
+            allowedRole={[
+              USER_ROLE.Admin,
+              USER_ROLE.Owner,
+              USER_ROLE.Editor,
+              USER_ROLE.Reporter,
+            ]} 
           />
         }
       >

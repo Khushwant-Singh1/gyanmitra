@@ -132,16 +132,6 @@ export const RequestCard: React.FC<{
       <div className="mt-3">
         <p className="text-sm">
           <span className="text-secondary">Message:</span> {data.message}{' '}
-          <Link
-            to={`/edit/${data.articleId}/?mode=View`}
-            className={buttonVariants({
-              variant: 'link',
-              size: 'sm',
-              className: 'text-secondary font-semibold',
-            })}
-          >
-            ...View Article
-          </Link>
         </p>
       </div>
       {data.rejectedMessage && (
@@ -152,18 +142,28 @@ export const RequestCard: React.FC<{
           </p>
         </div>
       )}
-      <div className="mt-3 flex items-center justify-between">
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
         <span className="text-primary text-sm font-bold">
           ● <span className="font-semibold">Reason</span>: {data.reason}
         </span>
-        {userRole === USER_ROLE.Editor ? (
-          <div>
+        {userRole === USER_ROLE.Editor || userRole === USER_ROLE.Reporter ? (
+          <div className="flex items-center gap-2">
+            <Link
+              to={`/edit/${data.articleId}/?mode=View`}
+              className={buttonVariants({
+                variant: 'outline',
+                size: 'sm',
+              })}
+            >
+              View Draft
+            </Link>
             <span className="text-primary text-sm font-bold">
               ● <span className="font-semibold">Status</span>:{' '}
               <span className="text-secondary">{data.status}</span>
             </span>
             <Button
               variant={'outline'}
+              size={'sm'}
               className="text-destructive ml-2"
               onClick={() => deleteMutation.mutate()}
             >
@@ -171,9 +171,18 @@ export const RequestCard: React.FC<{
             </Button>
           </div>
         ) : (
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
+            <Link
+              to={`/edit/${data.articleId}`}
+              className={buttonVariants({
+                variant: 'outline',
+                size: 'sm',
+              })}
+            >
+              Review & Edit
+            </Link>
             <Button onClick={() => approveMutation.mutate()} size={'sm'}>
-              Approve
+              Approve & Publish
             </Button>
             <Button
               onClick={() => {
@@ -207,7 +216,7 @@ export const ArticleRequests: React.FC = () => {
     queryKey: ['article-requests', 'myRequests&Receives'],
     queryFn: async () => {
       const endpoint =
-        user.role === USER_ROLE.Editor
+        user.role === USER_ROLE.Editor || user.role === USER_ROLE.Reporter
           ? '/api/article-requests/my'
           : '/api/article-requests/received';
       const response =

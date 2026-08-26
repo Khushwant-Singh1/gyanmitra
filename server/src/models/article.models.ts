@@ -20,6 +20,7 @@ export interface IArticle extends Document {
   categoryId: Types.ObjectId;
   originalArticleId?: Types.ObjectId;
   authorId: Types.ObjectId;
+  editorId?: Types.ObjectId;
   coAuthorIds?: Types.ObjectId[];
   lastPublishedDate?: Date;
   scheduledPublishDate?: Date;
@@ -122,6 +123,10 @@ const ArticleSchema = new Schema<IArticle>(
       type: Schema.Types.ObjectId,
       ref: MODELS.User,
       required: true,
+    },
+    editorId: {
+      type: Schema.Types.ObjectId,
+      ref: MODELS.User,
     },
     coAuthorIds: [
       {

@@ -56,7 +56,7 @@ const formSchema = z.object({
   password: z
     .string()
     .min(6, 'Password must be at least 6 characters.'),
-  role: z.enum([USER_ROLE.Admin, USER_ROLE.Editor], {
+  role: z.enum([USER_ROLE.Admin, USER_ROLE.Editor, USER_ROLE.Reporter], {
     required_error: 'Please select a role.',
   }),
 });
@@ -75,7 +75,7 @@ export const CreateMember: React.FC = () => {
       lastName: '',
       email: '',
       password: '',
-      role: USER_ROLE.Editor,
+      role: USER_ROLE.Reporter,
     },
   });
 
@@ -93,7 +93,7 @@ export const CreateMember: React.FC = () => {
         lastName: '',
         email: '',
         password: '',
-        role: USER_ROLE.Editor,
+        role: USER_ROLE.Reporter,
       });
       clientQuery.invalidateQueries({ queryKey: ['users', 'all'] });
       if (sheetCloseRef.current) {
@@ -234,6 +234,7 @@ export const CreateMember: React.FC = () => {
                         <SelectItem value={USER_ROLE.Admin}>Admin</SelectItem>
                       )}
                       <SelectItem value={USER_ROLE.Editor}>Editor</SelectItem>
+                      <SelectItem value={USER_ROLE.Reporter}>Reporter</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormDescription>

@@ -47,13 +47,23 @@ export const ADMINISTRATOR_SIDEBAR: {
     title: 'Scheduled',
     url: '/administrator/articles-scheduled',
     icon: faClock,
-    access: [USER_ROLE.Admin, USER_ROLE.Owner, USER_ROLE.Editor],
+    access: [
+      USER_ROLE.Admin,
+      USER_ROLE.Owner,
+      USER_ROLE.Editor,
+      USER_ROLE.Reporter,
+    ],
   },
   {
     title: 'Drafts',
     url: '/administrator/articles-draft',
     icon: faNoteSticky,
-    access: [USER_ROLE.Admin, USER_ROLE.Owner, USER_ROLE.Editor],
+    access: [
+      USER_ROLE.Admin,
+      USER_ROLE.Owner,
+      USER_ROLE.Editor,
+      USER_ROLE.Reporter,
+    ],
   },
   {
     title: 'Comments',
@@ -72,7 +82,12 @@ export const ADMINISTRATOR_SIDEBAR: {
     title: 'Article Requests',
     url: '/administrator/article-requests',
     icon: faCodePullRequest,
-    access: [USER_ROLE.Owner, USER_ROLE.Admin, USER_ROLE.Editor],
+    access: [
+      USER_ROLE.Owner,
+      USER_ROLE.Admin,
+      USER_ROLE.Editor,
+      USER_ROLE.Reporter,
+    ],
   },
       // 🏆 Competition added (for Admin + Owner)
   {

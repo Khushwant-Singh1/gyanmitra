@@ -427,14 +427,15 @@ export const DraftArticle: React.FC = () => {
                               Delete
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            {userMe.role === USER_ROLE.Editor ? (
+                            {userMe.role === USER_ROLE.Editor ||
+                            userMe.role === USER_ROLE.Reporter ? (
                               <DropdownMenuItem
                                 onClick={() => {
                                   setDialogOpen(true);
                                   setArticleSelected(article._id);
                                 }}
                               >
-                                Request
+                                Submit to Admin
                               </DropdownMenuItem>
                             ) : article.originalArticleId ? (
                               <DropdownMenuItem

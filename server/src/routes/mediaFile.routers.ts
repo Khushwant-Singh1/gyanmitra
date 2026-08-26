@@ -23,6 +23,7 @@ router
       ADMINISTRATOR_ROLE.Editor,
       ADMINISTRATOR_ROLE.Admin,
       ADMINISTRATOR_ROLE.Owner,
+      ADMINISTRATOR_ROLE.Reporter,
     ]),
     checkRequiredFields(['_id'], FIELD_SOURCE.params),
     validateObjectId(['_id'], FIELD_SOURCE.params),
@@ -33,6 +34,7 @@ router
       ADMINISTRATOR_ROLE.Editor,
       ADMINISTRATOR_ROLE.Admin,
       ADMINISTRATOR_ROLE.Owner,
+      ADMINISTRATOR_ROLE.Reporter,
     ]),
     checkRequiredFields(['_id'], FIELD_SOURCE.params),
     validateObjectId(['_id'], FIELD_SOURCE.params),
@@ -45,6 +47,7 @@ router.post(
     ADMINISTRATOR_ROLE.Editor,
     ADMINISTRATOR_ROLE.Admin,
     ADMINISTRATOR_ROLE.Owner,
+    ADMINISTRATOR_ROLE.Reporter,
   ]),
   upload.single('file'),
   uploadFile
@@ -56,6 +59,7 @@ router.get(
     ADMINISTRATOR_ROLE.Editor,
     ADMINISTRATOR_ROLE.Admin,
     ADMINISTRATOR_ROLE.Owner,
+    ADMINISTRATOR_ROLE.Reporter,
   ]),
   checkRequiredFields(['file_types'], FIELD_SOURCE.query),
   getFiles

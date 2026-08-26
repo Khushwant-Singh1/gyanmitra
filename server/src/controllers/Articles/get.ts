@@ -112,6 +112,20 @@ export const getArticlePageContent = AsyncHandler(
             {
               $lookup: {
                 from: 'users',
+                localField: 'editorId',
+                foreignField: '_id',
+                as: 'editor',
+              },
+            },
+            {
+              $unwind: {
+                path: '$editor',
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+            {
+              $lookup: {
+                from: 'users',
                 localField: 'coAuthorIds',
                 foreignField: '_id',
                 pipeline: [
@@ -197,6 +211,20 @@ export const getArticlePageContent = AsyncHandler(
                   avatar: '$author.avatar',
                   role: '$author.role',
                 },
+                editorInfo: {
+                  $cond: {
+                    if: '$editor._id',
+                    then: {
+                      _id: '$editor._id',
+                      name: { $concat: ['$editor.firstName', ' ', '$editor.lastName'] },
+                      firstName: '$editor.firstName',
+                      lastName: '$editor.lastName',
+                      avatar: '$editor.avatar',
+                      role: '$editor.role',
+                    },
+                    else: null,
+                  },
+                },
               },
             },
             {
@@ -217,6 +245,7 @@ export const getArticlePageContent = AsyncHandler(
                 featuredMediaInfo: 1,
                 authorName: 1,
                 authorInfo: 1,
+                editorInfo: 1,
                 coAuthors: 1,
                 coAuthorIds: 1,
                 _id: 1

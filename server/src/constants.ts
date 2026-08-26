@@ -33,12 +33,14 @@ export enum USER_ROLE {
   Owner = 'Owner',
   Editor = 'Editor',
   Admin = 'Admin',
+  Reporter = 'Reporter',
 }
 
 export enum ADMINISTRATOR_ROLE {
   Owner = USER_ROLE.Owner,
   Editor = USER_ROLE.Editor,
   Admin = USER_ROLE.Admin,
+  Reporter = USER_ROLE.Reporter,
 }
 
 export enum ARTICLE_STATUS {

@@ -222,27 +222,33 @@ export const edit = AsyncHandler(
         (id) => id.toString() !== article.authorId.toString()
       );
     }
-    if (!isPrimaryAuthor && !newCoAuthorIds.some((id) => id.toString() === userId.toString())) {
+    if (!isPrimaryAuthor && !isOwnerOrAdmin && !newCoAuthorIds.some((id) => id.toString() === userId.toString())) {
       newCoAuthorIds.push(userId);
+    }
+
+    const updateFields: Record<string, any> = {
+      headline: headline || article.headline,
+      slug: slugifySlug || article.slug,
+      featuredMediaId: featuredMediaId || article.featuredMediaId,
+      categoryId: categoryId || article.categoryId,
+      tags: tags || article.tags,
+      description: description || article.description,
+      coAuthorIds: newCoAuthorIds,
+      // Update SEO fields
+      metaTitle: metaTitle !== undefined ? metaTitle : article.metaTitle,
+      focusKeyword: focusKeyword !== undefined ? focusKeyword : article.focusKeyword,
+      canonicalUrl: canonicalUrl !== undefined ? canonicalUrl : article.canonicalUrl,
+      robotsTag: robotsTag !== undefined ? robotsTag : article.robotsTag,
+      scheduledPublishDate: scheduledPublishDate !== undefined ? (scheduledPublishDate ? new Date(scheduledPublishDate) : null) : article.scheduledPublishDate,
+    };
+
+    if (isOwnerOrAdmin && !isPrimaryAuthor) {
+      updateFields.editorId = userId;
     }
 
     const updatedArticle = await Article.findByIdAndUpdate(
       article._id,
-      {
-        headline: headline || article.headline,
-        slug: slugifySlug || article.slug,
-        featuredMediaId: featuredMediaId || article.featuredMediaId,
-        categoryId: categoryId || article.categoryId,
-        tags: tags || article.tags,
-        description: description || article.description,
-        coAuthorIds: newCoAuthorIds,
-        // Update SEO fields
-        metaTitle: metaTitle !== undefined ? metaTitle : article.metaTitle,
-        focusKeyword: focusKeyword !== undefined ? focusKeyword : article.focusKeyword,
-        canonicalUrl: canonicalUrl !== undefined ? canonicalUrl : article.canonicalUrl,
-        robotsTag: robotsTag !== undefined ? robotsTag : article.robotsTag,
-        scheduledPublishDate: scheduledPublishDate !== undefined ? (scheduledPublishDate ? new Date(scheduledPublishDate) : null) : article.scheduledPublishDate,
-      },
+      updateFields,
       { new: true, runValidators: false }
     );
 
@@ -275,10 +281,13 @@ export const publish = AsyncHandler(
         'Only draft & private articles can be published.'
       );
 
-    if (req.user.role === ADMINISTRATOR_ROLE.Editor) {
+    if (
+      req.user.role === ADMINISTRATOR_ROLE.Editor ||
+      req.user.role === ADMINISTRATOR_ROLE.Reporter
+    ) {
       throw new ApiError(
         400,
-        'Editor cant publish a draft. Request for publishing.'
+        'Editor or Reporter cannot publish a draft. Request for publishing.'
       );
     }
 
@@ -292,6 +301,10 @@ export const publish = AsyncHandler(
         throw new ApiError(404, 'Article approval request not found');
       articleApprovalRequest.status = REQUEST_STATUS.Approved;
       await articleApprovalRequest.save();
+    }
+
+    if (article.authorId.toString() !== req.user._id.toString()) {
+      article.editorId = req.user._id as Types.ObjectId;
     }
 
     const scheduledDate = reqScheduledDate !== undefined ? reqScheduledDate : article.scheduledPublishDate;
@@ -536,7 +549,8 @@ export const remove = AsyncHandler(
       // allowing creators to delete their own drafts
     } else if (
       article.status !== ARTICLE_STATUS.Draft &&
-      req.user.role === ADMINISTRATOR_ROLE.Editor
+      (req.user.role === ADMINISTRATOR_ROLE.Editor ||
+        req.user.role === ADMINISTRATOR_ROLE.Reporter)
     ) {
       throw new ApiError(400, 'only admin and owner can delete there article');
     } else if (

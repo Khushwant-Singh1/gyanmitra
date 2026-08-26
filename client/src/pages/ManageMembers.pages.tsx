@@ -71,7 +71,12 @@ export const columns: ColumnDef<IApiManageMembers>[] = [
     filterFn: (row, columnId, filterValue) => {
       const effectiveFilter = filterValue.length
         ? filterValue
-        : [USER_ROLE.Admin, USER_ROLE.Viewer, USER_ROLE.Editor];
+        : [
+            USER_ROLE.Admin,
+            USER_ROLE.Viewer,
+            USER_ROLE.Editor,
+            USER_ROLE.Reporter,
+          ];
       return effectiveFilter.includes(row.getValue(columnId));
     },
     header: ({ column }) => {
@@ -83,30 +88,33 @@ export const columns: ColumnDef<IApiManageMembers>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {[USER_ROLE.Admin, USER_ROLE.Viewer, USER_ROLE.Editor].map(
-              (role) => (
-                <DropdownMenuCheckboxItem
-                  key={role}
-                  className="capitalize"
-                  checked={(column.getFilterValue() as string[])?.includes(
-                    role
-                  )}
-                  onCheckedChange={(isChecked) => {
-                    const currentFilter =
-                      (column.getFilterValue() as string[]) || [];
-                    if (isChecked) {
-                      column.setFilterValue([...currentFilter, role]);
-                    } else {
-                      column.setFilterValue(
-                        currentFilter.filter((r) => r !== role)
-                      );
-                    }
-                  }}
-                >
-                  {role}
-                </DropdownMenuCheckboxItem>
-              )
-            )}
+            {[
+              USER_ROLE.Admin,
+              USER_ROLE.Viewer,
+              USER_ROLE.Editor,
+              USER_ROLE.Reporter,
+            ].map((role) => (
+              <DropdownMenuCheckboxItem
+                key={role}
+                className="capitalize"
+                checked={(column.getFilterValue() as string[])?.includes(
+                  role
+                )}
+                onCheckedChange={(isChecked) => {
+                  const currentFilter =
+                    (column.getFilterValue() as string[]) || [];
+                  if (isChecked) {
+                    column.setFilterValue([...currentFilter, role]);
+                  } else {
+                    column.setFilterValue(
+                      currentFilter.filter((r) => r !== role)
+                    );
+                  }
+                }}
+              >
+                {role}
+              </DropdownMenuCheckboxItem>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
       );
@@ -219,7 +227,12 @@ export const ManageMembers: React.FC = () => {
       columnFilters: [
         {
           id: 'role',
-          value: [USER_ROLE.Admin, USER_ROLE.Viewer, USER_ROLE.Editor],
+          value: [
+            USER_ROLE.Admin,
+            USER_ROLE.Viewer,
+            USER_ROLE.Editor,
+            USER_ROLE.Reporter,
+          ],
         },
       ],
     },

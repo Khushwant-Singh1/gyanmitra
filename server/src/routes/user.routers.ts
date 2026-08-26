@@ -45,6 +45,7 @@ router.get(
     ADMINISTRATOR_ROLE.Admin,
     ADMINISTRATOR_ROLE.Editor,
     ADMINISTRATOR_ROLE.Owner,
+    ADMINISTRATOR_ROLE.Reporter,
     USER_ROLE.Viewer,
   ]),
   UserController.getCurrentUserSession
@@ -56,6 +57,7 @@ router.get(
     ADMINISTRATOR_ROLE.Admin,
     ADMINISTRATOR_ROLE.Editor,
     ADMINISTRATOR_ROLE.Owner,
+    ADMINISTRATOR_ROLE.Reporter,
   ]),
   UserController.getDashboardContent
 );
@@ -72,6 +74,7 @@ router.get(
     ADMINISTRATOR_ROLE.Owner,
     ADMINISTRATOR_ROLE.Admin,
     ADMINISTRATOR_ROLE.Editor,
+    ADMINISTRATOR_ROLE.Reporter,
   ]),
   UserController.getUsersName
 );
@@ -82,6 +85,7 @@ router.patch(
     ADMINISTRATOR_ROLE.Owner,
     ADMINISTRATOR_ROLE.Admin,
     ADMINISTRATOR_ROLE.Editor,
+    ADMINISTRATOR_ROLE.Reporter,
     USER_ROLE.Viewer,
   ]),
   UserController.updateProfile

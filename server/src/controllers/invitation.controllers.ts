@@ -39,9 +39,10 @@ export const createInvitation = AsyncHandler(
       throw new ApiError(401, 'owner cant invite owner');
     else if (
       req.user.role === ADMINISTRATOR_ROLE.Admin &&
-      receiverRole !== ADMINISTRATOR_ROLE.Editor
+      receiverRole !== ADMINISTRATOR_ROLE.Editor &&
+      receiverRole !== ADMINISTRATOR_ROLE.Reporter
     )
-      throw new ApiError(401, 'admin can invite only editor');
+      throw new ApiError(401, 'admin can invite only editor or reporter');
 
     const invitation = await Invitation.create({
       inviterId: req.user._id,

@@ -29,6 +29,7 @@ router.get(
     ADMINISTRATOR_ROLE.Admin,
     ADMINISTRATOR_ROLE.Editor,
     ADMINISTRATOR_ROLE.Owner,
+    ADMINISTRATOR_ROLE.Reporter,
   ]),
   ArticleController.getDraftArticles
 );
@@ -39,6 +40,7 @@ router.get(
     ADMINISTRATOR_ROLE.Admin,
     ADMINISTRATOR_ROLE.Editor,
     ADMINISTRATOR_ROLE.Owner,
+    ADMINISTRATOR_ROLE.Reporter,
   ]),
   ArticleController.getScheduledArticles
 );
@@ -51,6 +53,7 @@ router.get(
     ADMINISTRATOR_ROLE.Admin,
     ADMINISTRATOR_ROLE.Editor,
     ADMINISTRATOR_ROLE.Owner,
+    ADMINISTRATOR_ROLE.Reporter,
   ]),
   ArticleController.getDraftArticle
 );
@@ -62,6 +65,7 @@ router.post(
     ADMINISTRATOR_ROLE.Editor,
     ADMINISTRATOR_ROLE.Admin,
     ADMINISTRATOR_ROLE.Owner,
+    ADMINISTRATOR_ROLE.Reporter,
   ]),
   checkRequiredFields(
     ArticleController.CREATE_ARTICLE_REQ_FIELDS,
@@ -78,6 +82,7 @@ router.delete(
     ADMINISTRATOR_ROLE.Editor,
     ADMINISTRATOR_ROLE.Admin,
     ADMINISTRATOR_ROLE.Owner,
+    ADMINISTRATOR_ROLE.Reporter,
   ]),
   checkRequiredFields(['_id'], FIELD_SOURCE.params),
   validateObjectId(['_id'], FIELD_SOURCE.params),
@@ -91,6 +96,7 @@ router.put(
     ADMINISTRATOR_ROLE.Editor,
     ADMINISTRATOR_ROLE.Admin,
     ADMINISTRATOR_ROLE.Owner,
+    ADMINISTRATOR_ROLE.Reporter,
   ]),
   checkRequiredFields(['_id'], FIELD_SOURCE.params),
   validateObjectId(['_id'], FIELD_SOURCE.params),
@@ -104,6 +110,7 @@ router.post(
     ADMINISTRATOR_ROLE.Editor,
     ADMINISTRATOR_ROLE.Admin,
     ADMINISTRATOR_ROLE.Owner,
+    ADMINISTRATOR_ROLE.Reporter,
   ]),
   checkRequiredFields(['_id'], FIELD_SOURCE.params),
   validateObjectId(['_id'], FIELD_SOURCE.params),
@@ -155,6 +162,7 @@ router.get(
     ADMINISTRATOR_ROLE.Editor,
     ADMINISTRATOR_ROLE.Admin,
     ADMINISTRATOR_ROLE.Owner,
+    ADMINISTRATOR_ROLE.Reporter,
   ]),
   checkRequiredFields(['_slug'], FIELD_SOURCE.params),
   ArticleController.getIsSlugExits

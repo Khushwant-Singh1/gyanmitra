@@ -362,16 +362,23 @@ export const createMember = AsyncHandler(
     if (req.user.role === ADMINISTRATOR_ROLE.Owner) {
       if (
         role !== ADMINISTRATOR_ROLE.Admin &&
-        role !== ADMINISTRATOR_ROLE.Editor
+        role !== ADMINISTRATOR_ROLE.Editor &&
+        role !== ADMINISTRATOR_ROLE.Reporter
       ) {
         throw new ApiError(
           400,
-          'Owner can only create Admin or Editor roles'
+          'Owner can only create Admin, Editor, or Reporter roles'
         );
       }
     } else if (req.user.role === ADMINISTRATOR_ROLE.Admin) {
-      if (role !== ADMINISTRATOR_ROLE.Editor) {
-        throw new ApiError(403, 'Admin can only create Editor role');
+      if (
+        role !== ADMINISTRATOR_ROLE.Editor &&
+        role !== ADMINISTRATOR_ROLE.Reporter
+      ) {
+        throw new ApiError(
+          403,
+          'Admin can only create Editor or Reporter roles'
+        );
       }
     } else {
       throw new ApiError(403, 'Unauthorized to create members');

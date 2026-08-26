@@ -18,7 +18,7 @@ const router = Router();
 
 router.post(
   '/:_articleId',
-  VerifyJWT([ADMINISTRATOR_ROLE.Editor]),
+  VerifyJWT([ADMINISTRATOR_ROLE.Editor, ADMINISTRATOR_ROLE.Reporter]),
   checkRequiredFields(['message', 'receiverId'], FIELD_SOURCE.body),
   checkRequiredFields(['_articleId'], FIELD_SOURCE.params),
   validateObjectId(['_articleId'], FIELD_SOURCE.params),
@@ -31,7 +31,11 @@ router.get(
   VerifyJWT([ADMINISTRATOR_ROLE.Admin, ADMINISTRATOR_ROLE.Owner]),
   getReceivedRequests
 );
-router.get('/my', VerifyJWT([ADMINISTRATOR_ROLE.Editor]), getMyRequests);
+router.get(
+  '/my',
+  VerifyJWT([ADMINISTRATOR_ROLE.Editor, ADMINISTRATOR_ROLE.Reporter]),
+  getMyRequests
+);
 router.put(
   '/:_id/reject',
   VerifyJWT([ADMINISTRATOR_ROLE.Admin, ADMINISTRATOR_ROLE.Owner]),
@@ -41,7 +45,7 @@ router.put(
 );
 router.delete(
   '/:_id',
-  VerifyJWT([ADMINISTRATOR_ROLE.Editor]),
+  VerifyJWT([ADMINISTRATOR_ROLE.Editor, ADMINISTRATOR_ROLE.Reporter]),
   checkRequiredFields(['_id'], FIELD_SOURCE.params),
   validateObjectId(['_id'], FIELD_SOURCE.params),
   deleteRequest

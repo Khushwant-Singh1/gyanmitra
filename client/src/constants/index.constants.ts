@@ -9,6 +9,7 @@ export enum USER_ROLE {
   Owner = 'Owner',
   Editor = 'Editor',
   Admin = 'Admin',
+  Reporter = 'Reporter',
 }
 
 export enum MEDIA_FILE_TYPES {
