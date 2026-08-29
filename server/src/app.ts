@@ -12,6 +12,7 @@ console.log("🟢 app.ts file loaded");
 app.set('trust proxy', true);
 
 // 2. Sitemap ko Limiter se PEHLE rakhein taaki ye kabhi block na ho
+app.get('/sitemap.xml', getNewsSitemap);
 app.get('/sitemap-news.xml', getNewsSitemap);
 app.get('/sitemap-images.xml', getImageSitemap);
 

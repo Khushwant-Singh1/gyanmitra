@@ -43,6 +43,15 @@ app.use(
   })
 );
 
+// Proxy XML sitemaps directly to backend server
+app.use(
+  ['/sitemap.xml', '/sitemap-news.xml', '/sitemap-images.xml'],
+  createProxyMiddleware({
+    target: apiBaseTarget,
+    changeOrigin: true,
+  })
+);
+
 // Helper function to clean text for meta tags (strip html, markdown, linebreaks)
 const cleanText = (text: string | null | undefined, maxLength = 200): string => {
   if (!text) return '';

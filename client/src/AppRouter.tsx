@@ -85,16 +85,6 @@ function AdminIndex() {
 const router = createBrowserRouter(
   createRoutesFromElements(
     <>
-      {/* 1. Sitemap Fix: Is route ko sabse upar add karein */}
-      <Route 
-        path="sitemap-news.xml" 
-        loader={() => {
-          // Ye force karega ki browser server se file mangwaye na ki React se
-          window.location.replace("/sitemap-news.xml");
-          return null;
-        }} 
-      />
-
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="articles/:articleSlug" element={<Article />} />
