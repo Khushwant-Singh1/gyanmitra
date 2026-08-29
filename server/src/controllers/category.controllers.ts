@@ -236,11 +236,10 @@ export const getAllCategories = AsyncHandler(
           },
         },
       },
-      { $project: { name: '$fullName' } },
       { $sort: { index: 1 } },
+      { $project: { name: '$fullName' } },
     ]);
-    if (categories.length < 1) throw new ApiError(400, 'no category founded');
-    return res.status(200).send(new ApiResponse(200, categories));
+    return res.status(200).send(new ApiResponse(200, categories || []));
   }
 );
 

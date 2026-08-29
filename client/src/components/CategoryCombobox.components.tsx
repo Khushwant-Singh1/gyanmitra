@@ -45,6 +45,8 @@ export function CategoryCombobox({
     },
   });
 
+  const categories = catOptionsData?.data || [];
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -56,7 +58,7 @@ export function CategoryCombobox({
           className="w-full justify-between capitalize"
         >
           {value
-            ? catOptionsData?.data.find((cat) => cat._id === value)?.name
+            ? categories.find((cat) => cat._id === value)?.name
             : 'Select category...'}
           <ChevronsUpDown className="opacity-50" />
         </Button>
@@ -73,7 +75,7 @@ export function CategoryCombobox({
               <CommandList>
                 <CommandEmpty>No category found.</CommandEmpty>
                 <CommandGroup>
-                  {catOptionsData?.data.map((category) => (
+                  {categories.map((category) => (
                     <CommandItem
                       key={category._id}
                       value={category.name}
