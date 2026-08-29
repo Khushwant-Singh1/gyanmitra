@@ -78,6 +78,11 @@ export const Category: React.FC = () => {
           name="description"
           content={`पढ़ें ${formattedTitle} की ताज़ा और मुख्य खबरें ज्ञानमित्र न्यूज़ पर।`}
         />
+        <link
+          rel="canonical"
+          href={`https://gyanmitranews.com/categories/${encodeURIComponent(categoryName || '')}`}
+        />
+        <meta name="robots" content="INDEX, FOLLOW" />
       </Helmet>
 
       {/* Category Header Banner */}

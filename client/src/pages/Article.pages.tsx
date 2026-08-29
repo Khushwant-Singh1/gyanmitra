@@ -118,7 +118,10 @@ export const Article: React.FC = () => {
   // SEO Fallbacks
   const seoTitle = article.metaTitle || `${article.headline} - Gyanmitra`;
   const seoDescription = article.description || "Read the latest news and articles on Gyanmitra.";
-  const canonicalUrl = article.canonicalUrl || `${window.location.origin}/articles/${article.slug}`;
+  const canonicalUrl =
+    article.canonicalUrl && article.canonicalUrl.startsWith('http')
+      ? article.canonicalUrl
+      : `https://gyanmitranews.com/articles/${encodeURIComponent(article.slug)}`;
   const robotsSetting = article.robotsTag || "INDEX, FOLLOW";
   const shareUrl = typeof window !== 'undefined' ? window.location.href : canonicalUrl;
   const shareText = `${article.headline}\n\n${shareUrl}`;

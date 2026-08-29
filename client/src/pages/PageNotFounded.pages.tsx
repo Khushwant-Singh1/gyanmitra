@@ -1,10 +1,15 @@
 import { buttonVariants } from '@/components/ui/button';
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 
 const PageNotFounded: React.FC = () => {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center">
+      <Helmet>
+        <title>404 - पृष्ठ नहीं मिला | Gyanmitra</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <div className="text-center">
         <h1 className="text-tertiary text-9xl font-extrabold">404</h1>
         <p className="mt-4 text-2xl font-semibold text-gray-700">

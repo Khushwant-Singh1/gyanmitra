@@ -11,10 +11,26 @@ const app = express();
 
 app.use(express.static('public'));
 
-// The Docker image collapses `frontend-server/dist` and `client/dist` to
-// `/app/dist` and `/app/client/dist` (one level up from __dirname), while
-// running from source in dev nests them two levels up instead. Try the
-// Docker layout first and fall back to the dev layout.
+// 1. URL Normalization Middleware: Enforce HTTPS & remove trailing slashes (301 Permanent Redirects)
+app.use((req, res, next) => {
+  const host = req.headers.host;
+  const proto = req.headers['x-forwarded-proto'];
+
+  // Enforce HTTPS when running behind reverse proxy / Cloudflare
+  if (proto === 'http' && host && !host.includes('localhost') && !host.includes('127.0.0.1')) {
+    return res.redirect(301, `https://${host}${req.originalUrl}`);
+  }
+
+  // Remove trailing slashes (e.g. /articles/my-slug/ -> /articles/my-slug)
+  if (req.path.length > 1 && req.path.endsWith('/')) {
+    const query = req.url.slice(req.path.length);
+    const safePath = req.path.slice(0, -1);
+    return res.redirect(301, safePath + query);
+  }
+
+  next();
+});
+
 const dockerDistPath = path.join(__dirname, '../client/dist');
 const distPath = fs.existsSync(dockerDistPath)
   ? dockerDistPath
@@ -27,6 +43,7 @@ app.use(express.static(distPath, { index: false }));
 const rawApiUrl = (process.env.API_URL || 'http://server:8000').replace(/\/+$/, '');
 const apiBaseTarget = rawApiUrl.replace(/\/api\/?$/, '');
 
+// Proxy backend API
 app.use(
   '/api',
   createProxyMiddleware({
@@ -35,6 +52,7 @@ app.use(
   })
 );
 
+// Proxy uploads
 app.use(
   '/uploads',
   createProxyMiddleware({
@@ -43,9 +61,9 @@ app.use(
   })
 );
 
-// Proxy XML sitemaps directly to backend server
+// Proxy XML sitemaps directly to backend Express server
 app.use(
-  ['/sitemap.xml', '/sitemap-news.xml', '/sitemap-images.xml'],
+  ['/sitemap.xml', '/sitemap-news.xml', '/sitemap-images.xml', '/robots.txt'],
   createProxyMiddleware({
     target: apiBaseTarget,
     changeOrigin: true,
@@ -103,7 +121,49 @@ interface IMetaData {
   image: string;
   canonical: string;
   type: string;
+  is404: boolean;
+  robots: string;
+  schemaJson?: object | null;
 }
+
+const KNOWN_CATEGORIES = [
+  'top news', 'top-news', 'topnews', 'sambhal', 'moradabad', 'amroha',
+  'rampur', 'pradesh', 'uttar pradesh', 'uttar-pradesh', 'desh',
+  'national', 'duniya', 'videsh', 'international', 'khel', 'sports',
+  'manoranjan', 'entertainment', 'education', 'shiksha', 'business',
+  'vyapar', 'tech', 'technology', 'lifestyle', 'health', 'crime'
+];
+
+const CATEGORY_NAMES: Record<string, string> = {
+  'top news': 'टॉप न्यूज़ (Top News)',
+  'top-news': 'टॉप न्यूज़ (Top News)',
+  'topnews': 'टॉप न्यूज़ (Top News)',
+  'sambhal': 'संभल (Sambhal)',
+  'moradabad': 'मुरादाबाद (Moradabad)',
+  'amroha': 'अमरोहा (Amroha)',
+  'rampur': 'रामपुर (Rampur)',
+  'pradesh': 'उत्तर प्रदेश (Pradesh)',
+  'uttar pradesh': 'उत्तर प्रदेश (Uttar Pradesh)',
+  'uttar-pradesh': 'उत्तर प्रदेश (Uttar Pradesh)',
+  'desh': 'देश (National News)',
+  'national': 'देश (National News)',
+  'duniya': 'दुनिया (International News)',
+  'videsh': 'विदेश (International News)',
+  'international': 'अंतर्राष्ट्रीय (International)',
+  'khel': 'खेल (Sports)',
+  'sports': 'खेल (Sports)',
+  'manoranjan': 'मनोरंजन (Entertainment)',
+  'entertainment': 'मनोरंजन (Entertainment)',
+  'education': 'शिक्षा एवं करियर (Education)',
+  'shiksha': 'शिक्षा एवं करियर (Education)',
+  'business': 'व्यापार और बाज़ार (Business)',
+  'vyapar': 'व्यापार (Business)',
+  'tech': 'तकनीक एवं टेक (Technology)',
+  'technology': 'तकनीक (Technology)',
+  'lifestyle': 'जीवनशैली और स्वास्थ्य (Lifestyle)',
+  'health': 'स्वास्थ्य (Health)',
+  'crime': 'अपराध (Crime)'
+};
 
 const fetchMetaData = async (slug: string): Promise<IMetaData> => {
   const configuredWebsiteUrl = (process.env.WEBSITE_URL || '').replace(/\/+$/, '');
@@ -116,15 +176,13 @@ const fetchMetaData = async (slug: string): Promise<IMetaData> => {
   const apiRoot = (process.env.API_URL || 'http://server:8000').replace(/\/+$/, '');
   const apiBase = apiRoot.endsWith('/api') ? apiRoot.slice(0, -4) : apiRoot;
 
-  // Check if the slug corresponds to an article route
+  // 1. Article Routes
   if (slug.startsWith('/articles/')) {
     try {
-      // Extract, sanitize, and decode the article slug
       const rawSlug = slug.replace(/^\/articles\//, '').split('?')[0].replace(/\/+$/, '');
       const articleSlug = decodeURIComponent(rawSlug);
 
       if (articleSlug) {
-        // Try fetching metadata from backend API
         const endpointsToTry = [
           `${apiBase}/api/meta/articles/${encodeURIComponent(articleSlug)}`,
           `${apiBase}/meta/articles/${encodeURIComponent(articleSlug)}`,
@@ -140,14 +198,12 @@ const fetchMetaData = async (slug: string): Promise<IMetaData> => {
               break;
             }
           } catch {
-            // continue to next endpoint
+            // continue
           }
         }
 
         if (articleData) {
           let image = articleData.image || defaultFallbackImage;
-
-          // Ensure image URL is absolute and uses public HTTPS domain
           if (image.startsWith('/')) {
             image = `${baseURL}${image}`;
           } else if (
@@ -167,105 +223,213 @@ const fetchMetaData = async (slug: string): Promise<IMetaData> => {
             articleData.description ||
             'ज्ञानमित्र न्यूज़ - शिक्षा, नवाचार, और नैतिक मूल्यों पर आधारित समाचार।';
 
+          const canonical =
+            articleData.canonicalUrl && articleData.canonicalUrl.startsWith('http')
+              ? articleData.canonicalUrl
+              : `${baseURL}/articles/${encodeURIComponent(articleData.slug || articleSlug)}`;
+
+          const publishedDate = articleData.lastPublishedDate || articleData.createdAt || new Date().toISOString();
+          const modifiedDate = articleData.updatedAt || publishedDate;
+
+          const schemaJson = {
+            '@context': 'https://schema.org',
+            '@type': 'NewsArticle',
+            'mainEntityOfPage': {
+              '@type': 'WebPage',
+              '@id': canonical,
+            },
+            'headline': cleanText(rawTitle, 110),
+            'description': cleanText(rawDescription, 200),
+            'image': [image],
+            'datePublished': publishedDate,
+            'dateModified': modifiedDate,
+            'author': {
+              '@type': 'Person',
+              'name': articleData.authorName || 'Gyanmitra News',
+            },
+            'publisher': {
+              '@type': 'Organization',
+              'name': 'Gyanmitra News',
+              'url': baseURL,
+              'logo': {
+                '@type': 'ImageObject',
+                'url': `${baseURL}/assets/s.png`,
+              },
+            },
+          };
+
           return {
             title: cleanText(rawTitle, 100) || 'Gyanmitra News',
             description:
               cleanText(rawDescription, 200) ||
               'ज्ञानमित्र न्यूज़ - शिक्षा, नवाचार, और नैतिक मूल्यों पर आधारित समाचार।',
             image,
-            canonical: `${baseURL}/articles/${encodeURIComponent(articleSlug)}`,
+            canonical,
             type: 'article',
+            is404: false,
+            robots: articleData.robotsTag || 'INDEX, FOLLOW',
+            schemaJson,
           };
         }
       }
     } catch (error) {
       console.error('Error fetching article metadata:', (error as any).message);
     }
+
+    // Article slug not found in database -> Return True 404
+    return {
+      title: '404 - समाचार नहीं मिला | Gyanmitra',
+      description: 'यह समाचार या पृष्ठ उपलब्ध नहीं है। मुख्य पृष्ठ पर जाएं।',
+      image: defaultFallbackImage,
+      canonical: `${baseURL}${slug}`,
+      type: 'website',
+      is404: true,
+      robots: 'NOINDEX, NOFOLLOW',
+    };
   }
 
-  // Check if the slug corresponds to a category route
+  // 2. Category Routes
   if (slug.startsWith('/categories/')) {
-    try {
-      const rawCategory = slug.replace(/^\/categories\//, '').split('?')[0].replace(/\/+$/, '');
-      const decodedCategory = decodeURIComponent(rawCategory).replace(/[-_]+/g, ' ').trim();
+    const rawCategory = slug.replace(/^\/categories\//, '').split('?')[0].replace(/\/+$/, '');
+    const decodedCategory = decodeURIComponent(rawCategory).replace(/[-_]+/g, ' ').trim().toLowerCase();
 
-      const CATEGORY_NAMES: Record<string, string> = {
-        'top news': 'टॉप न्यूज़ (Top News)',
-        'top-news': 'टॉप न्यूज़ (Top News)',
-        'sambhal': 'संभल (Sambhal)',
-        'moradabad': 'मुरादाबाद (Moradabad)',
-        'amroha': 'अमरोहा (Amroha)',
-        'rampur': 'रामपुर (Rampur)',
-        'pradesh': 'उत्तर प्रदेश (Pradesh)',
-        'uttar pradesh': 'उत्तर प्रदेश (Uttar Pradesh)',
-        'uttar-pradesh': 'उत्तर प्रदेश (Uttar Pradesh)',
-        'desh': 'देश (National News)',
-        'duniya': 'दुनिया (International News)',
-        'videsh': 'विदेश (International News)',
-      };
+    const isKnownCategory =
+      KNOWN_CATEGORIES.includes(decodedCategory) ||
+      KNOWN_CATEGORIES.includes(rawCategory.toLowerCase());
 
-      const displayName =
-        CATEGORY_NAMES[decodedCategory.toLowerCase()] ||
-        decodedCategory.charAt(0).toUpperCase() + decodedCategory.slice(1);
+    const displayName =
+      CATEGORY_NAMES[decodedCategory] ||
+      CATEGORY_NAMES[rawCategory.toLowerCase()] ||
+      (isKnownCategory ? decodedCategory.charAt(0).toUpperCase() + decodedCategory.slice(1) : null);
 
+    if (displayName) {
       return {
         title: `${displayName} - ताज़ा हिंदी समाचार | Gyanmitra`,
         description: `पढ़ें ${displayName} की ताज़ा और मुख्य खबरें, ब्रेकिंग न्यूज़ और विशेष कवरेज ज्ञानमित्र न्यूज़ पर।`,
         image: defaultFallbackImage,
         canonical: `${baseURL}/categories/${encodeURIComponent(rawCategory)}`,
         type: 'website',
+        is404: false,
+        robots: 'INDEX, FOLLOW',
       };
-    } catch (error) {
-      console.error('Error fetching category metadata:', (error as any).message);
     }
+
+    // Unrecognized Category -> 404
+    return {
+      title: '404 - श्रेणी नहीं मिली | Gyanmitra',
+      description: 'यह समाचार श्रेणी उपलब्ध नहीं है। ज्ञानमित्र मुख्य पृष्ठ पर जाएं।',
+      image: defaultFallbackImage,
+      canonical: `${baseURL}${slug}`,
+      type: 'website',
+      is404: true,
+      robots: 'NOINDEX, NOFOLLOW',
+    };
   }
 
-  // Predefined routes and default fallback
-  const metaDataMap: Record<string, IMetaData> = {
+  // 3. Known Public Pages
+  const staticPages: Record<string, Partial<IMetaData>> = {
     '/': {
       title: 'Gyanmitra - Hindi News & Knowledge Portal',
       description:
         'ज्ञानमित्र न्यूज़ - शिक्षा, नवाचार, और नैतिक मूल्यों पर आधारित समाचारों का आपका विश्वसनीय स्रोत।',
-      image: defaultFallbackImage,
-      canonical: `${baseURL}/`,
       type: 'website',
+      robots: 'INDEX, FOLLOW',
+      schemaJson: {
+        '@context': 'https://schema.org',
+        '@type': 'NewsMediaOrganization',
+        'name': 'Gyanmitra',
+        'url': baseURL,
+        'logo': `${baseURL}/assets/s.png`,
+      },
     },
-    '/sign-in': {
-      title: 'Sign In - Gyanmitra',
-      description:
-        'अपने ज्ञानमित्र खाते में साइन इन करें और शिक्षा, नवाचार, और प्रेरणादायक कहानियों तक पहुँच प्राप्त करें।',
-      image: defaultFallbackImage,
-      canonical: `${baseURL}/sign-in`,
+    '/about-us': {
+      title: 'About Us - Gyanmitra',
+      description: 'ज्ञानमित्र न्यूज़ के बारे में जानें - हमारी दृष्टि, मिशन और संपादकीय मूल्य।',
       type: 'website',
+      robots: 'INDEX, FOLLOW',
     },
-    '/sign-up': {
-      title: 'Sign Up - Gyanmitra',
-      description:
-        'ज्ञानमित्र में शामिल हों और शिक्षा, नवाचार, और प्रेरक सामग्री की हमारी विस्तृत श्रृंखला का हिस्सा बनें।',
-      image: defaultFallbackImage,
-      canonical: `${baseURL}/sign-up`,
+    '/privacy-policy': {
+      title: 'Privacy Policy - Gyanmitra',
+      description: 'ज्ञानमित्र न्यूज़ की गोपनीयता नीति और डेटा सुरक्षा संबंधी जानकारी।',
       type: 'website',
+      robots: 'INDEX, FOLLOW',
+    },
+    '/contact-us': {
+      title: 'Contact Us - Gyanmitra',
+      description: 'ज्ञानमित्र संपादकीय टीम से संपर्क करें और अपनी प्रतिक्रिया भेजें।',
+      type: 'website',
+      robots: 'INDEX, FOLLOW',
     },
     '/competitions': {
       title: 'Competitions & Quizzes - Gyanmitra',
       description:
         'ज्ञानमित्र प्रतियोगिता हब - निबंध, पेंटिंग, क्विज़ और विभिन्न प्रतियोगिताओं में भाग लें और पुरस्कार जीतें।',
-      image: defaultFallbackImage,
-      canonical: `${baseURL}/competitions`,
       type: 'website',
+      robots: 'INDEX, FOLLOW',
+    },
+    '/search': {
+      title: 'Search News - Gyanmitra',
+      description: 'ज्ञानमित्र पर ताज़ा समाचार, आलेख और सूचनाएं खोजें।',
+      type: 'website',
+      robots: 'NOINDEX, FOLLOW',
+    },
+    '/sign-in': {
+      title: 'Sign In - Gyanmitra',
+      description: 'ज्ञानमित्र खाते में साइन इन करें।',
+      type: 'website',
+      robots: 'NOINDEX, NOFOLLOW',
+    },
+    '/sign-up': {
+      title: 'Sign Up - Gyanmitra',
+      description: 'ज्ञानमित्र में शामिल हों।',
+      type: 'website',
+      robots: 'NOINDEX, NOFOLLOW',
+    },
+    '/email-verify': {
+      title: 'Email Verification - Gyanmitra',
+      description: 'ईमेल सत्यापन।',
+      type: 'website',
+      robots: 'NOINDEX, NOFOLLOW',
     },
   };
 
-  const defaultMeta: IMetaData = {
-    title: 'Gyanmitra',
-    description:
-      'ज्ञानमित्र न्यूज़ - शिक्षा, नवाचार, और नैतिक मूल्यों पर आधारित समाचारों का आपका विश्वसनीय स्रोत।',
+  if (staticPages[slug]) {
+    const page = staticPages[slug];
+    return {
+      title: page.title || 'Gyanmitra',
+      description: page.description || 'ज्ञानमित्र न्यूज़ - आपका विश्वसनीय समाचार स्रोत।',
+      image: defaultFallbackImage,
+      canonical: `${baseURL}${slug === '/' ? '' : slug}`,
+      type: page.type || 'website',
+      is404: false,
+      robots: page.robots || 'INDEX, FOLLOW',
+      schemaJson: page.schemaJson || null,
+    };
+  }
+
+  // 4. Admin and Editorial Routes (Never Index)
+  if (slug.startsWith('/administrator') || slug.startsWith('/edit/')) {
+    return {
+      title: 'Administrator Dashboard - Gyanmitra',
+      description: 'ज्ञानमित्र एडमिन डैशबोर्ड',
+      image: defaultFallbackImage,
+      canonical: `${baseURL}${slug}`,
+      type: 'website',
+      is404: false,
+      robots: 'NOINDEX, NOFOLLOW',
+    };
+  }
+
+  // 5. Any Other Unknown Route -> True 404
+  return {
+    title: '404 - पृष्ठ नहीं मिला | Gyanmitra',
+    description: 'यह पृष्ठ उपलब्ध नहीं है। मुख्य पृष्ठ पर जाएं।',
     image: defaultFallbackImage,
     canonical: `${baseURL}${slug}`,
     type: 'website',
+    is404: true,
+    robots: 'NOINDEX, NOFOLLOW',
   };
-
-  return metaDataMap[slug] || defaultMeta;
 };
 
 app.get('*', async (req, res) => {
@@ -285,12 +449,24 @@ app.get('*', async (req, res) => {
   const metaData = await fetchMetaData(slug);
   const imageMimeType = getImageMimeType(metaData.image);
 
+  // If page is a 404, respond with real HTTP 404 status code to fix Soft 404 errors in Googlebot
+  if (metaData.is404) {
+    res.status(404);
+  } else {
+    res.status(200);
+  }
+
+  const schemaTagHtml = metaData.schemaJson
+    ? `\n    <script type="application/ld+json">\n      ${JSON.stringify(metaData.schemaJson)}\n    </script>`
+    : '';
+
   const metaTagsHtml = `
     <!-- Primary Meta Tags -->
     <title>${escapeHtml(metaData.title)}</title>
     <meta name="title" content="${escapeHtml(metaData.title)}" />
     <meta name="description" content="${escapeHtml(metaData.description)}" />
     <link rel="canonical" href="${escapeHtml(metaData.canonical)}" />
+    <meta name="robots" content="${escapeHtml(metaData.robots)}" />
     
     <!-- Open Graph / WhatsApp / Facebook Meta Tags -->
     <meta property="og:type" content="${escapeHtml(metaData.type)}" />
@@ -312,7 +488,7 @@ app.get('*', async (req, res) => {
     <meta name="twitter:title" content="${escapeHtml(metaData.title)}" />
     <meta name="twitter:description" content="${escapeHtml(metaData.description)}" />
     <meta name="twitter:image" content="${escapeHtml(metaData.image)}" />
-    <meta name="twitter:image:alt" content="${escapeHtml(metaData.title)}" />
+    <meta name="twitter:image:alt" content="${escapeHtml(metaData.title)}" />${schemaTagHtml}
   `;
 
   // If client/dist/index.html exists from Vite build, inject meta tags directly into it

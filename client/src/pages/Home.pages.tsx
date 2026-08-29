@@ -124,7 +124,13 @@ const Home: React.FC = () => {
        'pb-[env(safe-area-inset-bottom)]' iPhone users ke liye bottom notch space handle karega */
     <main className="bg-[#fcfcfc] min-h-screen pb-32 md:pb-12 font-sans overflow-x-hidden">
       <Helmet prioritizeSeoTags>
-        <title>Gyanmitra | Leading Hindi News Portal</title>
+        <title>Gyanmitra - Hindi News & Knowledge Portal</title>
+        <meta
+          name="description"
+          content="ज्ञानमित्र न्यूज़ - शिक्षा, नवाचार, और नैतिक मूल्यों पर आधारित समाचारों का आपका विश्वसनीय स्रोत।"
+        />
+        <link rel="canonical" href="https://gyanmitranews.com/" />
+        <meta name="robots" content="INDEX, FOLLOW" />
       </Helmet>
 
       {/* Breaking News Bar */}

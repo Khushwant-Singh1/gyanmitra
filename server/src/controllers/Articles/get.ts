@@ -562,8 +562,9 @@ export const getArticleMetaData = AsyncHandler(
         { slug: encodeURIComponent(articleSlug) },
         { slug: encodeURIComponent(decodedSlug) },
       ],
+      status: ARTICLE_STATUS.Published,
     });
-    if (!articleExits) throw new ApiError(400, 'Article do not exits.');
+    if (!articleExits) throw new ApiError(404, 'Article does not exist.');
 
     const articleMeta = await Article.aggregate([
       {
@@ -574,6 +575,14 @@ export const getArticleMetaData = AsyncHandler(
         $project: {
           title: { $ifNull: ['$metaTitle', '$headline'] },
           description: 1,
+          slug: 1,
+          authorName: 1,
+          canonicalUrl: 1,
+          robotsTag: 1,
+          createdAt: 1,
+          lastPublishedDate: 1,
+          updatedAt: 1,
+          tags: 1,
           image: {
             $cond: {
               if: { $eq: ['$featuredMedia.fileType', MEDIA_FILE_TYPES.Video] },
