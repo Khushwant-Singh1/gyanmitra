@@ -82,6 +82,7 @@ jobs:
           username: ${{ secrets.HOSTINGER_SSH_USERNAME }}
           key: ${{ secrets.HOSTINGER_SSH_KEY }}
           port: ${{ secrets.HOSTINGER_SSH_PORT || 22 }}
+          timeout: 2m
           command_timeout: 10m
           envs: GHCR_USERNAME,GHCR_TOKEN,HOSTINGER_DEPLOY_PATH
           script: |
