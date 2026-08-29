@@ -468,6 +468,7 @@ export const getDraftArticles = AsyncHandler(
       {
         $unwind: {
           path: '$category',
+          preserveNullAndEmptyArrays: true,
         },
       },
 
@@ -679,7 +680,10 @@ export const getScheduledArticles = AsyncHandler(
       status: ARTICLE_STATUS.Scheduled,
     };
 
-    if (user.role === ADMINISTRATOR_ROLE.Editor) {
+    if (
+      user.role === ADMINISTRATOR_ROLE.Editor ||
+      user.role === ADMINISTRATOR_ROLE.Reporter
+    ) {
       filter.$or = [
         { authorId: user._id },
         { coAuthorIds: user._id },

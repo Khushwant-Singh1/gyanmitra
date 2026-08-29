@@ -36,6 +36,7 @@ router.get(
     ADMINISTRATOR_ROLE.Admin,
     ADMINISTRATOR_ROLE.Owner,
     ADMINISTRATOR_ROLE.Editor,
+    ADMINISTRATOR_ROLE.Reporter,
   ]),
   getAllCategories
 );
