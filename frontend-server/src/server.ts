@@ -61,14 +61,37 @@ app.use(
   })
 );
 
-// Proxy XML sitemaps directly to backend Express server
-app.use(
-  ['/sitemap.xml', '/sitemap-news.xml', '/sitemap-images.xml', '/robots.txt'],
-  createProxyMiddleware({
-    target: apiBaseTarget,
-    changeOrigin: true,
-  })
-);
+// Explicit sitemap handlers to fetch XML from backend and serve with text/xml Content-Type
+app.get(['/sitemap.xml', '/sitemap-news.xml', '/sitemap-images.xml'], async (req, res) => {
+  try {
+    const backendUrl = `${apiBaseTarget}${req.path}`;
+    const response = await axios.get(backendUrl, {
+      responseType: 'text',
+      timeout: 6000,
+    });
+    res.set('Content-Type', 'text/xml; charset=utf-8');
+    return res.status(200).send(response.data);
+  } catch (error) {
+    console.error(`Error fetching sitemap (${req.path}) from backend:`, (error as any).message);
+    return res.status(500).send('Error generating sitemap');
+  }
+});
+
+// Explicit robots.txt handler
+app.get('/robots.txt', (req, res) => {
+  const robotsTxt = `User-agent: *
+Allow: /
+Disallow: /administrator/
+Disallow: /edit/
+Disallow: /api/
+
+Sitemap: https://gyanmitranews.com/sitemap-news.xml
+Sitemap: https://gyanmitranews.com/sitemap-images.xml
+Sitemap: https://gyanmitranews.com/sitemap.xml
+`;
+  res.set('Content-Type', 'text/plain; charset=utf-8');
+  return res.status(200).send(robotsTxt);
+});
 
 // Helper function to clean text for meta tags (strip html, markdown, linebreaks)
 const cleanText = (text: string | null | undefined, maxLength = 200): string => {
