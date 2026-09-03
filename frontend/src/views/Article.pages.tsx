@@ -14,7 +14,13 @@ import LeftCard from '@/components/LeftCard.components';
 import { DateDisplay } from '@/components/DateDisplay.components';
 import TimeAgo from '@/components/TimeAgo.components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faShareNodes, faZap, faLink } from '@fortawesome/free-solid-svg-icons';
+import {
+  faShareNodes,
+  faZap,
+  faLink,
+  faCheck,
+  faEnvelope,
+} from '@fortawesome/free-solid-svg-icons';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
   Dialog,
@@ -28,6 +34,7 @@ import {
   faXTwitter,
   faFacebookF,
   faTelegram,
+  faLinkedinIn,
 } from '@fortawesome/free-brands-svg-icons';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -39,7 +46,16 @@ import { MDToHTMLConverter } from '@/utils/MDToHTML.utils';
 import { ArticleCommentsSection } from '@/components/ArticleComments.components';
 import { motion } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Feather, Users, Clock, BookOpen, Edit3 } from 'lucide-react';
+import {
+  Feather,
+  Users,
+  Clock,
+  BookOpen,
+  Edit3,
+  Globe,
+  Eye,
+  Loader2,
+} from 'lucide-react';
 
 const getInitials = (name?: string, firstName?: string, lastName?: string) => {
   if (firstName && lastName) {
@@ -142,20 +158,95 @@ export const Article: React.FC<ArticleProps> = ({
   const shareUrl = typeof window !== 'undefined' ? window.location.href : canonicalUrl;
   const shareText = `${article.headline}\n\n${shareUrl}`;
 
+  const sharePreviewImage = (() => {
+    const raw =
+      article.featuredMediaInfo?.fileType === 'video'
+        ? article.featuredMediaInfo?.thumbnail || article.featuredMediaInfo?.url
+        : article.featuredMediaInfo?.url;
+    if (!raw) return '/assets/s.png';
+    const normalized = raw.replace(/\\/g, '/').trim();
+    if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
+      return normalized;
+    }
+    const uploadsMatch = normalized.match(/(?:^|\/)uploads\/(.+)$/i);
+    if (uploadsMatch) {
+      return `/uploads/${uploadsMatch[1]}`;
+    }
+    return normalized.startsWith('/') ? normalized : `/${normalized}`;
+  })();
+
+  const [copied, setCopied] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+
+  const handleCopyLink = async () => {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = shareUrl;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopied(true);
+      toast.success('Link Copied to Clipboard!');
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      toast.error('Failed to copy link. Please copy URL manually.');
+    }
+  };
+
   const handleNativeShare = async () => {
-    if (navigator.share) {
-      try {
+    if (typeof navigator === 'undefined' || !navigator.share) {
+      handleCopyLink();
+      return;
+    }
+
+    setIsSharing(true);
+    try {
+      let fileToShare: File | null = null;
+      if (sharePreviewImage && typeof fetch !== 'undefined') {
+        try {
+          const res = await fetch(sharePreviewImage, { mode: 'cors' });
+          if (res.ok) {
+            const blob = await res.blob();
+            const mime = blob.type || 'image/jpeg';
+            const ext = mime.split('/')[1] || 'jpg';
+            const file = new File([blob], `gyanmitra-news.${ext}`, { type: mime });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              fileToShare = file;
+            }
+          }
+        } catch {
+          // Ignore image fetch failure and proceed with standard share
+        }
+      }
+
+      if (fileToShare) {
         await navigator.share({
           title: article.headline,
-          text: article.headline,
+          text: `${article.headline}\n\n${shareUrl}`,
+          url: shareUrl,
+          files: [fileToShare],
+        });
+      } else {
+        await navigator.share({
+          title: article.headline,
+          text: `${article.headline}\n\n${shareUrl}`,
           url: shareUrl,
         });
-      } catch {
-        // User cancelled or share failed, silently ignore
       }
-    } else {
-      await navigator.clipboard.writeText(shareUrl);
-      toast.success('Link Copied to Clipboard!');
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') {
+        handleCopyLink();
+      }
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -397,64 +488,188 @@ export const Article: React.FC<ArticleProps> = ({
                     <FontAwesomeIcon icon={faShareNodes} className="h-3 w-3" /> Share
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="rounded-none sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle className="text-lg font-bold">Share this Article</DialogTitle>
+                <DialogContent className="rounded-none sm:max-w-lg max-h-[90vh] overflow-y-auto p-5 sm:p-6">
+                  <DialogHeader className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full bg-[#e98571] animate-pulse" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[#e98571]">Gyanmitra News</span>
+                    </div>
+                    <DialogTitle className="text-xl font-bold tracking-tight text-zinc-900">Share this Article</DialogTitle>
+                    <p className="text-xs text-zinc-500 font-medium">Spread verified journalism and updates with your network.</p>
                   </DialogHeader>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-4">
-                    <a
-                      href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`}
-                      target="_blank"
-                      className={cn(buttonVariants({ variant: 'outline' }), "rounded-none justify-start gap-3 text-xs bg-green-50 hover:bg-green-100 text-green-800 border-green-200")}
-                      rel="noopener noreferrer"
-                    >
-                      <FontAwesomeIcon icon={faWhatsapp} className="h-4 w-4 text-green-600" /> WhatsApp
-                    </a>
-                    <a
-                      href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(article.headline)}`}
-                      target="_blank"
-                      className={cn(buttonVariants({ variant: 'outline' }), "rounded-none justify-start gap-3 text-xs bg-sky-50 hover:bg-sky-100 text-sky-800 border-sky-200")}
-                      rel="noopener noreferrer"
-                    >
-                      <FontAwesomeIcon icon={faTelegram} className="h-4 w-4 text-sky-500" /> Telegram
-                    </a>
-                    <a
-                      href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(article.headline)}&url=${encodeURIComponent(shareUrl)}`}
-                      target="_blank"
-                      className={cn(buttonVariants({ variant: 'outline' }), "rounded-none justify-start gap-3 text-xs hover:bg-zinc-100")}
-                      rel="noopener noreferrer"
-                    >
-                      <FontAwesomeIcon icon={faXTwitter} className="h-4 w-4" /> X (Twitter)
-                    </a>
-                    <a
-                      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
-                      target="_blank"
-                      className={cn(buttonVariants({ variant: 'outline' }), "rounded-none justify-start gap-3 text-xs bg-blue-50 hover:bg-blue-100 text-blue-800 border-blue-200")}
-                      rel="noopener noreferrer"
-                    >
-                      <FontAwesomeIcon icon={faFacebookF} className="h-4 w-4 text-blue-600" /> Facebook
-                    </a>
+
+                  {/* --- LIVE ARTICLE SHARE PREVIEW CARD --- */}
+                  <div className="mt-4 rounded-md border border-zinc-200/90 bg-gradient-to-b from-zinc-50 to-white p-3.5 shadow-xs transition-all">
+                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-200/60">
+                      <span className="text-[9px] font-black uppercase tracking-wider text-zinc-400 flex items-center gap-1">
+                        <Eye className="w-3 h-3 text-[#e98571]" /> Social Preview Card
+                      </span>
+                      <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-[#e98571]/30 bg-[#e98571]/5 text-[#d87460] rounded-none py-0">
+                        {article.categoryName || 'News'}
+                      </Badge>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3.5 items-start">
+                      {/* Thumbnail Preview */}
+                      <div className="relative w-full sm:w-36 aspect-video sm:aspect-[4/3] rounded-sm overflow-hidden bg-zinc-200 shrink-0 border border-zinc-200/80 shadow-xs">
+                        <img
+                          src={sharePreviewImage}
+                          alt={article.headline}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src = '/assets/s.png';
+                          }}
+                        />
+                        {article.featuredMediaInfo?.fileType === 'video' && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                            <span className="text-[9px] font-black text-white bg-black/60 px-1.5 py-0.5 rounded-none uppercase tracking-wider">Video</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Content Details */}
+                      <div className="flex flex-col justify-between flex-1 min-w-0 space-y-1.5 w-full">
+                        <h4 className="font-bold text-xs sm:text-sm text-zinc-900 leading-snug line-clamp-2">
+                          {article.headline}
+                        </h4>
+                        {article.description && (
+                          <p className="text-[11px] text-zinc-500 font-medium line-clamp-2 leading-relaxed">
+                            {article.description}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-2 pt-1 text-[10px] font-bold text-zinc-400">
+                          <span className="flex items-center gap-1 text-zinc-500">
+                            <Globe className="w-2.5 h-2.5 text-[#e98571]" /> gyanmitranews.com
+                          </span>
+                          <span>•</span>
+                          <span>{article.authorName || 'Gyanmitra News'}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex gap-2 pt-2 border-t border-zinc-100 mt-2">
+
+                  {/* --- NATIVE DEVICE SHARE BUTTON --- */}
+                  {typeof navigator !== 'undefined' && 'share' in navigator && (
                     <Button
-                      variant="outline"
-                      className="flex-1 rounded-none justify-center gap-2 text-xs"
-                      onClick={() => {
-                        navigator.clipboard.writeText(shareUrl);
-                        toast.success('Link Copied to Clipboard!');
-                      }}
+                      variant="default"
+                      className="w-full rounded-none h-10 gap-2 text-xs font-bold bg-[#e98571] hover:bg-[#d87460] text-white shadow-xs transition-all active:scale-[0.99]"
+                      onClick={handleNativeShare}
+                      disabled={isSharing}
                     >
-                      <FontAwesomeIcon icon={faLink} className="h-3 w-3" /> Copy Link
+                      {isSharing ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Preparing Share Sheet...
+                        </>
+                      ) : (
+                        <>
+                          <FontAwesomeIcon icon={faShareNodes} className="h-3.5 w-3.5" />
+                          Share via Apps (WhatsApp, Instagram, Messages...)
+                        </>
+                      )}
                     </Button>
-                    {typeof navigator !== 'undefined' && 'share' in navigator && (
-                      <Button
-                        variant="default"
-                        className="rounded-none justify-center gap-2 text-xs bg-[#e98571] hover:bg-[#d87460] text-white"
-                        onClick={handleNativeShare}
+                  )}
+
+                  {/* --- SOCIAL CHANNELS GRID --- */}
+                  <div className="space-y-2 pt-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Direct Social Channels</span>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      <a
+                        href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
+                        target="_blank"
+                        className={cn(
+                          buttonVariants({ variant: 'outline' }),
+                          "rounded-none justify-start gap-2.5 text-xs bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] border-[#25D366]/30 font-bold transition-all"
+                        )}
+                        rel="noopener noreferrer"
                       >
-                        <FontAwesomeIcon icon={faShareNodes} className="h-3 w-3" /> More
+                        <FontAwesomeIcon icon={faWhatsapp} className="h-4 w-4 text-[#25D366]" /> WhatsApp
+                      </a>
+                      <a
+                        href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(article.headline)}`}
+                        target="_blank"
+                        className={cn(
+                          buttonVariants({ variant: 'outline' }),
+                          "rounded-none justify-start gap-2.5 text-xs bg-[#229ED9]/10 hover:bg-[#229ED9]/20 text-[#1D84B5] border-[#229ED9]/30 font-bold transition-all"
+                        )}
+                        rel="noopener noreferrer"
+                      >
+                        <FontAwesomeIcon icon={faTelegram} className="h-4 w-4 text-[#229ED9]" /> Telegram
+                      </a>
+                      <a
+                        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(article.headline)}&url=${encodeURIComponent(shareUrl)}`}
+                        target="_blank"
+                        className={cn(
+                          buttonVariants({ variant: 'outline' }),
+                          "rounded-none justify-start gap-2.5 text-xs bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border-zinc-200 font-bold transition-all"
+                        )}
+                        rel="noopener noreferrer"
+                      >
+                        <FontAwesomeIcon icon={faXTwitter} className="h-3.5 w-3.5" /> X (Twitter)
+                      </a>
+                      <a
+                        href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
+                        target="_blank"
+                        className={cn(
+                          buttonVariants({ variant: 'outline' }),
+                          "rounded-none justify-start gap-2.5 text-xs bg-[#1877F2]/10 hover:bg-[#1877F2]/20 text-[#1877F2] border-[#1877F2]/30 font-bold transition-all"
+                        )}
+                        rel="noopener noreferrer"
+                      >
+                        <FontAwesomeIcon icon={faFacebookF} className="h-3.5 w-3.5" /> Facebook
+                      </a>
+                      <a
+                        href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`}
+                        target="_blank"
+                        className={cn(
+                          buttonVariants({ variant: 'outline' }),
+                          "rounded-none justify-start gap-2.5 text-xs bg-[#0A66C2]/10 hover:bg-[#0A66C2]/20 text-[#0A66C2] border-[#0A66C2]/30 font-bold transition-all"
+                        )}
+                        rel="noopener noreferrer"
+                      >
+                        <FontAwesomeIcon icon={faLinkedinIn} className="h-3.5 w-3.5" /> LinkedIn
+                      </a>
+                      <a
+                        href={`mailto:?subject=${encodeURIComponent(article.headline)}&body=${encodeURIComponent(shareText)}`}
+                        className={cn(
+                          buttonVariants({ variant: 'outline' }),
+                          "rounded-none justify-start gap-2.5 text-xs bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border-zinc-200 font-bold transition-all"
+                        )}
+                      >
+                        <FontAwesomeIcon icon={faEnvelope} className="h-3.5 w-3.5 text-[#e98571]" /> Email
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* --- COPY LINK FIELD --- */}
+                  <div className="pt-3 border-t border-zinc-100 space-y-1.5">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Page Link</span>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="text"
+                        readOnly
+                        value={shareUrl}
+                        className="flex-1 bg-zinc-50 border border-zinc-200 px-3 py-2 text-xs text-zinc-600 font-mono rounded-none focus:outline-none select-all truncate"
+                        onClick={(e) => (e.target as HTMLInputElement).select()}
+                      />
+                      <Button
+                        variant={copied ? 'default' : 'outline'}
+                        className={cn(
+                          "rounded-none text-xs font-bold gap-1.5 shrink-0 h-9 transition-all",
+                          copied ? "bg-emerald-600 hover:bg-emerald-700 text-white" : ""
+                        )}
+                        onClick={handleCopyLink}
+                      >
+                        {copied ? (
+                          <>
+                            <FontAwesomeIcon icon={faCheck} className="h-3.5 w-3.5" /> Copied!
+                          </>
+                        ) : (
+                          <>
+                            <FontAwesomeIcon icon={faLink} className="h-3.5 w-3.5" /> Copy Link
+                          </>
+                        )}
                       </Button>
-                    )}
+                    </div>
                   </div>
                 </DialogContent>
               </Dialog>

@@ -586,7 +586,7 @@ export const getArticleMetaData = AsyncHandler(
           image: {
             $cond: {
               if: { $eq: ['$featuredMedia.fileType', MEDIA_FILE_TYPES.Video] },
-              then: '$thumbnailMedia.fileUrl',
+              then: { $ifNull: ['$thumbnailMedia.fileUrl', '$featuredMedia.fileUrl'] },
               else: '$featuredMedia.fileUrl',
             },
           },
@@ -594,17 +594,20 @@ export const getArticleMetaData = AsyncHandler(
       },
     ]);
 
+    const internalHostPattern = /frontend:3000|localhost:3000|server:8000|127\.0\.0\.1|localhost:9000|minio:9000/;
+    const configuredBase = (process.env.CLIENT_URL || '').replace(/\/+$/, '');
+    const publicBase =
+      configuredBase && !internalHostPattern.test(configuredBase)
+        ? configuredBase
+        : 'https://gyanmitranews.com';
+
     let imageUrl = articleMeta[0]?.image || '';
     if (imageUrl) {
-      const internalHostPattern = /frontend:3000|localhost:3000|server:8000|127\.0\.0\.1|localhost:9000|minio:9000/;
-      const configuredBase = (process.env.CLIENT_URL || '').replace(/\/+$/, '');
-      const publicBase =
-        configuredBase && !internalHostPattern.test(configuredBase)
-          ? configuredBase
-          : 'https://gyanmitranews.com';
-
+      imageUrl = imageUrl.replace(/\\/g, '/').trim();
       if (imageUrl.startsWith('/')) {
         imageUrl = `${publicBase}${imageUrl}`;
+      } else if (imageUrl.startsWith('uploads/')) {
+        imageUrl = `${publicBase}/${imageUrl}`;
       } else if (imageUrl.includes('localhost:9000') || imageUrl.includes('minio:9000')) {
         const minioPublic = (process.env.MINIO_PUBLIC_URL || '').replace(/\/+$/, '');
         const publicMinioBase = minioPublic && !internalHostPattern.test(minioPublic)
@@ -617,8 +620,10 @@ export const getArticleMetaData = AsyncHandler(
           publicBase
         );
       }
-      articleMeta[0].image = imageUrl;
+    } else {
+      imageUrl = `${publicBase}/assets/s.png`;
     }
+    articleMeta[0].image = imageUrl;
 
     return res.status(200).send(new ApiResponse(200, articleMeta[0]));
   }
