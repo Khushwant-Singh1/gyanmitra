@@ -21,8 +21,15 @@ export interface ILinksWithName {
 }
 
 export const GET_HELP_LINKS: ILinksWithName[] = [
-  { name: 'Contact & FAQ', link: '/contact-us' },
   { name: 'About Us', link: '/about-us' },
+  { name: 'Contact & FAQ', link: '/contact-us' },
+  { name: 'Competitions', link: '/competitions' },
+];
+
+export const LEGAL_LINKS: ILinksWithName[] = [
+  { name: 'Privacy Policy', link: '/privacy-policy' },
+  { name: 'Terms & Conditions', link: '/terms-and-conditions' },
+  { name: 'Disclaimer', link: '/disclaimer' },
 ];
 
 export const ADMINISTRATOR_SIDEBAR: {

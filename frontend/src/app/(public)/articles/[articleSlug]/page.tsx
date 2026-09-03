@@ -17,6 +17,8 @@ const cleanText = (text: string | null | undefined, maxLength = 200): string => 
     .slice(0, maxLength);
 };
 
+import { MDToHTMLConverter } from '@/utils/MDToHTML.utils';
+
 async function getArticleMeta(articleSlug: string) {
   const rawApiUrl = (process.env.API_URL || 'http://localhost:8000').replace(/\/+$/, '');
   const apiBase = rawApiUrl.replace(/\/api\/?$/, '');
@@ -32,6 +34,25 @@ async function getArticleMeta(articleSlug: string) {
     }
   } catch (err) {
     console.error('Error fetching article metadata:', err);
+  }
+  return null;
+}
+
+async function getArticleFull(articleSlug: string) {
+  const rawApiUrl = (process.env.API_URL || 'http://localhost:8000').replace(/\/+$/, '');
+  const apiBase = rawApiUrl.replace(/\/api\/?$/, '');
+
+  try {
+    const res = await fetch(
+      `${apiBase}/api/articles/page/${encodeURIComponent(articleSlug)}`,
+      { next: { revalidate: 60 } }
+    );
+    if (res.ok) {
+      const json = await res.json();
+      return json?.data || null;
+    }
+  } catch (err) {
+    console.error('Error fetching full article data:', err);
   }
   return null;
 }
@@ -97,7 +118,19 @@ export default async function ArticlePage({ params }: Props) {
   const { articleSlug } = await params;
   const decodedSlug = decodeURIComponent(articleSlug);
   const baseURL = (process.env.WEBSITE_URL || 'https://gyanmitranews.com').replace(/\/+$/, '');
-  const article = await getArticleMeta(decodedSlug);
+  const [article, articleData] = await Promise.all([
+    getArticleMeta(decodedSlug),
+    getArticleFull(decodedSlug),
+  ]);
+
+  let contentHtml = '';
+  if (articleData?.articleDetails?.contentData) {
+    try {
+      contentHtml = await MDToHTMLConverter(articleData.articleDetails.contentData);
+    } catch (err) {
+      console.error('Error converting markdown to HTML in SSR:', err);
+    }
+  }
 
   let schemaJson: any = null;
   if (article) {
@@ -143,7 +176,11 @@ export default async function ArticlePage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaJson) }}
         />
       )}
-      <ArticleView />
+      <ArticleView
+        initialArticle={articleData}
+        initialContentHtml={contentHtml}
+        slug={decodedSlug}
+      />
     </>
   );
 }

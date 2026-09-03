@@ -1,125 +1,199 @@
-'use client';
-
-import { Spinner } from '@/components/Spinner.components';
-import { MDToHTMLConverter } from '@/utils/MDToHTML.utils';
-import React, { useEffect, useState } from 'react';
-
-const PRIVACY_POLICY_MARKDOWN = `
-**PRIVACY POLICY**
-
-At Gyanmitra News, we prioritize the privacy of everyone visiting our website. We are dedicated to protecting your personal information and ensuring transparency about the data we collect, how it is used, and who it is shared with.
-
-This Privacy Policy applies to all interactions with our website, mobile applications, or other online services (collectively referred to as "Services") that are linked to this policy. It does not apply to information collected through other channels by Gyanmitra News or its affiliated entities. By using our Services, you consent to the terms outlined in this Privacy Policy.
-
-We reserve the right to update or modify this Privacy Policy at any time.
-
-**INFORMATION WE COLLECT**
-
-We gather information directly from users, and third parties, and automatically through our websites and mobile applications.
-
-To access certain Services, users may need to provide personal details such as name, age, gender, contact number, email address, and demographic information (e.g., area, location, IP address). For added convenience, users can register on any of our sites and use the same login credentials to access other sites (Single Sign-On feature). You may also choose to register or link your account via third-party accounts, such as Facebook or Google.
-
-We collect basic information about your internet connection, including your IP address, when you visit our website. While your IP address does not identify you personally, we also collect and may store data provided by your computer or mobile device, such as browser type, device type, browser language, IP address, mobile carrier, unique device identifier, location, and URLs of pages visited or referred to.
-
-Additionally, we collect information when you engage with our content or interact with our website/apps, even if you do not have an account. This data is used to deliver web pages, tailor the site to user interests, and measure traffic. Advertisers and third-party companies may also use this information to personalize content and advertisements.
-
-**HOW WE COLLECT INFORMATION**
-
-a) We collect information directly from you when you register with us.
-
-b) We collect information (whether you are registered or not registered with us) when you browse our sites/apps, open or respond to an email from us (promotional or informational),
-
-c) When you post a comment on our website or raise a query/question to us through phone or email.
-
-d) We collect information from you when you register with us by linking your social media or third-party accounts. By doing this, you are authorizing them to share with us certain information from such accounts, and authorizing us to collect, store, and use this by this Privacy Policy.
-
-e) We collect information from you using third-party tools, browser cookies, and web beacons to improve user experience.
-
-f) Device Information We may collect non-personal information about the computer, mobile device, or other device you use to access the service, such as IP address, geolocation information, unique device identifiers, browser type, browser language, and other information to provide customized information on the browser.
-
-g) Location Information Our mobile applications and websites may capture your current location if you choose to enable the GPS feature in the app or browser.
-
-**COOKIE POLICY, PIXELS AND TRACKING**
-
-Cookies are small text files that contain a small amount of information that is downloaded to your computer or mobile device when you visit a website. When you visit the website again or visit a partner website that recognizes that cookie, your device can communicate with our website and the website can read the information held in that cookie.
-
-We use cookies to help you efficiently browse our websites and to save you time by not having to re-enter your details/preferences each time you visit. Cookies allow us to provide you with information and show you content relevant to you. We also use Cookies to analyze how our customers interact with our websites so we can improve the customer journey.
-
-You can choose to accept or decline cookies in your browser settings. Most web browsers automatically accept cookies, but you can usually modify your browser settings to reject cookies if you prefer. You may find more help about managing cookies in your browser: Chrome, Internet Explorer, Mozilla Firefox & Safari. This may prevent you from having a complete website experience by affecting access to some of the links, services, or features. Information collected by cookies and web beacons is not personally identifiable.
-
-**HOW WE USE THE INFORMATION**
-
-a) **To Provide and Manage the Services You Request**: This includes tasks such as processing your subscription, sending electronic newsletters, and enabling access to features offered by our Services. It also involves providing personalized content and recommendations tailored to your interests and needs, including via email.
-
-b) **To Reach You**: We may periodically contact you with updates and information about our Services and those of our affiliates, including information related to your accounts, surveys, legal notices, new features, and other important matters. You can opt out of receiving marketing emails by following the instructions in the emails you receive.
-
-c) **To Customize Advertising**: We may use your information to deliver targeted ads, promotions, and offers, both on and off our Services, for our purposes and on behalf of advertisers.
-
-d) **To Understand Our Readers and Users**: We conduct research based on the information we collect about our users' demographics, interests, and behaviors. This helps us better understand and serve our audience, as well as improve our products and services.
-
-e) **To Protect the Rights of the Services and Others**: We may use your information as necessary to protect, enforce, or defend the legal rights, privacy, safety, or property of the Services, its employees, agents, or other users, or to comply with applicable law.
-
-f) **With Your Consent**: We may use your information with your consent or as directed by you.
-
-**HOW WE SHARE YOUR INFORMATION**
-
-a) **Logging In Through Social Media Services**: If you log into the Services using a social media account or connect a social media account with the Services, we may share your information with that social media service. The use of shared information by the social media service will be governed by its privacy policy and your account settings. If you do not wish for your information to be shared this way, avoid connecting your social media account with our Services.
-
-b) **Business Partners**: We may share your information with business partners to provide the services you have requested.
-
-c) **Service Providers**: We may share information with vendors providing services like hosting, advertising, and payment processing.
-
-d) **Other Parties When Required by Law or to Protect Our Users and Services**: We may share your personal information as necessary to protect the legal rights, privacy, safety, or property of the Services, employees, agents, or users, or to comply with legal processes or requests from government authorities.
-
-e) **Affiliates**: We may share information within our family of affiliated companies and business partners.
-
-f) **Third Parties Providing Content, Advertising, or Functionality**: Third parties may collect information about you and your usage of the Services using cookies and similar technologies. This information may be used to provide or measure content, advertising, or functionality, and may be combined with data collected across different sites or devices.
-
-g) **Corporate Transactions**: In the event of a sale, merger, or transfer of business or assets, we may transfer your information as part of the transaction.
-
-h) **With Your Consent or Direction**: We may share your information with third parties when you give us consent to do so.
-
-i) **Aggregated Data**: We may share non-identifiable aggregated data about user activities with third parties for research or analysis purposes.
-
-j) **Links to Third-Party Sites**: Our Services may contain links to external websites. We are not responsible for the privacy practices of these websites, and you should review their privacy policies.
-
-**ACCESS TO PERSONAL INFORMATION**
-You may access or modify your personal information by logging into the website. While we do not alter the information you provide, you should update it as necessary. Upon request, we will close your account and remove your personal information from view, except where retention is required by law or for specific purposes like investigating potential violations, complying with legal obligations, or addressing security issues.
-
-**OPTING OUT**
-If we have your contact information, we may send you updates about our products, services, and events via email. Would you prefer not to receive marketing communications? In that case, you can unsubscribe using the link in the email, or contact us directly via the email provided in the "Contact Us" section of our website. Just to let you know, opting out may limit our ability to provide certain services. We will update your preferences as soon as reasonably possible, but your information may remain in the databases of affiliates, partners, or business associates with whom we have already shared it.
-`;
+import React from 'react';
 
 export const PrivacyPolicy: React.FC = () => {
-  const [content, setContent] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const processContent = async () => {
-      try {
-        const htmlContent = await MDToHTMLConverter(PRIVACY_POLICY_MARKDOWN);
-        setContent(htmlContent);
-      } catch (error) {
-        console.error('Markdown processing error:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    processContent();
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
-
   return (
-    <div
-      className="prose my-10 min-w-full"
-      dangerouslySetInnerHTML={{ __html: content || '' }}
-    />
+    <article className="mx-auto max-w-4xl py-12 px-4 sm:px-6 lg:px-8 text-gray-800">
+      <header className="mb-10 border-b border-gray-200 pb-6">
+        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+          Privacy Policy (गोपनीयता नीति)
+        </h1>
+        <p className="mt-2 text-sm text-gray-500">
+          Last Updated: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+        </p>
+      </header>
+
+      <div className="space-y-8 text-base leading-relaxed">
+        <section>
+          <p>
+            At <strong>Gyanmitra News</strong> (accessible from{' '}
+            <a href="https://gyanmitranews.com" className="text-blue-600 underline hover:text-blue-800">
+              https://gyanmitranews.com
+            </a>
+            ), one of our main priorities is the privacy of our visitors. This Privacy Policy document
+            explains the types of information that is collected and recorded by Gyanmitra News and how we use it.
+          </p>
+          <p className="mt-3">
+            If you have additional questions or require more information about our Privacy Policy, do not hesitate
+            to contact our editorial and data protection team at{' '}
+            <a href="mailto:gyanmitranews@gmail.com" className="text-blue-600 underline">
+              gyanmitranews@gmail.com
+            </a>
+            .
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">
+            1. Google AdSense &amp; Third-Party Advertising Cookies (गूगल एडसेंस नीति)
+          </h2>
+          <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-5 text-gray-800 space-y-3">
+            <p>
+              Gyanmitra News partners with third-party vendors and ad networks, including <strong>Google AdSense</strong>,
+              to serve advertisements when you visit our website.
+            </p>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>
+                <strong>Third-party vendors, including Google, use cookies</strong> to serve ads based on a user&apos;s
+                prior visits to your website or other websites across the Internet.
+              </li>
+              <li>
+                <strong>DoubleClick Cookie:</strong> Google&apos;s use of advertising cookies (such as the DoubleClick cookie)
+                enables Google and its advertising partners to serve ads to our visitors based on their visit to{' '}
+                <em>gyanmitranews.com</em> and/or other websites on the Internet.
+              </li>
+              <li>
+                <strong>Personalized Advertising Opt-Out:</strong> Users may opt out of personalized advertising by
+                visiting{' '}
+                <a
+                  href="https://adssettings.google.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-blue-700 underline hover:text-blue-900"
+                >
+                  Google Ads Settings (https://adssettings.google.com)
+                </a>
+                .
+              </li>
+              <li>
+                Alternatively, users can opt out of a third-party vendor&apos;s use of cookies for personalized
+                advertising by visiting{' '}
+                <a
+                  href="https://www.aboutads.info/choices/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-blue-700 underline hover:text-blue-900"
+                >
+                  www.aboutads.info
+                </a>{' '}
+                or{' '}
+                <a
+                  href="https://optout.networkadvertising.org/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-blue-700 underline hover:text-blue-900"
+                >
+                  Network Advertising Initiative (NAI) Opt-Out
+                </a>
+                .
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">2. Information We Collect</h2>
+          <p>
+            The personal information that you are asked to provide, and the reasons why you are asked to provide it,
+            will be made clear to you at the point we ask you to provide your personal information.
+          </p>
+          <ul className="list-disc pl-6 mt-3 space-y-2">
+            <li>
+              <strong>Direct Information:</strong> If you contact us directly or register an account, we may receive
+              additional information about you such as your name, email address, phone number, contents of your message,
+              and attachments.
+            </li>
+            <li>
+              <strong>Log Files:</strong> Gyanmitra News follows a standard procedure of using log files. These files log
+              visitors when they visit websites. The information collected by log files includes internet protocol (IP)
+              addresses, browser type, Internet Service Provider (ISP), date and time stamp, referring/exit pages, and
+              possibly the number of clicks. These are not linked to any information that is personally identifiable.
+            </li>
+            <li>
+              <strong>Device &amp; Analytics Data:</strong> We may collect non-personal information such as device type,
+              operating system, browser type, and anonymous aggregate readership statistics to improve reader experience.
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">3. Cookies and Web Beacons</h2>
+          <p>
+            Like any other website, Gyanmitra News uses &apos;cookies&apos;. These cookies are used to store information
+            including visitors&apos; preferences, and the pages on the website that the visitor accessed or visited.
+            The information is used to optimize the users&apos; experience by customizing our web page content based
+            on visitors&apos; browser type and/or other information.
+          </p>
+          <p className="mt-3">
+            You can choose to disable cookies through your individual browser options. To know more detailed
+            information about cookie management with specific web browsers, it can be found at the browsers&apos;
+            respective websites (e.g., Chrome, Safari, Firefox, Edge).
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">4. How We Use Your Information</h2>
+          <p>We use the information we collect in various ways, including to:</p>
+          <ul className="list-disc pl-6 mt-3 space-y-2">
+            <li>Provide, operate, maintain, and improve our news portal and digital journalism services.</li>
+            <li>Understand and analyze how visitors engage with our articles, features, and educational content.</li>
+            <li>Develop new editorial products, categories, features, and competitions.</li>
+            <li>
+              Communicate with you for editorial queries, reader comments, customer support, and system updates.
+            </li>
+            <li>Send you newsletters, breaking news alerts, and promotional communications (with opt-out choice).</li>
+            <li>Detect and prevent fraud, spam comments, and security vulnerabilities.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">5. CCPA &amp; GDPR / DPDP Data Protection Rights</h2>
+          <p>
+            We would like to make sure you are fully aware of all of your data protection rights under applicable laws
+            (including GDPR and the Digital Personal Data Protection Act):
+          </p>
+          <ul className="list-disc pl-6 mt-3 space-y-2">
+            <li><strong>The right to access:</strong> You have the right to request copies of your personal data.</li>
+            <li><strong>The right to rectification:</strong> You have the right to request that we correct any information you believe is inaccurate.</li>
+            <li><strong>The right to erasure:</strong> You have the right to request that we erase your personal data under certain conditions.</li>
+            <li><strong>The right to restrict processing:</strong> You have the right to request that we restrict the processing of your personal data.</li>
+            <li><strong>The right to object to processing:</strong> You have the right to object to our processing of your personal data.</li>
+          </ul>
+          <p className="mt-3">
+            If you make a request, we have one month to respond to you. If you would like to exercise any of these
+            rights, please contact us at{' '}
+            <a href="mailto:gyanmitranews@gmail.com" className="text-blue-600 underline">
+              gyanmitranews@gmail.com
+            </a>
+            .
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">6. Children&apos;s Information</h2>
+          <p>
+            Another part of our priority is adding protection for children while using the internet. We encourage
+            parents and guardians to observe, participate in, and/or monitor and guide their online activity.
+          </p>
+          <p className="mt-3">
+            Gyanmitra News does not knowingly collect any Personal Identifiable Information from children under the
+            age of 13. If you think that your child provided this kind of information on our website, we strongly
+            encourage you to contact us immediately and we will do our best efforts to promptly remove such
+            information from our records.
+          </p>
+        </section>
+
+        <section className="border-t border-gray-200 pt-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">7. Contact Our Grievance &amp; Privacy Officer</h2>
+          <p>If you have any questions or grievances regarding this Privacy Policy, please contact:</p>
+          <div className="mt-3 bg-gray-50 p-4 rounded-lg text-sm space-y-1">
+            <p><strong>Gyanmitra News Digital Platform</strong></p>
+            <p><strong>Chief Editor:</strong> Dr. Kunwar Rana Pratap Singh Rana (LLB, MCom, MBA)</p>
+            <p><strong>Head Office:</strong> Shiv Mandir Road, Vikas Nagar, Chandausi, Sambhal, Uttar Pradesh – 244412</p>
+            <p><strong>Phone:</strong> +91 7500801004</p>
+            <p><strong>Email:</strong> <a href="mailto:gyanmitranews@gmail.com" className="text-blue-600 underline">gyanmitranews@gmail.com</a></p>
+          </div>
+        </section>
+      </div>
+    </article>
   );
 };

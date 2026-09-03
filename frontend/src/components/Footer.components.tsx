@@ -7,7 +7,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { buttonVariants } from './ui/button';
 import content from '@/assets/content.json';
 import { CSeparator } from './ui/customSeparator';
-import { GET_HELP_LINKS } from '@/constants/links.constants';
+import { GET_HELP_LINKS, LEGAL_LINKS } from '@/constants/links.constants';
 
 export default function Footer() {
   return (
@@ -39,24 +39,46 @@ export default function Footer() {
               <CSeparator className="absolute bottom-0 left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0" />
             </h3>
             <ul className="space-y-1">
-              {GET_HELP_LINKS.length !== 0
-                ? GET_HELP_LINKS.map((val) => (
-                    <li key={val.link}>
-                      <NavLink
-                        to={val.link}
-                        // SEO Fix: Added dynamic title
-                        title={`Explore ${val.name}`}
-                        className={({ isActive }) =>
-                          `!px-0 text-base capitalize transition-all ${buttonVariants({
-                            variant: 'link',
-                          })} ${isActive ? 'font-bold text-secondary' : 'text-gray-600'}`
-                        }
-                      >
-                        {val.name}
-                      </NavLink>
-                    </li>
-                  ))
-                : 'No data'}
+              {GET_HELP_LINKS.map((val) => (
+                <li key={val.link}>
+                  <NavLink
+                    to={val.link}
+                    title={`Explore ${val.name}`}
+                    className={({ isActive }) =>
+                      `!px-0 text-base capitalize transition-all ${buttonVariants({
+                        variant: 'link',
+                      })} ${isActive ? 'font-bold text-secondary' : 'text-gray-600'}`
+                    }
+                  >
+                    {val.name}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Legal Pages */}
+          <div className="flex flex-col items-center text-center md:items-start md:text-left">
+            <h3 className="text-tertiary-foreground relative mb-4 pb-2 text-lg font-bold uppercase tracking-wider">
+              Legal
+              <CSeparator className="absolute bottom-0 left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0" />
+            </h3>
+            <ul className="space-y-1">
+              {LEGAL_LINKS.map((val) => (
+                <li key={val.link}>
+                  <NavLink
+                    to={val.link}
+                    title={val.name}
+                    className={({ isActive }) =>
+                      `!px-0 text-base capitalize transition-all ${buttonVariants({
+                        variant: 'link',
+                      })} ${isActive ? 'font-bold text-secondary' : 'text-gray-600'}`
+                    }
+                  >
+                    {val.name}
+                  </NavLink>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -70,7 +92,6 @@ export default function Footer() {
               </h3>
               <div className="flex gap-3">
                 {FOLLOW_US_LINKS.map((link) => {
-                  // TypeScript Error Fix: Extracting platform from URL to avoid 'link.name' error
                   const platform = link.url.includes('facebook') ? 'Facebook' : 
                                    link.url.includes('instagram') ? 'Instagram' : 
                                    link.url.includes('twitter') ? 'Twitter' : 
@@ -82,7 +103,6 @@ export default function Footer() {
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      // SEO Fix: Added Title and Aria-label
                       title={`Follow us on ${platform}`}
                       aria-label={`Follow us on ${platform}`}
                       className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm transition-transform active:scale-90 hover:bg-zinc-50"
@@ -96,13 +116,39 @@ export default function Footer() {
 
             {/* Legal & Copyright Section */}
             <div className="flex flex-col items-center space-y-3 text-center md:items-end md:text-right">
-              <Link
-                to="/privacy-policy"
-                title="Privacy Policy and Terms of Use"
-                className="text-sm font-medium text-gray-600 hover:text-secondary"
-              >
-                Privacy Policy & Terms
-              </Link>
+              <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm font-medium text-gray-600 md:justify-end">
+                <Link
+                  to="/privacy-policy"
+                  title="Privacy Policy"
+                  className="hover:text-secondary"
+                >
+                  Privacy Policy
+                </Link>
+                <span>•</span>
+                <Link
+                  to="/terms-and-conditions"
+                  title="Terms & Conditions"
+                  className="hover:text-secondary"
+                >
+                  Terms &amp; Conditions
+                </Link>
+                <span>•</span>
+                <Link
+                  to="/disclaimer"
+                  title="Disclaimer"
+                  className="hover:text-secondary"
+                >
+                  Disclaimer
+                </Link>
+                <span>•</span>
+                <Link
+                  to="/contact-us"
+                  title="Contact Us"
+                  className="hover:text-secondary"
+                >
+                  Contact Us
+                </Link>
+              </div>
               
               <div className="space-y-1 text-[13px] text-gray-500">
                 <p>© {new Date().getFullYear()} All Rights Reserved</p>

@@ -14,6 +14,61 @@ const escapeXml = (str: string | null | undefined): string => {
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
 };
 
+export const getAllArticlesSitemap = AsyncHandler(async (req: Request, res: Response) => {
+  const articles = await Article.find({
+    status: ARTICLE_STATUS.Published,
+  })
+    .select('slug updatedAt lastPublishedDate createdAt')
+    .sort({ lastPublishedDate: -1, createdAt: -1 })
+    .limit(50000);
+
+  const staticPages = [
+    { loc: 'https://gyanmitranews.com/', priority: '1.0', changefreq: 'hourly' },
+    { loc: 'https://gyanmitranews.com/about-us', priority: '0.8', changefreq: 'monthly' },
+    { loc: 'https://gyanmitranews.com/contact-us', priority: '0.8', changefreq: 'monthly' },
+    { loc: 'https://gyanmitranews.com/privacy-policy', priority: '0.8', changefreq: 'monthly' },
+    { loc: 'https://gyanmitranews.com/terms-and-conditions', priority: '0.8', changefreq: 'monthly' },
+    { loc: 'https://gyanmitranews.com/disclaimer', priority: '0.8', changefreq: 'monthly' },
+    { loc: 'https://gyanmitranews.com/competitions', priority: '0.8', changefreq: 'daily' },
+  ];
+
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
+
+  // 1. Static Pages
+  staticPages.forEach((page) => {
+    xml += `
+  <url>
+    <loc>${page.loc}</loc>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>
+  </url>`;
+  });
+
+  // 2. All Published Articles
+  articles.forEach((article) => {
+    const slug = encodeURIComponent(article.slug || '');
+    if (!slug) return;
+    const articleDate = article.updatedAt || article.lastPublishedDate || article.createdAt || new Date();
+    const date = articleDate.toISOString();
+
+    xml += `
+  <url>
+    <loc>https://gyanmitranews.com/articles/${slug}</loc>
+    <lastmod>${date}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>`;
+  });
+
+  xml += `\n</urlset>`;
+
+  res.set('Content-Type', 'text/xml; charset=utf-8');
+  res.set('Content-Length', Buffer.byteLength(xml).toString());
+
+  return res.status(200).send(xml);
+});
+
 export const getNewsSitemap = AsyncHandler(async (req: Request, res: Response) => {
   // 1. Aaj se theek 48 ghante pehle ka time calculate karein
   const twoDaysAgo = new Date();

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import HomeView from '@/views/Home.pages';
+import type { IApiHome } from '@/api/client.api';
 
 export const metadata: Metadata = {
   title: 'Gyanmitra - Hindi News & Knowledge Portal',
@@ -18,7 +19,27 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HomePage() {
+async function getHomeData(): Promise<IApiHome | null> {
+  const rawApiUrl = (process.env.API_URL || 'http://localhost:8000').replace(/\/+$/, '');
+  const apiBase = rawApiUrl.replace(/\/api\/?$/, '');
+
+  try {
+    const res = await fetch(`${apiBase}/api/users/home`, {
+      next: { revalidate: 60 },
+    });
+    if (res.ok) {
+      const json = await res.json();
+      return json?.data || null;
+    }
+  } catch (err) {
+    console.error('Error fetching home feed on server:', err);
+  }
+  return null;
+}
+
+export default async function HomePage() {
+  const homeData = await getHomeData();
+
   const schemaJson = {
     '@context': 'https://schema.org',
     '@type': 'NewsMediaOrganization',
@@ -33,7 +54,7 @@ export default function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaJson) }}
       />
-      <HomeView />
+      <HomeView initialHomeData={homeData} />
     </>
   );
 }

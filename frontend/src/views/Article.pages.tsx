@@ -63,9 +63,20 @@ const getEstimatedReadTime = (content?: string | null) => {
   return `${minutes} min read`;
 };
 
-export const Article: React.FC = () => {
-  const { articleSlug } = useParams<{ articleSlug: string }>();
-  const [content, setContent] = useState<string | null>(null);
+interface ArticleProps {
+  initialArticle?: IApiArticle | null;
+  initialContentHtml?: string | null;
+  slug?: string;
+}
+
+export const Article: React.FC<ArticleProps> = ({
+  initialArticle,
+  initialContentHtml,
+  slug: propSlug,
+}) => {
+  const params = useParams<{ articleSlug: string }>();
+  const articleSlug = propSlug || params?.articleSlug;
+  const [content, setContent] = useState<string | null>(initialContentHtml || null);
 
   // Main Article Data Fetch
   const { data, isLoading, error } = useQuery<IApiResponse<IApiArticle>>({
@@ -76,6 +87,9 @@ export const Article: React.FC = () => {
       );
       return response.data;
     },
+    initialData: initialArticle
+      ? { success: true, statusCode: 200, data: initialArticle }
+      : undefined,
     staleTime: 1000 * 60 * 60,
   });
 

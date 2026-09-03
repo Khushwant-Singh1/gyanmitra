@@ -86,13 +86,20 @@ const PRIMARY_SECTIONS: CategorySectionDef[] = [
   },
 ];
 
-const Home: React.FC = () => {
+interface HomeProps {
+  initialHomeData?: IApiHome | null;
+}
+
+const Home: React.FC<HomeProps> = ({ initialHomeData }) => {
   const { data, isLoading, error } = useQuery<IApiResponse<IApiHome>>({
     queryKey: ['home'],
     queryFn: async () => {
       const response = await axios.get<IApiResponse<IApiHome>>('/api/users/home');
       return response.data;
     },
+    initialData: initialHomeData
+      ? { success: true, statusCode: 200, data: initialHomeData }
+      : undefined,
   });
 
   if (isLoading) return <div className="flex h-screen items-center justify-center"><Spinner /></div>;
