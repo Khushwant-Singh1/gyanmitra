@@ -1,0 +1,8 @@
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+minio_data
+uploads
+.git
+.DS_Store

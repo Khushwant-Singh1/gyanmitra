@@ -45,21 +45,11 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build and Push Client Image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: client/Dockerfile
-          push: true
-          tags: ghcr.io/${{ steps.prep.outputs.owner }}/gyanmitra-client:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
       - name: Build and Push Frontend Image
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: frontend-server/Dockerfile
+          file: frontend/Dockerfile
           push: true
           tags: ghcr.io/${{ steps.prep.outputs.owner }}/gyanmitra-frontend:latest
           cache-from: type=gha

@@ -17,6 +17,9 @@ services:
       context: .
       dockerfile: server/Dockerfile
     image: gyanmitra_server:latest
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     env_file:
       - server/.env
     ports:
@@ -38,22 +41,14 @@ services:
       - ./uploads:/usr/src/app/uploads:z
     restart: unless-stopped
 
-  client:
-    build:
-      context: .
-      dockerfile: client/Dockerfile
-    image: gyanmitra_client:latest
-    ports:
-      - "8080:80"
-    restart: unless-stopped
-
   frontend:
     build:
       context: .
-      dockerfile: frontend-server/Dockerfile
+      dockerfile: frontend/Dockerfile
     image: gyanmitra_frontend:latest
-    env_file:
-      - frontend-server/.env
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     ports:
       - "3000:3000"
     environment:
@@ -62,7 +57,6 @@ services:
       - WEBSITE_URL=http://localhost:3000
     depends_on:
       - server
-      - client
     restart: unless-stopped
 
 volumes:

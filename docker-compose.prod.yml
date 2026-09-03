@@ -35,16 +35,8 @@ services:
       - ./uploads:/usr/src/app/uploads:z
     restart: unless-stopped
 
-  client:
-    image: ghcr.io/khushwant-singh1/gyanmitra-client:latest
-    ports:
-      - "8080:80"
-    restart: unless-stopped
-
   frontend:
     image: ghcr.io/khushwant-singh1/gyanmitra-frontend:latest
-    env_file:
-      - frontend-server/.env
     ports:
       - "3000:3000"
     environment:
@@ -53,7 +45,6 @@ services:
       - WEBSITE_URL=https://gyanmitranews.com
     depends_on:
       - server
-      - client
     restart: unless-stopped
 
 volumes:
