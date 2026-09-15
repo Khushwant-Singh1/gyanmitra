@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Inter, Noto_Sans_Devanagari } from 'next/font/google';
-import Script from 'next/script';
 import { Providers } from './providers';
 import { ClientAnalyticsTracker } from '@/components/ClientAnalyticsTracker';
 import { Suspense } from 'react';
@@ -50,11 +49,10 @@ export default function RootLayout({
   return (
     <html lang="hi" className={`${inter.variable} ${notoSansDevanagari.variable}`}>
       <head>
-        <Script
+        <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1463940399847759"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
         />
       </head>
       <body className="antialiased">
