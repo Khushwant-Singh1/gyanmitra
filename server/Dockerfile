@@ -1,4 +1,4 @@
-FROM node:22-bullseye-slim as builder
+FROM node:22-bookworm-slim AS builder
 WORKDIR /app
 
 # Install system build tools required by native modules (bcrypt, etc.)
@@ -21,7 +21,7 @@ COPY server/src ./src
 
 RUN pnpm run build
 
-FROM node:22-bullseye-slim
+FROM node:22-bookworm-slim
 WORKDIR /app
 
 # Copy built artifacts and node_modules from builder to avoid re-running installs
