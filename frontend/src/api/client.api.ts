@@ -257,6 +257,7 @@ export interface IApiDraftArticleManage {
   };
   tags: string[];
   scheduledPublishDate?: string;
+  isSubmitted?: boolean;
 }
 
 export interface IApiSelectMediaFile {

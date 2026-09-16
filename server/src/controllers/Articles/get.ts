@@ -13,6 +13,7 @@ import {
   ARTICLE_STATUS,
   getMediaLookupPipeline,
   MEDIA_FILE_TYPES,
+  REQUEST_STATUS,
   USER_ROLE,
 } from '../../constants';
 import { trackArticleView } from '../articleViews.controllers';
@@ -434,14 +435,16 @@ export const getAllArticles = AsyncHandler(
 
 export const getDraftArticles = AsyncHandler(
   async (req: IJwtRequest, res: Response, next: NextFunction) => {
-    const isOwnerOrAdmin =
-      req.user.role === USER_ROLE.Owner || req.user.role === USER_ROLE.Admin;
+    const canViewAllDrafts =
+      req.user.role === USER_ROLE.Owner ||
+      req.user.role === USER_ROLE.Admin ||
+      req.user.role === USER_ROLE.Editor;
 
     const articles = await Article.aggregate([
       {
         $match: {
           status: ARTICLE_STATUS.Draft,
-          ...(isOwnerOrAdmin
+          ...(canViewAllDrafts
             ? {}
             : {
                 $or: [
@@ -473,6 +476,26 @@ export const getDraftArticles = AsyncHandler(
       },
 
       {
+        $lookup: {
+          from: 'articleapprovalrequests',
+          let: { articleId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$articleId', '$$articleId'] },
+                    { $eq: ['$status', REQUEST_STATUS.Pending] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: 'pendingApprovalRequests',
+        },
+      },
+
+      {
         $project: {
           headline: 1,
           description: 1,
@@ -480,6 +503,9 @@ export const getDraftArticles = AsyncHandler(
           category: '$category.name',
           createdDate: '$createdAt',
           originalArticleId: 1,
+          isSubmitted: {
+            $gt: [{ $size: '$pendingApprovalRequests' }, 0],
+          },
           featuredMedia: {
             fileUrl: '$featuredMedia.fileUrl',
             fileType: '$featuredMedia.fileType',

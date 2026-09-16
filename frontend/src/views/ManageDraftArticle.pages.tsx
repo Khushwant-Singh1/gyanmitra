@@ -132,7 +132,7 @@ export const RequestArticle: React.FC<{
             <Label htmlFor="message" className="resize-none">
               Select Receiver
             </Label>
-            <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
+            <Popover open={openCombobox} onOpenChange={setOpenCombobox} modal={true}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
@@ -146,7 +146,11 @@ export const RequestArticle: React.FC<{
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
+              <PopoverContent
+                className="w-full p-0"
+                onWheel={(e) => e.stopPropagation()}
+                onTouchMove={(e) => e.stopPropagation()}
+              >
                 <Command>
                   <CommandInput placeholder="Search receiver name..." />
                   <CommandList>
@@ -182,12 +186,12 @@ export const RequestArticle: React.FC<{
             </Popover>
           </div>
           <div className="flex flex-col space-y-2">
-            <Label htmlFor="message">Add message for request</Label>
+            <Label htmlFor="message">Add message for request (Optional)</Label>
             <Textarea
               id="message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Write a message to the receiver..."
+              placeholder="Write a message to the receiver (optional)..."
               className="w-full"
             />
           </div>
@@ -195,12 +199,12 @@ export const RequestArticle: React.FC<{
         <DialogFooter>
           <Button
             onClick={() => {
-              if (message.length === 0 || receiverId.length === 0)
-                return toast.error('Please fill all fields');
+              if (!receiverId || receiverId.trim().length === 0)
+                return toast.error('Please select a receiver');
               open = false;
               onOpenChange(open);
               requestArticle.mutate({
-                _message: message,
+                _message: message.trim(),
                 _receiverId: receiverId,
               });
             }}
@@ -328,6 +332,39 @@ export const DraftArticle: React.FC = () => {
       }
       toast.success('Successfully Published Draft Article');
       queryClient.invalidateQueries({ queryKey: ['articles', 'drafts'] });
+      queryClient.invalidateQueries({
+        queryKey: ['article-requests', 'myRequests&Receives'],
+      });
+    },
+    onError: (error, {}, context) => {
+      if (context?.toastId) {
+        toast.dismiss(context.toastId);
+      }
+      const errorMessage = isAxiosError(error)
+        ? error.response?.data?.message || error.message || 'An error occurred'
+        : 'Unknown error occurred';
+      toast.error(errorMessage);
+    },
+  });
+
+  const submitDraftMutation = useMutation({
+    mutationFn: async ({ _id }: { _id: string }) => {
+      const response = await axios.post(`/api/article-requests/${_id}`);
+      return { data: response.data };
+    },
+    onMutate: async ({ _id }) => {
+      const toastId = toast.loading('Submitting draft for review...', { id: _id });
+      return { toastId };
+    },
+    onSuccess: (_data, {}, context) => {
+      if (context?.toastId) {
+        toast.dismiss(context.toastId);
+      }
+      toast.success('Successfully submitted draft for review.');
+      queryClient.invalidateQueries({ queryKey: ['articles', 'drafts'] });
+      queryClient.invalidateQueries({
+        queryKey: ['article-requests', 'myRequests&Receives'],
+      });
     },
     onError: (error, {}, context) => {
       if (context?.toastId) {
@@ -405,6 +442,14 @@ export const DraftArticle: React.FC = () => {
                         <Badge variant={'secondary'} className="h-min">
                           {article.category}
                         </Badge>
+                        {article.isSubmitted && (
+                          <Badge
+                            variant={'outline'}
+                            className="h-min whitespace-nowrap border-amber-300 bg-amber-50 text-amber-800 font-medium"
+                          >
+                            Submitted for Review
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex items-center justify-between">
                         <Link
@@ -429,15 +474,21 @@ export const DraftArticle: React.FC = () => {
                               Delete
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            {userMe?.role === USER_ROLE.Editor ||
-                            userMe?.role === USER_ROLE.Reporter ? (
+                            {userMe?.role === USER_ROLE.Reporter ? (
                               <DropdownMenuItem
+                                disabled={
+                                  article.isSubmitted ||
+                                  submitDraftMutation.isPending
+                                }
                                 onClick={() => {
-                                  setDialogOpen(true);
-                                  setArticleSelected(article._id);
+                                  if (!article.isSubmitted) {
+                                    submitDraftMutation.mutate({
+                                      _id: article._id,
+                                    });
+                                  }
                                 }}
                               >
-                                Submit to Admin
+                                {article.isSubmitted ? 'Submitted' : 'Submit'}
                               </DropdownMenuItem>
                             ) : article.originalArticleId ? (
                               <DropdownMenuItem

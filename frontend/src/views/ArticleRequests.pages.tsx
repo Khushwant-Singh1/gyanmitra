@@ -131,11 +131,13 @@ export const RequestCard: React.FC<{
           </span>
         </div>
       </div>
-      <div className="mt-3">
-        <p className="text-sm">
-          <span className="text-secondary">Message:</span> {data.message}{' '}
-        </p>
-      </div>
+      {data.message && (
+        <div className="mt-3">
+          <p className="text-sm">
+            <span className="text-secondary">Message:</span> {data.message}{' '}
+          </p>
+        </div>
+      )}
       {data.rejectedMessage && (
         <div>
           <p className="text-sm">
@@ -148,7 +150,7 @@ export const RequestCard: React.FC<{
         <span className="text-primary text-sm font-bold">
           ● <span className="font-semibold">Reason</span>: {data.reason}
         </span>
-        {userRole === USER_ROLE.Editor || userRole === USER_ROLE.Reporter ? (
+        {userRole === USER_ROLE.Reporter ? (
           <div className="flex items-center gap-2">
             <Link
               to={`/edit/${data.articleId}/?mode=View`}
@@ -219,7 +221,7 @@ export const ArticleRequests: React.FC = () => {
     queryFn: async () => {
       const role = user?.role;
       const endpoint =
-        role === USER_ROLE.Editor || role === USER_ROLE.Reporter
+        role === USER_ROLE.Reporter
           ? '/api/article-requests/my'
           : '/api/article-requests/received';
       const response =

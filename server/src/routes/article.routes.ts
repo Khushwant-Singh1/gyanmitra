@@ -120,7 +120,11 @@ router.post(
 // Article Updating
 router.put(
   '/:_id/update',
-  VerifyJWT([ADMINISTRATOR_ROLE.Admin, ADMINISTRATOR_ROLE.Owner]),
+  VerifyJWT([
+    ADMINISTRATOR_ROLE.Admin,
+    ADMINISTRATOR_ROLE.Owner,
+    ADMINISTRATOR_ROLE.Editor,
+  ]),
   checkRequiredFields(['_id'], FIELD_SOURCE.params),
   validateObjectId(['_id'], FIELD_SOURCE.params),
   checkRequiredFields(['cloneArticleId'], FIELD_SOURCE.body),
@@ -131,7 +135,11 @@ router.put(
 // Article Publishing
 router.put(
   '/:_id/publish',
-  VerifyJWT([ADMINISTRATOR_ROLE.Admin, ADMINISTRATOR_ROLE.Owner]),
+  VerifyJWT([
+    ADMINISTRATOR_ROLE.Admin,
+    ADMINISTRATOR_ROLE.Owner,
+    ADMINISTRATOR_ROLE.Editor,
+  ]),
   checkRequiredFields(['_id'], FIELD_SOURCE.params),
   validateObjectId(['_id'], FIELD_SOURCE.params),
   ArticleController.publish
@@ -140,7 +148,11 @@ router.put(
 // Cancel Article Schedule
 router.put(
   '/:_id/cancel-schedule',
-  VerifyJWT([ADMINISTRATOR_ROLE.Admin, ADMINISTRATOR_ROLE.Owner]),
+  VerifyJWT([
+    ADMINISTRATOR_ROLE.Admin,
+    ADMINISTRATOR_ROLE.Owner,
+    ADMINISTRATOR_ROLE.Editor,
+  ]),
   checkRequiredFields(['_id'], FIELD_SOURCE.params),
   validateObjectId(['_id'], FIELD_SOURCE.params),
   ArticleController.cancelSchedule
@@ -149,7 +161,11 @@ router.put(
 // Set Article as Private
 router.put(
   '/:_id/private',
-  VerifyJWT([ADMINISTRATOR_ROLE.Admin, ADMINISTRATOR_ROLE.Owner]),
+  VerifyJWT([
+    ADMINISTRATOR_ROLE.Admin,
+    ADMINISTRATOR_ROLE.Owner,
+    ADMINISTRATOR_ROLE.Editor,
+  ]),
   checkRequiredFields(['_id'], FIELD_SOURCE.params),
   validateObjectId(['_id'], FIELD_SOURCE.params),
   ArticleController.setPrivate

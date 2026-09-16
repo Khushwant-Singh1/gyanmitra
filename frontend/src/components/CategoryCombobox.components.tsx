@@ -48,7 +48,7 @@ export function CategoryCombobox({
   const categories = catOptionsData?.data || [];
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={true}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -63,7 +63,11 @@ export function CategoryCombobox({
           <ChevronsUpDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0">
+      <PopoverContent
+        className="p-0"
+        onWheel={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+      >
         <Command>
           {catIsLoading ? (
             <div className="flex h-20 items-center justify-center text-gray-500">

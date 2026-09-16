@@ -146,7 +146,7 @@ export const RequestCard: React.FC<{
         <span className="text-primary text-sm font-bold">
           ● <span className="font-semibold">Reason</span>: {data.reason}
         </span>
-        {userRole === USER_ROLE.Editor || userRole === USER_ROLE.Reporter ? (
+        {userRole === USER_ROLE.Reporter ? (
           <div className="flex items-center gap-2">
             <Link
               to={`/edit/${data.articleId}/?mode=View`}
@@ -216,7 +216,7 @@ export const ArticleRequests: React.FC = () => {
     queryKey: ['article-requests', 'myRequests&Receives'],
     queryFn: async () => {
       const endpoint =
-        user.role === USER_ROLE.Editor || user.role === USER_ROLE.Reporter
+        user.role === USER_ROLE.Reporter
           ? '/api/article-requests/my'
           : '/api/article-requests/received';
       const response =

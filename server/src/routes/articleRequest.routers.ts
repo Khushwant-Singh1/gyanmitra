@@ -19,16 +19,18 @@ const router = Router();
 router.post(
   '/:_articleId',
   VerifyJWT([ADMINISTRATOR_ROLE.Editor, ADMINISTRATOR_ROLE.Reporter]),
-  checkRequiredFields(['message', 'receiverId'], FIELD_SOURCE.body),
   checkRequiredFields(['_articleId'], FIELD_SOURCE.params),
   validateObjectId(['_articleId'], FIELD_SOURCE.params),
-  validateObjectId(['receiverId'], FIELD_SOURCE.body),
   createRequest
 );
 
 router.get(
   '/received',
-  VerifyJWT([ADMINISTRATOR_ROLE.Admin, ADMINISTRATOR_ROLE.Owner]),
+  VerifyJWT([
+    ADMINISTRATOR_ROLE.Admin,
+    ADMINISTRATOR_ROLE.Owner,
+    ADMINISTRATOR_ROLE.Editor,
+  ]),
   getReceivedRequests
 );
 router.get(
@@ -38,7 +40,11 @@ router.get(
 );
 router.put(
   '/:_id/reject',
-  VerifyJWT([ADMINISTRATOR_ROLE.Admin, ADMINISTRATOR_ROLE.Owner]),
+  VerifyJWT([
+    ADMINISTRATOR_ROLE.Admin,
+    ADMINISTRATOR_ROLE.Owner,
+    ADMINISTRATOR_ROLE.Editor,
+  ]),
   checkRequiredFields(['_id'], FIELD_SOURCE.params),
   validateObjectId(['_id'], FIELD_SOURCE.params),
   setReject

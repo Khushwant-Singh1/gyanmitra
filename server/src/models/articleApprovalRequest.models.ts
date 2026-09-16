@@ -5,7 +5,7 @@ export interface IArticleApprovalRequest extends Document {
   message?: string;
   reason: REQUEST_REASON;
   articleId: Schema.Types.ObjectId;
-  receiverId: Schema.Types.ObjectId;
+  receiverId?: Schema.Types.ObjectId;
   requesterId: Schema.Types.ObjectId;
   status: REQUEST_STATUS;
   rejectedMessage?: string;
@@ -31,7 +31,6 @@ export const ArticleApprovalRequestSchema = new Schema<IArticleApprovalRequest>(
     receiverId: {
       type: Schema.Types.ObjectId,
       ref: MODELS.User,
-      required: true,
     },
     requesterId: {
       type: Schema.Types.ObjectId,

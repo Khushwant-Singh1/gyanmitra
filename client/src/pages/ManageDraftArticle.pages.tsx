@@ -326,6 +326,39 @@ export const DraftArticle: React.FC = () => {
       }
       toast.success('Successfully Published Draft Article');
       queryClient.invalidateQueries({ queryKey: ['articles', 'drafts'] });
+      queryClient.invalidateQueries({
+        queryKey: ['article-requests', 'myRequests&Receives'],
+      });
+    },
+    onError: (error, {}, context) => {
+      if (context?.toastId) {
+        toast.dismiss(context.toastId);
+      }
+      const errorMessage = isAxiosError(error)
+        ? error.response?.data?.message || error.message || 'An error occurred'
+        : 'Unknown error occurred';
+      toast.error(errorMessage);
+    },
+  });
+
+  const submitDraftMutation = useMutation({
+    mutationFn: async ({ _id }: { _id: string }) => {
+      const response = await axios.post(`/api/article-requests/${_id}`);
+      return { data: response.data };
+    },
+    onMutate: async ({ _id }) => {
+      const toastId = toast.loading('Submitting draft for review...', { id: _id });
+      return { toastId };
+    },
+    onSuccess: (_data, {}, context) => {
+      if (context?.toastId) {
+        toast.dismiss(context.toastId);
+      }
+      toast.success('Successfully submitted draft for review.');
+      queryClient.invalidateQueries({ queryKey: ['articles', 'drafts'] });
+      queryClient.invalidateQueries({
+        queryKey: ['article-requests', 'myRequests&Receives'],
+      });
     },
     onError: (error, {}, context) => {
       if (context?.toastId) {
@@ -403,6 +436,14 @@ export const DraftArticle: React.FC = () => {
                         <Badge variant={'secondary'} className="h-min">
                           {article.category}
                         </Badge>
+                        {article.isSubmitted && (
+                          <Badge
+                            variant={'outline'}
+                            className="h-min whitespace-nowrap border-amber-300 bg-amber-50 text-amber-800 font-medium"
+                          >
+                            Submitted for Review
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex items-center justify-between">
                         <Link
@@ -427,15 +468,21 @@ export const DraftArticle: React.FC = () => {
                               Delete
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            {userMe.role === USER_ROLE.Editor ||
-                            userMe.role === USER_ROLE.Reporter ? (
+                            {userMe.role === USER_ROLE.Reporter ? (
                               <DropdownMenuItem
+                                disabled={
+                                  article.isSubmitted ||
+                                  submitDraftMutation.isPending
+                                }
                                 onClick={() => {
-                                  setDialogOpen(true);
-                                  setArticleSelected(article._id);
+                                  if (!article.isSubmitted) {
+                                    submitDraftMutation.mutate({
+                                      _id: article._id,
+                                    });
+                                  }
                                 }}
                               >
-                                Submit to Admin
+                                {article.isSubmitted ? 'Submitted' : 'Submit'}
                               </DropdownMenuItem>
                             ) : article.originalArticleId ? (
                               <DropdownMenuItem

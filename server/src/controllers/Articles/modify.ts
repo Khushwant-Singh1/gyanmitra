@@ -281,13 +281,10 @@ export const publish = AsyncHandler(
         'Only draft & private articles can be published.'
       );
 
-    if (
-      req.user.role === ADMINISTRATOR_ROLE.Editor ||
-      req.user.role === ADMINISTRATOR_ROLE.Reporter
-    ) {
+    if (req.user.role === ADMINISTRATOR_ROLE.Reporter) {
       throw new ApiError(
-        400,
-        'Editor or Reporter cannot publish a draft. Request for publishing.'
+        403,
+        'Reporter cannot publish a draft directly. Submit for review.'
       );
     }
 
@@ -302,6 +299,12 @@ export const publish = AsyncHandler(
       articleApprovalRequest.status = REQUEST_STATUS.Approved;
       await articleApprovalRequest.save();
     }
+
+    // Auto-approve any pending approval requests for this article
+    await ArticleApprovalRequest.updateMany(
+      { articleId: article._id, status: REQUEST_STATUS.Pending },
+      { status: REQUEST_STATUS.Approved }
+    );
 
     if (article.authorId.toString() !== req.user._id.toString()) {
       article.editorId = req.user._id as Types.ObjectId;
@@ -423,6 +426,12 @@ export const update = AsyncHandler(
     });
 
     await updatedArticle?.save();
+
+    // Auto-approve any pending approval requests for the cloned article
+    await ArticleApprovalRequest.updateMany(
+      { articleId: clonedArticle._id, status: REQUEST_STATUS.Pending },
+      { status: REQUEST_STATUS.Approved }
+    );
 
     await Article.findByIdAndDelete(clonedArticle._id);
     await ArticleContent.findByIdAndDelete(clonedArticle.contentId);

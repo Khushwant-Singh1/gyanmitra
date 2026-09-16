@@ -14,7 +14,7 @@ import { ApiResponse } from '../utils/ApiResponse.utils';
 import { Article } from '../models/article.models';
 import type { ObjectId } from 'mongoose';
 
-// 1. Create Request: Editor dwara bheji gayi request
+// 1. Create Request: Reporter or Editor dwara bheji gayi request
 export const createRequest = AsyncHandler(
   async (req: IJwtRequest, res: Response, next: NextFunction) => {
     const { message, receiver_id, receiverId } = req.body;
@@ -30,28 +30,37 @@ export const createRequest = AsyncHandler(
         'Only editors and reporters can make article approval requests'
       );
 
-    // FIX: trim() ek function hai, brackets () zaruri hain
     if (message && message.trim().length > 400)
       throw new ApiError(400, 'Message must be less than 400 characters');
 
     const article = await Article.findById(articleId);
     if (!article) throw new ApiError(404, 'Article not found');
 
-    const receiverExits = await User.exists({ _id: targetReceiverId });
-    if (!receiverExits) throw new ApiError(400, 'Receiver does not exist');
+    if (targetReceiverId) {
+      const receiverExits = await User.exists({ _id: targetReceiverId });
+      if (!receiverExits) throw new ApiError(400, 'Receiver does not exist');
+    }
+
+    const existingRequest = await ArticleApprovalRequest.findOne({
+      articleId,
+      status: REQUEST_STATUS.Pending,
+    });
+    if (existingRequest) {
+      throw new ApiError(400, 'This article has already been submitted for review');
+    }
 
     const reason = article.originalArticleId ? REQUEST_REASON.Update : REQUEST_REASON.Publish;
 
     const articleRequest = await ArticleApprovalRequest.create({
-      message,
+      message: message?.trim() || undefined,
       reason,
       articleId,
-      receiverId: targetReceiverId,
-      requesterId: req.user.id,
+      receiverId: targetReceiverId || undefined,
+      requesterId: req.user._id,
       status: REQUEST_STATUS.Pending,
     });
 
-    res.status(201).json(new ApiResponse(200, articleRequest));
+    res.status(201).json(new ApiResponse(200, articleRequest, 'Draft submitted for review successfully'));
   }
 );
 
@@ -87,11 +96,12 @@ export const setApprove = AsyncHandler(
   }
 );
 
-// 3. getReceivedRequests: Receiver ko milne wali requests
+// 3. getReceivedRequests: Receiver (Admin aur Editor) ko milne wali requests
 export const getReceivedRequests = AsyncHandler(
   async (req: IJwtRequest, res: Response, next: NextFunction) => {
     const requests = await ArticleApprovalRequest.aggregate([
-      { $match: { receiverId: req.user._id, status: REQUEST_STATUS.Pending } },
+      { $match: { status: REQUEST_STATUS.Pending } },
+      { $sort: { createdAt: -1 } },
       {
         $lookup: {
           from: 'users',
@@ -123,6 +133,7 @@ export const getMyRequests = AsyncHandler(
   async (req: IJwtRequest, res: Response, next: NextFunction) => {
     const requests = await ArticleApprovalRequest.aggregate([
       { $match: { requesterId: req.user._id } },
+      { $sort: { createdAt: -1 } },
       {
         $lookup: {
           from: 'users',
@@ -140,7 +151,12 @@ export const getMyRequests = AsyncHandler(
           status: 1,
           rejectedMessage: 1,
           createdAt: 1,
-          receiverName: { $concat: ['$receiverUser.firstName', ' ', '$receiverUser.lastName'] },
+          receiverName: {
+            $ifNull: [
+              { $concat: ['$receiverUser.firstName', ' ', '$receiverUser.lastName'] },
+              'Editorial Team (Admin & Editor)',
+            ],
+          },
         },
       },
     ]);
