@@ -10,6 +10,7 @@ import {
   faHome,
   faTags,
   faUsers,
+  faUser,
   faTrophy, // 🏆 Competition icon added
   faClock,
 } from '@fortawesome/free-solid-svg-icons';
@@ -110,6 +111,15 @@ export const ADMINISTRATOR_SIDEBAR: {
     icon: faUsers,
     access: [USER_ROLE.Owner, USER_ROLE.Admin],
   },
-
-
+  {
+    title: 'My Profile',
+    url: '/administrator/profile',
+    icon: faUser,
+    access: [
+      USER_ROLE.Owner,
+      USER_ROLE.Admin,
+      USER_ROLE.Editor,
+      USER_ROLE.Reporter,
+    ],
+  },
 ];

@@ -10,11 +10,14 @@ import {
 } from '../../constants';
 import { ApiResponse } from '../../utils/ApiResponse.utils';
 import crypto from 'crypto';
+import path from 'path';
 import { Invitation } from '../../models/invitation.models';
 import { User } from '../../models/user.models';
+import { Article } from '../../models/article.models';
 import { COOKIE_OPTION } from '../../constants';
 import { sendEmail } from '../../services/mailer.services';
 import { verificationTemplate } from '../../utils/emailTemplates.utils';
+import { uploadFileToMinio } from '../../utils/minioClient';
 
 export const USER_SIGN_IN_REQ_FIELDS = ['email', 'password'];
 
@@ -283,20 +286,47 @@ export const reSendEmailVerification = AsyncHandler(
 interface IUpdateProfile {
   firstName?: string;
   lastName?: string;
+  phone?: string;
+  bio?: string;
+  avatar?: string;
 }
 
 export const updateProfile = AsyncHandler(
   async (req: IJwtRequest, res: Response, next: NextFunction) => {
-    const { firstName, lastName }: IUpdateProfile = req.body;
+    const { firstName, lastName, phone, bio, avatar }: IUpdateProfile = req.body;
     const userId = req.user._id;
 
-    if (!firstName?.trim() && !lastName?.trim()) {
-      throw new ApiError(400, 'First name or last name is required');
+    const updateData: Record<string, any> = {};
+
+    if (firstName !== undefined) {
+      if (!firstName.trim()) {
+        throw new ApiError(400, 'First name cannot be empty');
+      }
+      updateData.firstName = firstName.trim();
     }
 
-    const updateData: Record<string, any> = {};
-    if (firstName && firstName.trim()) updateData.firstName = firstName.trim();
-    if (lastName && lastName.trim()) updateData.lastName = lastName.trim();
+    if (lastName !== undefined) {
+      if (!lastName.trim()) {
+        throw new ApiError(400, 'Last name cannot be empty');
+      }
+      updateData.lastName = lastName.trim();
+    }
+
+    if (phone !== undefined) {
+      updateData.phone = phone.trim();
+    }
+
+    if (bio !== undefined) {
+      updateData.bio = bio.trim();
+    }
+
+    if (avatar !== undefined) {
+      updateData.avatar = avatar.trim();
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      throw new ApiError(400, 'At least one field is required to update profile');
+    }
 
     const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
       new: true,
@@ -304,8 +334,52 @@ export const updateProfile = AsyncHandler(
 
     if (!updatedUser) throw new ApiError(404, 'User not found');
 
+    // Keep authorName in sync across authored articles if name was updated
+    if (updateData.firstName || updateData.lastName) {
+      const newAuthorName = `${updatedUser.firstName} ${updatedUser.lastName}`.trim();
+      await Article.updateMany(
+        { authorId: userId },
+        { $set: { authorName: newAuthorName } }
+      );
+    }
+
     return res.status(200).json(
       new ApiResponse(200, { user: updatedUser }, 'Profile updated successfully')
+    );
+  }
+);
+
+export const uploadAvatar = AsyncHandler(
+  async (req: IJwtRequest, res: Response, next: NextFunction) => {
+    const file = req.file;
+    if (!file) {
+      throw new ApiError(400, 'No image file uploaded');
+    }
+
+    if (!file.mimetype.startsWith('image/')) {
+      throw new ApiError(400, 'Only image files are allowed for profile picture');
+    }
+
+    const userId = req.user._id;
+    const storedFileName = `avatar-${userId}-${Date.now()}${path.extname(file.originalname)}`;
+
+    // Upload to MinIO or fallback to local storage
+    const fileUrl = await uploadFileToMinio(file.path, storedFileName);
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: { avatar: fileUrl } },
+      { new: true }
+    ).select(USER_FIELDS_TO_HIDE);
+
+    if (!updatedUser) throw new ApiError(404, 'User not found');
+
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        { user: updatedUser, avatar: fileUrl },
+        'Profile picture uploaded successfully'
+      )
     );
   }
 );

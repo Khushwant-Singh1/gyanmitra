@@ -23,11 +23,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import { Avatar, AvatarFallback } from './ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { ChevronsUpDown } from 'lucide-react';
 import { IApiResponse, type IApiCurrentUserSession } from '@/api/client.api';
 import { toast } from 'sonner';
-import { faCog, faHome, faSignOut } from '@fortawesome/free-solid-svg-icons';
+import { faCog, faHome, faSignOut, faUser } from '@fortawesome/free-solid-svg-icons';
 import axios, { isAxiosError } from 'axios';
 import type { USER_ROLE } from '@/constants/index.constants';
 import { useQueryClient } from '@tanstack/react-query';
@@ -126,7 +126,10 @@ export function AppSidebar() {
                       size="lg"
                       className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                     >
-                      <Avatar className="h-8 w-8 rounded-lg">
+                      <Avatar className="h-8 w-8 rounded-lg overflow-hidden">
+                        {user.avatar && (
+                          <AvatarImage src={user.avatar} alt={user.firstName} className="object-cover" />
+                        )}
                         <AvatarFallback className="rounded-lg uppercase">
                           {user.firstName.charAt(0) +
                             user.lastName.charAt(0)}
@@ -151,7 +154,10 @@ export function AppSidebar() {
                   >
                     <DropdownMenuLabel className="p-0 font-normal">
                       <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                        <Avatar className="h-8 w-8 rounded-lg">
+                        <Avatar className="h-8 w-8 rounded-lg overflow-hidden">
+                          {user.avatar && (
+                            <AvatarImage src={user.avatar} alt={user.firstName} className="object-cover" />
+                          )}
                           <AvatarFallback className="rounded-lg uppercase">
                             {user.firstName.charAt(0) +
                               user.lastName.charAt(0)}
@@ -174,9 +180,13 @@ export function AppSidebar() {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuGroup>
+                      <DropdownMenuItem onClick={() => navigate('/administrator/profile')}>
+                        <FontAwesomeIcon icon={faUser} />
+                        My Profile
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setIsProfileOpen(true)}>
                         <FontAwesomeIcon icon={faCog} />
-                        Profile Settings
+                        Quick Name Edit
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={handleSignOut}>
                         <FontAwesomeIcon icon={faSignOut} />

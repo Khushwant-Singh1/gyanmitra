@@ -58,6 +58,20 @@ import {
   Loader2,
 } from 'lucide-react';
 
+const formatAvatarUrl = (url?: string | null): string => {
+  if (!url || typeof url !== 'string') return '';
+  const trimmed = url.replace(/\\/g, '/').trim();
+  if (!trimmed) return '';
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    if (typeof window !== 'undefined' && trimmed.includes('minio:9000')) {
+      return trimmed.replace('minio:9000', `${window.location.hostname}:9000`);
+    }
+    return trimmed;
+  }
+  if (trimmed.startsWith('/')) return trimmed;
+  return `/${trimmed}`;
+};
+
 const getInitials = (name?: string, firstName?: string, lastName?: string) => {
   if (firstName && lastName) {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -348,10 +362,11 @@ export const Article: React.FC<ArticleProps> = ({
                 {/* --- WRITTEN BY (REPORTER / PRIMARY AUTHOR / CO-AUTHORS) --- */}
                 {article.editorInfo ? (
                   <div className="flex items-center gap-2.5">
-                    <Avatar className="h-9 w-9 border border-zinc-200 shadow-xs ring-1 ring-black/5 shrink-0">
+                    <Avatar className="h-9 w-9 border border-zinc-200 shadow-xs ring-1 ring-black/5 shrink-0 overflow-hidden">
                       <AvatarImage
-                        src={article.authorInfo?.avatar}
+                        src={formatAvatarUrl(article.authorInfo?.avatar)}
                         alt={article.authorInfo?.name || article.authorName}
+                        className="object-cover h-full w-full"
                       />
                       <AvatarFallback className="bg-sky-50 text-sky-800 font-bold text-xs">
                         {getInitials(
@@ -383,9 +398,9 @@ export const Article: React.FC<ArticleProps> = ({
                         return (
                           <Avatar
                             key={c._id || idx}
-                            className="h-9 w-9 border-2 border-white ring-1 ring-black/10 shadow-xs inline-block"
+                            className="h-9 w-9 border-2 border-white ring-1 ring-black/10 shadow-xs inline-block overflow-hidden"
                           >
-                            <AvatarImage src={c.avatar} alt={name} />
+                            <AvatarImage src={formatAvatarUrl(c.avatar)} alt={name} className="object-cover h-full w-full" />
                             <AvatarFallback className="bg-sky-50 text-sky-800 font-bold text-[10px]">
                               {getInitials(c.name, c.firstName, c.lastName)}
                             </AvatarFallback>
@@ -414,10 +429,11 @@ export const Article: React.FC<ArticleProps> = ({
                   </div>
                 ) : (
                   <div className="flex items-center gap-2.5">
-                    <Avatar className="h-9 w-9 border border-zinc-200 shadow-xs ring-1 ring-black/5 shrink-0">
+                    <Avatar className="h-9 w-9 border border-zinc-200 shadow-xs ring-1 ring-black/5 shrink-0 overflow-hidden">
                       <AvatarImage
-                        src={article.authorInfo?.avatar}
+                        src={formatAvatarUrl(article.authorInfo?.avatar)}
                         alt={article.authorInfo?.name || article.authorName}
+                        className="object-cover h-full w-full"
                       />
                       <AvatarFallback className="bg-sky-50 text-sky-800 font-bold text-xs">
                         {getInitials(
@@ -446,10 +462,11 @@ export const Article: React.FC<ArticleProps> = ({
                   <>
                     <Separator orientation="vertical" className="h-7 hidden sm:block bg-zinc-200" />
                     <div className="flex items-center gap-2.5">
-                      <Avatar className="h-9 w-9 border border-zinc-200 shadow-xs ring-1 ring-black/5 shrink-0">
+                      <Avatar className="h-9 w-9 border border-zinc-200 shadow-xs ring-1 ring-black/5 shrink-0 overflow-hidden">
                         <AvatarImage
-                          src={article.editorInfo?.avatar || article.authorInfo?.avatar}
+                          src={formatAvatarUrl(article.editorInfo?.avatar || article.authorInfo?.avatar)}
                           alt={article.editorInfo?.name || article.authorInfo?.name || article.authorName}
+                          className="object-cover h-full w-full"
                         />
                         <AvatarFallback className="bg-[#e98571]/10 text-[#d87460] font-bold text-xs">
                           {getInitials(
@@ -825,8 +842,12 @@ export const Article: React.FC<ArticleProps> = ({
                 <div className="space-y-2.5">
                   {/* Primary Author / Reporter */}
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8 border border-zinc-200 shadow-xs shrink-0">
-                      <AvatarImage src={article.authorInfo?.avatar} alt={article.authorInfo?.name || article.authorName} />
+                    <Avatar className="h-9 w-9 border border-zinc-200 shadow-xs shrink-0 overflow-hidden">
+                      <AvatarImage
+                        src={formatAvatarUrl(article.authorInfo?.avatar)}
+                        alt={article.authorInfo?.name || article.authorName}
+                        className="object-cover h-full w-full"
+                      />
                       <AvatarFallback className="bg-sky-50 text-sky-800 font-bold text-xs">
                         {getInitials(
                           article.authorInfo?.name || article.authorName,
@@ -850,8 +871,12 @@ export const Article: React.FC<ArticleProps> = ({
                     const name = c.name || `${c.firstName || ''} ${c.lastName || ''}`.trim();
                     return (
                       <div key={c._id || idx} className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8 border border-zinc-200 shadow-xs shrink-0">
-                          <AvatarImage src={c.avatar} alt={name} />
+                        <Avatar className="h-9 w-9 border border-zinc-200 shadow-xs shrink-0 overflow-hidden">
+                          <AvatarImage
+                            src={formatAvatarUrl(c.avatar)}
+                            alt={name}
+                            className="object-cover h-full w-full"
+                          />
                           <AvatarFallback className="bg-sky-50 text-sky-800 font-bold text-xs">
                             {getInitials(c.name, c.firstName, c.lastName)}
                           </AvatarFallback>
@@ -873,10 +898,11 @@ export const Article: React.FC<ArticleProps> = ({
               {/* Edited By Card (Admin / Reviewer / Editor) */}
               {(article.editorInfo || (article.coAuthors && article.coAuthors.length > 0)) ? (
                 <div className="flex items-start gap-3.5 bg-white p-4 rounded-sm border border-zinc-200/80 shadow-xs">
-                  <Avatar className="h-11 w-11 border border-zinc-200 shadow-sm shrink-0">
+                  <Avatar className="h-11 w-11 border border-zinc-200 shadow-sm shrink-0 overflow-hidden">
                     <AvatarImage
-                      src={article.editorInfo?.avatar || article.authorInfo?.avatar}
+                      src={formatAvatarUrl(article.editorInfo?.avatar || article.authorInfo?.avatar)}
                       alt={article.editorInfo?.name || article.authorInfo?.name || article.authorName}
+                      className="object-cover h-full w-full"
                     />
                     <AvatarFallback className="bg-[#e98571]/10 text-[#d87460] font-bold text-sm">
                       {getInitials(
@@ -886,7 +912,7 @@ export const Article: React.FC<ArticleProps> = ({
                       )}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col min-w-0">
+                  <div className="flex flex-col min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-0.5">
                       <Badge className="bg-[#e98571] hover:bg-[#d87460] text-white text-[9px] font-black uppercase tracking-wider px-2 py-0 h-4 border-none rounded-none">
                         Edited By
@@ -898,15 +924,19 @@ export const Article: React.FC<ArticleProps> = ({
                     <h4 className="font-bold text-sm text-zinc-900 capitalize truncate">
                       {article.editorInfo?.name || article.authorInfo?.name || article.authorName}
                     </h4>
-                    <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed">
-                      Editorial reviewer responsible for review, formatting, verification, and publication oversight.
+                    <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed line-clamp-3">
+                      {article.editorInfo?.bio || 'Editorial reviewer responsible for review, formatting, verification, and publication oversight.'}
                     </p>
                   </div>
                 </div>
               ) : (
                 <div className="flex items-start gap-3.5 bg-white p-4 rounded-sm border border-zinc-200/80 shadow-xs">
-                  <Avatar className="h-11 w-11 border border-zinc-200 shadow-sm shrink-0">
-                    <AvatarImage src={article.authorInfo?.avatar} alt={article.authorInfo?.name || article.authorName} />
+                  <Avatar className="h-11 w-11 border border-zinc-200 shadow-sm shrink-0 overflow-hidden">
+                    <AvatarImage
+                      src={formatAvatarUrl(article.authorInfo?.avatar)}
+                      alt={article.authorInfo?.name || article.authorName}
+                      className="object-cover h-full w-full"
+                    />
                     <AvatarFallback className="bg-[#e98571]/10 text-[#d87460] font-bold text-sm">
                       {getInitials(
                         article.authorInfo?.name || article.authorName,
@@ -915,7 +945,7 @@ export const Article: React.FC<ArticleProps> = ({
                       )}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col min-w-0">
+                  <div className="flex flex-col min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-0.5">
                       <Badge className="bg-emerald-600 text-white text-[9px] font-black uppercase tracking-wider px-2 py-0 h-4 border-none rounded-none">
                         Author & Publisher
@@ -929,8 +959,8 @@ export const Article: React.FC<ArticleProps> = ({
                     <h4 className="font-bold text-sm text-zinc-900 capitalize truncate">
                       {article.authorInfo?.name || article.authorName}
                     </h4>
-                    <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed">
-                      Direct publication by author with full editorial responsibility.
+                    <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed line-clamp-3">
+                      {article.authorInfo?.bio || 'Direct publication by author with full editorial responsibility.'}
                     </p>
                   </div>
                 </div>

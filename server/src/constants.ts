@@ -1,7 +1,7 @@
 export const DB_NAME = 'Gyanmitra';
 
 export const USER_FIELDS_TO_HIDE =
-  '-password -phone -emailVerification -inviterId -deactivatorId';
+  '-password -emailVerification -inviterId -deactivatorId';
 
 export const TEMPLATE_FILE_DEST_FORM_UTILS = '../../templates/';
 

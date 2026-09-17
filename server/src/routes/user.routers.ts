@@ -11,6 +11,7 @@ import {
   createInvitationReqFields,
   isValidInviteToken,
 } from '../controllers/invitation.controllers';
+import { upload } from '../middlewares/multer.middlewares';
 
 const router = Router();
 
@@ -89,6 +90,19 @@ router.patch(
     USER_ROLE.Viewer,
   ]),
   UserController.updateProfile
+);
+
+router.post(
+  '/profile/avatar',
+  VerifyJWT([
+    ADMINISTRATOR_ROLE.Owner,
+    ADMINISTRATOR_ROLE.Admin,
+    ADMINISTRATOR_ROLE.Editor,
+    ADMINISTRATOR_ROLE.Reporter,
+    USER_ROLE.Viewer,
+  ]),
+  upload.single('avatar'),
+  UserController.uploadAvatar
 );
 
 export default router;

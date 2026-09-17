@@ -9,6 +9,9 @@ export interface IApiUser {
   firstName: string;
   lastName: string;
   email: string;
+  phone?: string;
+  avatar?: string;
+  bio?: string;
   isEmailVerified: boolean;
   role: USER_ROLE;
 }
@@ -112,6 +115,7 @@ export interface IApiArticle {
       lastName?: string;
       avatar?: string;
       role?: string;
+      bio?: string;
     };
     editorInfo?: {
       _id: string;
@@ -120,6 +124,7 @@ export interface IApiArticle {
       lastName?: string;
       avatar?: string;
       role?: string;
+      bio?: string;
     };
     coAuthors?: {
       _id: string;
@@ -128,6 +133,7 @@ export interface IApiArticle {
       lastName?: string;
       avatar?: string;
       role?: string;
+      bio?: string;
     }[];
     coAuthorIds?: string[];
     

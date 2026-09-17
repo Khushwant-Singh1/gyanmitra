@@ -138,6 +138,7 @@ export const getArticlePageContent = AsyncHandler(
                       lastName: 1,
                       avatar: 1,
                       role: 1,
+                      bio: 1,
                     },
                   },
                 ],
@@ -211,6 +212,7 @@ export const getArticlePageContent = AsyncHandler(
                   lastName: '$author.lastName',
                   avatar: '$author.avatar',
                   role: '$author.role',
+                  bio: '$author.bio',
                 },
                 editorInfo: {
                   $cond: {
@@ -222,6 +224,7 @@ export const getArticlePageContent = AsyncHandler(
                       lastName: '$editor.lastName',
                       avatar: '$editor.avatar',
                       role: '$editor.role',
+                      bio: '$editor.bio',
                     },
                     else: null,
                   },

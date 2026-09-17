@@ -10,6 +10,8 @@ export interface IUser extends Document {
   email: string;
   password: string;
   phone?: string;
+  avatar?: string;
+  bio?: string;
   isBlocked: boolean;
   emailVerification?: { token: string; expiry: Date };
   isEmailVerified: boolean;
@@ -51,6 +53,15 @@ export const userSchema = new Schema<IUser>(
     phone: {
       type: String,
       trim: true,
+    },
+    avatar: {
+      type: String,
+      default: '',
+    },
+    bio: {
+      type: String,
+      trim: true,
+      default: '',
     },
     isBlocked: {
       type: Boolean,
