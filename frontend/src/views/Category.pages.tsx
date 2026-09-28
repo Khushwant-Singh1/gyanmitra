@@ -73,6 +73,11 @@ export const Category: React.FC = () => {
   const formattedTitle =
     displayName.charAt(0).toUpperCase() + displayName.slice(1);
 
+  // Always canonicalize to the resolved category name's URL, so alternate
+  // English/Hindi aliases that resolve to the same category (see
+  // CATEGORY_SLUG_MAP on the server) don't get indexed as duplicate pages.
+  const canonicalSlug = displayName.toLowerCase().replace(/\s+/g, '-');
+
   return (
     <div className="max-w-[1350px] mx-auto px-4 sm:px-6 py-6 space-y-8">
       <Helmet>
@@ -83,7 +88,7 @@ export const Category: React.FC = () => {
         />
         <link
           rel="canonical"
-          href={`https://gyanmitranews.com/categories/${encodeURIComponent(categoryName || '')}`}
+          href={`https://gyanmitranews.com/categories/${encodeURIComponent(canonicalSlug)}`}
         />
         <meta name="robots" content="INDEX, FOLLOW" />
       </Helmet>

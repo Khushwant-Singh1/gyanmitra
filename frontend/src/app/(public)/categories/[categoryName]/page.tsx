@@ -36,6 +36,25 @@ const CATEGORY_NAMES: Record<string, string> = {
   'crime': 'अपराध (Crime)',
 };
 
+async function getResolvedCategoryName(categoryName: string): Promise<string | null> {
+  const rawApiUrl = (process.env.API_URL || 'http://localhost:8000').replace(/\/+$/, '');
+  const apiBase = rawApiUrl.replace(/\/api\/?$/, '');
+
+  try {
+    const res = await fetch(
+      `${apiBase}/api/categories/page/${encodeURIComponent(categoryName)}`,
+      { next: { revalidate: 60 } }
+    );
+    if (res.ok) {
+      const json = await res.json();
+      return json?.data?.categoryName || null;
+    }
+  } catch (err) {
+    console.error('Error fetching category metadata:', err);
+  }
+  return null;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { categoryName } = await params;
   const rawCategory = decodeURIComponent(categoryName).toLowerCase();
@@ -47,7 +66,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     (rawCategory.charAt(0).toUpperCase() + rawCategory.slice(1));
 
   const baseURL = (process.env.WEBSITE_URL || 'https://gyanmitranews.com').replace(/\/+$/, '');
-  const canonical = `${baseURL}/categories/${encodeURIComponent(categoryName)}`;
+
+  // Always canonicalize to the category's resolved name so English/Hindi
+  // aliases that map to the same category (see CATEGORY_SLUG_MAP on the
+  // server) don't get indexed as separate duplicate pages.
+  const resolvedName = await getResolvedCategoryName(categoryName);
+  const canonicalSlug = resolvedName
+    ? resolvedName.toLowerCase().replace(/\s+/g, '-')
+    : categoryName;
+  const canonical = `${baseURL}/categories/${encodeURIComponent(canonicalSlug)}`;
 
   return {
     title: `${displayName} - ताज़ा हिंदी समाचार | Gyanmitra`,

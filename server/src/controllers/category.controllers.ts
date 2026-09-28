@@ -370,6 +370,8 @@ export const getCategoryPageContent = AsyncHandler(
 
     const trendingArticles = await Article.aggregate([
       { $match: articleMatchQuery },
+      { $sort: { lastPublishedDate: -1 } },
+      { $limit: 6 },
       {
         $lookup: {
           from: 'categories',
@@ -394,13 +396,13 @@ export const getCategoryPageContent = AsyncHandler(
           },
         },
       },
-      { $sort: { views: -1, lastPublishedDate: -1 } },
-      { $limit: 6 },
     ]);
 
     // Fetch recent posts sorted by published time, including media files
     const recentPosts = await Article.aggregate([
       { $match: articleMatchQuery },
+      { $sort: { lastPublishedDate: -1 } },
+      { $limit: 20 },
       {
         $lookup: {
           from: 'categories',
@@ -426,8 +428,6 @@ export const getCategoryPageContent = AsyncHandler(
           },
         },
       },
-      { $sort: { lastPublishedDate: -1 } },
-      { $limit: 20 },
     ]);
 
     return res.status(200).json({

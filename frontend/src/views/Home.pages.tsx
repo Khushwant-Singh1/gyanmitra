@@ -32,7 +32,7 @@ const PRIMARY_SECTIONS: CategorySectionDef[] = [
     key: 'top-news',
     name: 'टॉप न्यूज़',
     englishName: 'Top News',
-    slug: 'top-news',
+    slug: 'टॉप-न्यूज़',
     aliases: ['top news', 'top-news', 'topnews', 'टॉप न्यूज़', 'टॉप न्यूज', 'प्रमुख समाचार', 'खास खबर', 'मुख्य समाचार', 'top'],
   },
   {
@@ -67,21 +67,21 @@ const PRIMARY_SECTIONS: CategorySectionDef[] = [
     key: 'pradesh',
     name: 'प्रदेश',
     englishName: 'Uttar Pradesh',
-    slug: 'uttar-pradesh',
+    slug: 'उत्तरप्रदेश',
     aliases: ['pradesh', 'प्रदेश', 'uttar pradesh', 'uttarpradesh', 'उत्तरप्रदेश', 'उत्तर प्रदेश', 'up', 'यूपी', 'राज्य'],
   },
   {
     key: 'desh',
     name: 'देश',
     englishName: 'National',
-    slug: 'desh',
+    slug: 'देश',
     aliases: ['desh', 'देश', 'national', 'भारत', 'india', 'राष्ट्रीय', 'rashtriya'],
   },
   {
     key: 'duniya',
     name: 'दुनिया',
     englishName: 'International',
-    slug: 'duniya',
+    slug: 'दुनिया',
     aliases: ['duniya', 'दुनिया', 'videsh', 'विदेश', 'international', 'world', 'global', 'अंतर्राष्ट्रीय'],
   },
 ];
