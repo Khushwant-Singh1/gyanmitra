@@ -749,6 +749,11 @@ export const Article: React.FC<ArticleProps> = ({
               className="w-full rounded-sm shadow-sm overflow-hidden aspect-video object-cover"
               thumbnail={article.featuredMediaInfo.thumbnail}
             />
+            {article.featuredMediaCaption && (
+              <p className="text-xs text-zinc-500 italic text-center -mt-4">
+                {article.featuredMediaCaption}
+              </p>
+            )}
 
             <p className="text-lg text-zinc-500 font-bold  leading-relaxed border-l-2 border-[#e98571] pl-6 py-2 bg-zinc-50">
               {article.description}

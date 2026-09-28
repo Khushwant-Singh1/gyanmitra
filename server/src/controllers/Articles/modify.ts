@@ -44,6 +44,7 @@ interface ICreateArticle {
   slug?: string;
   categoryId: Types.ObjectId;
   featuredMediaId: Types.ObjectId;
+  featuredMediaCaption?: string;
   tags?: string[];
   content: string;
   description: string;
@@ -71,6 +72,7 @@ export const create = AsyncHandler(
       slug,
       categoryId,
       featuredMediaId,
+      featuredMediaCaption,
       tags = [],
       content = '',
       contentType: content_type,
@@ -105,6 +107,7 @@ export const create = AsyncHandler(
         : slugify(headline, SLUGIFY_OPTIONS),
       categoryId,
       featuredMediaId,
+      featuredMediaCaption,
       tags,
       description,
       contentId: articleContent._id,
@@ -135,6 +138,7 @@ interface IEditArticle {
   headline?: string;
   categoryId?: Types.ObjectId;
   featuredMediaId?: Types.ObjectId;
+  featuredMediaCaption?: string;
   tags?: string[];
   content?: string;
   description?: string;
@@ -154,6 +158,7 @@ export const edit = AsyncHandler(
       headline,
       categoryId,
       featuredMediaId,
+      featuredMediaCaption,
       tags,
       slug,
       content,
@@ -230,6 +235,10 @@ export const edit = AsyncHandler(
       headline: headline || article.headline,
       slug: slugifySlug || article.slug,
       featuredMediaId: featuredMediaId || article.featuredMediaId,
+      featuredMediaCaption:
+        featuredMediaCaption !== undefined
+          ? featuredMediaCaption
+          : article.featuredMediaCaption,
       categoryId: categoryId || article.categoryId,
       tags: tags || article.tags,
       description: description || article.description,

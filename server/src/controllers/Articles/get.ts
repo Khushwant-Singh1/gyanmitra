@@ -202,6 +202,7 @@ export const getArticlePageContent = AsyncHandler(
                     $ifNull: ['$thumbnailMedia.fileUrl', null],
                   },
                 },
+                featuredMediaCaption: { $ifNull: ['$featuredMediaCaption', ''] },
                 authorName: {
                   $concat: ['$author.firstName', ' ', '$author.lastName'],
                 },
@@ -247,6 +248,7 @@ export const getArticlePageContent = AsyncHandler(
                 categoryName: 1,
                 contentData: 1,
                 featuredMediaInfo: 1,
+                featuredMediaCaption: 1,
                 authorName: 1,
                 authorInfo: 1,
                 editorInfo: 1,
@@ -563,6 +565,7 @@ export const getDraftArticle = AsyncHandler(
           description: 1,
           categoryId: 1,
           featuredMediaId: 1,
+          featuredMediaCaption: 1,
           coAuthorIds: 1,
           metaTitle: 1,
           focusKeyword: 1,

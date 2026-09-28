@@ -21,6 +21,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { SelectMediaFile } from '@/components/SelectMediaFile.components';
 import { CategoryCombobox } from '@/components/CategoryCombobox.components';
 import { CoAuthorSelect } from '@/components/CoAuthorSelect.components';
+import { generateSlug, resolveUniqueSlug } from '@/utils/slug.utils';
 
 const formatDateForInput = (dateString?: string) => {
   if (!dateString) return '';
@@ -63,6 +64,7 @@ export const EditArticle: React.FC = () => {
     slug: '',
     description: '',
     featuredMediaId: '',
+    featuredMediaCaption: '',
     categoryId: '',
     coAuthorIds: [] as string[],
     // --- SEO Fields ---
@@ -73,6 +75,7 @@ export const EditArticle: React.FC = () => {
     author: 'Invitations',
     scheduledPublishDate: '',
   });
+  const [isSlugEdited, setIsSlugEdited] = useState(false);
 
   // SEO Score Logic
   const getSeoIssues = () => {
@@ -88,10 +91,14 @@ export const EditArticle: React.FC = () => {
 
   const saveMutation = useMutation({
     mutationFn: async (updatedArticle: typeof formData) => {
+      const baseSlug = generateSlug(updatedArticle.slug);
+      const uniqueSlug = await resolveUniqueSlug(baseSlug, articleId);
+
       const response = await axios.put<IApiResponse<IApiEditArticle>>(
         `/api/articles/${articleId}/edit`,
         {
           ...updatedArticle,
+          slug: uniqueSlug,
           tags: updatedArticle.tags.split(',').filter((v) => v.trim()),
         }
       );
@@ -134,8 +141,22 @@ export const EditArticle: React.FC = () => {
     }));
   };
 
+  const handleHeadlineChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      headline: value,
+      slug: isSlugEdited ? prev.slug : generateSlug(value),
+    }));
+  };
+
+  const handleSlugChange = (value: string) => {
+    setIsSlugEdited(true);
+    handleInputChange('slug', value);
+  };
+
   useEffect(() => {
     if (data?.data) {
+      setIsSlugEdited(!!data.data.slug);
       setFormData({
         headline: data.data.headline,
         content: data.data.content,
@@ -143,6 +164,7 @@ export const EditArticle: React.FC = () => {
         slug: data.data.slug || '',
         description: data.data.description || '',
         featuredMediaId: data.data.featuredMedia,
+        featuredMediaCaption: data.data.featuredMediaCaption || '',
         categoryId: data.data.categoryId,
         coAuthorIds: data.data.coAuthorIds || [],
         // Map from API if exists, else defaults
@@ -199,7 +221,7 @@ export const EditArticle: React.FC = () => {
               id="headline"
               className="text-2xl font-bold h-14 border-none shadow-none focus-visible:ring-0 px-0"
               value={formData.headline}
-              onChange={(e) => handleInputChange('headline', e.target.value)}
+              onChange={(e) => handleHeadlineChange(e.target.value)}
               placeholder="Enter a catchy headline..."
             />
           </div>
@@ -241,7 +263,7 @@ export const EditArticle: React.FC = () => {
 
              <div>
                 <Label className="text-xs">URL Slug</Label>
-                <Input value={formData.slug} onChange={(e) => handleInputChange('slug', e.target.value)} placeholder="e.g., up-election-2024-news" className="bg-white font-mono text-xs" />
+                <Input value={formData.slug} onChange={(e) => handleSlugChange(e.target.value)} placeholder="e.g., up-election-2024-news" className="bg-white font-mono text-xs" />
              </div>
           </div>
 
@@ -315,6 +337,11 @@ export const EditArticle: React.FC = () => {
             <div>
               <Label className="text-xs">Featured Image</Label>
               <SelectMediaFile value={{ id: formData.featuredMediaId }} onChange={(val) => val && handleInputChange('featuredMediaId', val.id)} />
+            </div>
+
+            <div>
+              <Label className="text-xs">Image Caption</Label>
+              <Input value={formData.featuredMediaCaption} onChange={(e) => handleInputChange('featuredMediaCaption', e.target.value)} placeholder="Add a short line about the image" className="bg-white" />
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Sheet,
   SheetClose,
@@ -35,14 +35,15 @@ import { toast } from 'sonner';
 import { SelectMediaFile } from './SelectMediaFile.components';
 import { CategoryCombobox } from './CategoryCombobox.components';
 import { CoAuthorSelect } from './CoAuthorSelect.components';
+import { generateSlug, resolveUniqueSlug } from '@/utils/slug.utils';
 
 export const FormSchema = z.object({
   headline: z.string().min(1, 'Headline is required'),
   slug: z
     .string()
     .regex(
-      /^[a-zA-Z0-9\s]+$/,
-      'Slug can only contain English letters, numbers, and spaces'
+      /^[a-zA-Z0-9\s-]+$/,
+      'Slug can only contain English letters, numbers, spaces, and hyphens'
     )
     .optional(),
   description: z.string().min(1, 'Description is required'),
@@ -53,6 +54,7 @@ export const FormSchema = z.object({
   tags: z.string().optional(),
   categoryId: z.string().min(1, 'Category is required'),
   featuredMediaId: z.string().min(1, 'Featured File is required'),
+  featuredMediaCaption: z.string().optional(),
   scheduledPublishDate: z.string().optional(),
   coAuthorIds: z.array(z.string()).optional(),
 });
@@ -61,6 +63,7 @@ type FormValues = z.infer<typeof FormSchema>;
 
 export const CreateDraftArticle: React.FC = () => {
   const sheetCloseRef = useRef<HTMLButtonElement | null>(null);
+  const [isSlugEdited, setIsSlugEdited] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
@@ -72,6 +75,7 @@ export const CreateDraftArticle: React.FC = () => {
       tags: '',
       categoryId: '',
       featuredMediaId: '',
+      featuredMediaCaption: '',
       scheduledPublishDate: '',
       coAuthorIds: [],
     },
@@ -81,13 +85,18 @@ export const CreateDraftArticle: React.FC = () => {
 
   const mutation = useMutation({
     mutationFn: async (data: FormValues) => {
+      const baseSlug = generateSlug(data.slug || data.headline);
+      const uniqueSlug = await resolveUniqueSlug(baseSlug);
+
       return await axios.post<IApiResponse<any>>(`/api/articles/`, {
         ...data,
+        slug: uniqueSlug,
         tags: data.tags?.split(',').filter((v) => v.trim()),
       });
     },
     onSuccess: () => {
       form.reset();
+      setIsSlugEdited(false);
       queryClient.invalidateQueries({ queryKey: ['articles', 'drafts'] });
       if (sheetCloseRef.current) {
         sheetCloseRef.current.click();
@@ -131,6 +140,12 @@ export const CreateDraftArticle: React.FC = () => {
                       className="resize-none"
                       placeholder="Enter a compelling headline for your article"
                       {...field}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        if (!isSlugEdited) {
+                          form.setValue('slug', generateSlug(e.target.value));
+                        }
+                      }}
                     />
                   </FormControl>
                   <FormDescription>
@@ -149,11 +164,12 @@ export const CreateDraftArticle: React.FC = () => {
                   <FormLabel>Slug</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter a unique slug (e.g., my-article-title)"
+                      placeholder="Auto-generated from the headline"
                       value={field.value}
                       onChange={(e) => {
+                        setIsSlugEdited(true);
                         const value = e.target.value.replace(
-                          /[^a-zA-Z0-9\s]/g,
+                          /[^a-zA-Z0-9\s-]/g,
                           ''
                         );
                         field.onChange(value);
@@ -161,8 +177,8 @@ export const CreateDraftArticle: React.FC = () => {
                     />
                   </FormControl>
                   <FormDescription>
-                    The slug is used in the article URL. It can only contain
-                    English letters, numbers, spaces.
+                    Automatically generated from the headline. Edit it
+                    manually if you need a different URL.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -258,6 +274,25 @@ export const CreateDraftArticle: React.FC = () => {
                   <FormDescription>
                     Choose an image or video to be displayed as the cover for
                     your article.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              name="featuredMediaCaption"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Image Caption</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Add a short line about the image"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    A short caption shown under the cover image (optional).
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

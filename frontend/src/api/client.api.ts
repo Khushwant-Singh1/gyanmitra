@@ -107,6 +107,7 @@ export interface IApiArticle {
       name: string;
       thumbnail?: string;
     };
+    featuredMediaCaption?: string;
     authorName: string;
     authorInfo?: {
       _id: string;
@@ -288,6 +289,7 @@ export interface IApiEditArticle {
   description: string;
   categoryId: string;
   featuredMedia: string;
+  featuredMediaCaption?: string;
   coAuthorIds?: string[];
   // --- New SEO Fields ---
   metaTitle?: string;

@@ -15,6 +15,7 @@ export interface IArticle extends Document {
   contentId: Types.ObjectId;
   description: string;
   featuredMediaId: Types.ObjectId;
+  featuredMediaCaption?: string;
   status: ARTICLE_STATUS;
   tags: string[];
   categoryId: Types.ObjectId;
@@ -92,6 +93,11 @@ const ArticleSchema = new Schema<IArticle>(
       type: Schema.Types.ObjectId,
       ref: MODELS.MediaFile,
       required: true,
+    },
+    featuredMediaCaption: {
+      type: String,
+      trim: true,
+      maxlength: 300,
     },
     contentType: {
       type: String,
