@@ -95,8 +95,15 @@ jobs:
 
             # Prepare production docker-compose
             if [ -f "docker-compose.prod.yml" ]; then
-              cp docker-compose.prod.yml docker-compose.yml
+              cp -f docker-compose.prod.yml docker-compose.yml
+            else
+              echo "docker-compose.prod.yml is missing in $TARGET_DIR"
+              exit 1
             fi
+
+            # Normalize legacy compose values that can break pulls on VPS
+            sed -i '/^version:[[:space:]]*/d' docker-compose.yml
+            sed -i 's|quay.io/minio/minio:latest|minio/minio:latest|g' docker-compose.yml
 
             # Log in to GHCR on the VPS if credentials exist
             if [ -n "$GHCR_TOKEN" ] && [ -n "$GHCR_USERNAME" ]; then
