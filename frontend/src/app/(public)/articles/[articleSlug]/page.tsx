@@ -162,9 +162,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ? article.canonicalUrl
       : `${baseURL}/articles/${encodeURIComponent(article.slug || decodedSlug)}`;
 
+  const authorName =
+    (article.authorName && article.authorName !== 'Invitations'
+      ? article.authorName
+      : 'ज्ञानमित्र ब्यूरो (Gyanmitra Bureau)');
+
+  const categoryName =
+    article.categoryName || 'ताज़ा समाचार (Top News)';
+
+  const tagsList: string[] =
+    Array.isArray(article.tags) && article.tags.length > 0 && article.tags.some((t: string) => t && t.trim())
+      ? article.tags.filter((t: string) => t && t.trim())
+      : [categoryName, 'ताज़ा समाचार', 'Gyanmitra News', 'Hindi News'];
+
   return {
     title,
     description,
+    keywords: tagsList.join(', '),
     alternates: {
       canonical,
     },
@@ -177,7 +191,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: 'article',
       publishedTime: article.lastPublishedDate || article.createdAt,
       modifiedTime: article.updatedAt || article.lastPublishedDate || article.createdAt,
-      authors: article.authorName ? [article.authorName] : ['Gyanmitra News'],
+      authors: [authorName],
+      section: categoryName,
+      tags: tagsList,
       images: [
         {
           url: image,
@@ -248,31 +264,83 @@ export default async function ArticlePage({ params }: Props) {
       article.canonicalUrl || `${baseURL}/articles/${encodeURIComponent(article.slug || decodedSlug)}`;
     const image = normalizePublicImageUrl(article.image, baseURL);
 
+    const authorName =
+      (article?.authorName && article.authorName !== 'Invitations'
+        ? article.authorName
+        : articleData?.articleDetails?.authorName && articleData.articleDetails.authorName !== 'Invitations'
+        ? articleData.articleDetails.authorName
+        : 'ज्ञानमित्र ब्यूरो (Gyanmitra Bureau)');
+
+    const categoryName =
+      article?.categoryName ||
+      articleData?.articleDetails?.categoryName ||
+      'ताज़ा समाचार (Top News)';
+
+    const tagsList: string[] =
+      Array.isArray(article?.tags) && article.tags.length > 0 && article.tags.some((t: string) => t && t.trim())
+        ? article.tags.filter((t: string) => t && t.trim())
+        : (Array.isArray(articleData?.articleDetails?.tags) && articleData.articleDetails.tags.length > 0
+          ? articleData.articleDetails.tags.filter((t: string) => t && t.trim())
+          : [categoryName, 'ताज़ा समाचार', 'Gyanmitra News', 'Hindi News']);
+
     schemaJson = {
       '@context': 'https://schema.org',
-      '@type': 'NewsArticle',
-      mainEntityOfPage: {
-        '@type': 'WebPage',
-        '@id': canonical,
-      },
-      headline: cleanText(article.title, 110),
-      description: cleanText(article.description, 200),
-      image: [image],
-      datePublished: article.lastPublishedDate || article.createdAt || new Date().toISOString(),
-      dateModified: article.updatedAt || article.lastPublishedDate || new Date().toISOString(),
-      author: {
-        '@type': 'Person',
-        name: article.authorName || 'Gyanmitra News',
-      },
-      publisher: {
-        '@type': 'Organization',
-        name: 'Gyanmitra News',
-        url: baseURL,
-        logo: {
-          '@type': 'ImageObject',
-          url: `${baseURL}/assets/s.png`,
+      '@graph': [
+        {
+          '@type': 'NewsArticle',
+          '@id': `${canonical}#article`,
+          isPartOf: {
+            '@type': 'WebPage',
+            '@id': canonical,
+          },
+          headline: cleanText(article.title, 110),
+          description: cleanText(article.description, 200),
+          image: [image],
+          datePublished: article.lastPublishedDate || article.createdAt || new Date().toISOString(),
+          dateModified: article.updatedAt || article.lastPublishedDate || new Date().toISOString(),
+          articleSection: categoryName,
+          keywords: tagsList.join(', '),
+          inLanguage: 'hi',
+          author: {
+            '@type': 'Person',
+            name: authorName,
+            url: `${baseURL}/about-us`,
+          },
+          publisher: {
+            '@type': 'Organization',
+            name: 'Gyanmitra News',
+            url: baseURL,
+            logo: {
+              '@type': 'ImageObject',
+              url: `${baseURL}/assets/s.png`,
+            },
+          },
         },
-      },
+        {
+          '@type': 'BreadcrumbList',
+          '@id': `${canonical}#breadcrumb`,
+          itemListElement: [
+            {
+              '@type': 'ListItem',
+              position: 1,
+              name: 'Home',
+              item: baseURL,
+            },
+            {
+              '@type': 'ListItem',
+              position: 2,
+              name: categoryName,
+              item: `${baseURL}/categories/${encodeURIComponent(categoryName.toLowerCase().replace(/\s+/g, '-'))}`,
+            },
+            {
+              '@type': 'ListItem',
+              position: 3,
+              name: cleanText(article.title, 80),
+              item: canonical,
+            },
+          ],
+        },
+      ],
     };
   }
 

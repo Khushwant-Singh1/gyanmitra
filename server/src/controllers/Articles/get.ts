@@ -187,7 +187,9 @@ export const getArticlePageContent = AsyncHandler(
             {
               $addFields: {
                 publishedDate: '$lastPublishedDate',
-                categoryName: '$category.name',
+                categoryName: {
+                  $ifNull: ['$category.name', 'ताज़ा समाचार (Top News)'],
+                },
                 contentData: '$content.data',
                 // Explicit mapping for SEO fields
                 metaTitle: { $ifNull: ["$metaTitle", "$headline"] },
@@ -204,28 +206,119 @@ export const getArticlePageContent = AsyncHandler(
                 },
                 featuredMediaCaption: { $ifNull: ['$featuredMediaCaption', ''] },
                 authorName: {
-                  $concat: ['$author.firstName', ' ', '$author.lastName'],
+                  $ifNull: [
+                    {
+                      $cond: {
+                        if: {
+                          $and: [
+                            { $ne: ['$author.firstName', null] },
+                            { $ne: ['$author.lastName', null] },
+                            { $ne: ['$author.firstName', ''] },
+                            { $ne: ['$author.lastName', ''] },
+                          ],
+                        },
+                        then: { $concat: ['$author.firstName', ' ', '$author.lastName'] },
+                        else: {
+                          $ifNull: [
+                            '$author.firstName',
+                            {
+                              $cond: {
+                                if: {
+                                  $and: [
+                                    { $ne: ['$authorName', null] },
+                                    { $ne: ['$authorName', 'Invitations'] },
+                                    { $ne: ['$authorName', ''] },
+                                  ],
+                                },
+                                then: '$authorName',
+                                else: 'ज्ञानमित्र ब्यूरो (Gyanmitra Bureau)',
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    },
+                    'ज्ञानमित्र ब्यूरो (Gyanmitra Bureau)',
+                  ],
                 },
                 authorInfo: {
                   _id: '$author._id',
-                  name: { $concat: ['$author.firstName', ' ', '$author.lastName'] },
-                  firstName: '$author.firstName',
-                  lastName: '$author.lastName',
+                  name: {
+                    $ifNull: [
+                      {
+                        $cond: {
+                          if: {
+                            $and: [
+                              { $ne: ['$author.firstName', null] },
+                              { $ne: ['$author.lastName', null] },
+                              { $ne: ['$author.firstName', ''] },
+                              { $ne: ['$author.lastName', ''] },
+                            ],
+                          },
+                          then: { $concat: ['$author.firstName', ' ', '$author.lastName'] },
+                          else: {
+                            $ifNull: [
+                              '$author.firstName',
+                              {
+                                $cond: {
+                                  if: {
+                                    $and: [
+                                      { $ne: ['$authorName', null] },
+                                      { $ne: ['$authorName', 'Invitations'] },
+                                      { $ne: ['$authorName', ''] },
+                                    ],
+                                  },
+                                  then: '$authorName',
+                                  else: 'ज्ञानमित्र ब्यूरो (Gyanmitra Bureau)',
+                                },
+                              },
+                            ],
+                          },
+                        },
+                      },
+                      'ज्ञानमित्र ब्यूरो (Gyanmitra Bureau)',
+                    ],
+                  },
+                  firstName: { $ifNull: ['$author.firstName', 'Gyanmitra'] },
+                  lastName: { $ifNull: ['$author.lastName', 'Bureau'] },
                   avatar: '$author.avatar',
-                  role: '$author.role',
-                  bio: '$author.bio',
+                  role: { $ifNull: ['$author.role', 'Editorial Team'] },
+                  bio: {
+                    $ifNull: [
+                      '$author.bio',
+                      'ज्ञानमित्र न्यूज़ संपादकीय टीम - निष्पक्ष, सटीक और नैतिक पत्रकारिता।',
+                    ],
+                  },
                 },
                 editorInfo: {
                   $cond: {
                     if: '$editor._id',
                     then: {
                       _id: '$editor._id',
-                      name: { $concat: ['$editor.firstName', ' ', '$editor.lastName'] },
+                      name: {
+                        $cond: {
+                          if: {
+                            $and: [
+                              { $ne: ['$editor.firstName', null] },
+                              { $ne: ['$editor.lastName', null] },
+                              { $ne: ['$editor.firstName', ''] },
+                              { $ne: ['$editor.lastName', ''] },
+                            ],
+                          },
+                          then: { $concat: ['$editor.firstName', ' ', '$editor.lastName'] },
+                          else: { $ifNull: ['$editor.firstName', 'मुख्य संपादक (Chief Editor)'] },
+                        },
+                      },
                       firstName: '$editor.firstName',
                       lastName: '$editor.lastName',
                       avatar: '$editor.avatar',
-                      role: '$editor.role',
-                      bio: '$editor.bio',
+                      role: { $ifNull: ['$editor.role', 'Editor'] },
+                      bio: {
+                        $ifNull: [
+                          '$editor.bio',
+                          'संपादकीय समीक्षा, तथ्य सत्यापन एवं प्रकाशन निगरानी।',
+                        ],
+                      },
                     },
                     else: null,
                   },
@@ -604,17 +697,83 @@ export const getArticleMetaData = AsyncHandler(
       },
       ...getMediaLookupPipeline,
       {
+        $lookup: {
+          from: 'users',
+          localField: 'authorId',
+          foreignField: '_id',
+          as: 'author',
+        },
+      },
+      {
+        $unwind: {
+          path: '$author',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'categoryId',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      {
+        $unwind: {
+          path: '$category',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
         $project: {
           title: { $ifNull: ['$metaTitle', '$headline'] },
           description: 1,
           slug: 1,
-          authorName: 1,
           canonicalUrl: 1,
           robotsTag: 1,
           createdAt: 1,
           lastPublishedDate: 1,
           updatedAt: 1,
           tags: 1,
+          categoryName: {
+            $ifNull: ['$category.name', 'ताज़ा समाचार (Top News)'],
+          },
+          authorName: {
+            $ifNull: [
+              {
+                $cond: {
+                  if: {
+                    $and: [
+                      { $ne: ['$author.firstName', null] },
+                      { $ne: ['$author.lastName', null] },
+                      { $ne: ['$author.firstName', ''] },
+                      { $ne: ['$author.lastName', ''] },
+                    ],
+                  },
+                  then: { $concat: ['$author.firstName', ' ', '$author.lastName'] },
+                  else: {
+                    $ifNull: [
+                      '$author.firstName',
+                      {
+                        $cond: {
+                          if: {
+                            $and: [
+                              { $ne: ['$authorName', null] },
+                              { $ne: ['$authorName', 'Invitations'] },
+                              { $ne: ['$authorName', ''] },
+                            ],
+                          },
+                          then: '$authorName',
+                          else: 'ज्ञानमित्र ब्यूरो (Gyanmitra Bureau)',
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+              'ज्ञानमित्र ब्यूरो (Gyanmitra Bureau)',
+            ],
+          },
           image: {
             $cond: {
               if: { $eq: ['$featuredMedia.fileType', MEDIA_FILE_TYPES.Video] },

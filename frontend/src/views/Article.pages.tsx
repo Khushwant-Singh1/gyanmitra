@@ -162,6 +162,22 @@ export const Article: React.FC<ArticleProps> = ({
 
   const article = data.data.articleDetails;
 
+  // Computed Author, Category, and Tags with guaranteed fallbacks (for AdSense & SEO)
+  const displayAuthorName =
+    (article.authorInfo?.name && article.authorInfo.name !== 'Invitations'
+      ? article.authorInfo.name
+      : article.authorName && article.authorName !== 'Invitations'
+      ? article.authorName
+      : 'ज्ञानमित्र ब्यूरो (Gyanmitra Bureau)');
+
+  const displayCategoryName = article.categoryName || 'ताज़ा समाचार (Top News)';
+  const displayCategorySlug = displayCategoryName.toLowerCase().replace(/\s+/g, '-');
+
+  const displayTags: string[] =
+    Array.isArray(article.tags) && article.tags.length > 0 && article.tags.some((t: string) => t && t.trim())
+      ? article.tags.filter((t: string) => t && t.trim())
+      : [displayCategoryName, 'ताज़ा ख़बर', 'ज्ञानमित्र न्यूज़', 'Hindi News'];
+
   // SEO Fallbacks
   const seoTitle = article.metaTitle || `${article.headline} - Gyanmitra`;
   const seoDescription = article.description || "Read the latest news and articles on Gyanmitra.";
@@ -297,7 +313,10 @@ export const Article: React.FC<ArticleProps> = ({
         <meta property="og:image:alt" content={article.headline} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta name="author" content={article?.authorName || "Gyanmitra News"} />
+        <meta name="author" content={displayAuthorName} />
+        <meta property="article:author" content={displayAuthorName} />
+        <meta property="article:section" content={displayCategoryName} />
+        <meta property="article:tag" content={displayTags.join(', ')} />
 
         {/* Twitter Cards */}
         <meta name="twitter:card" content="summary_large_image" />
@@ -307,7 +326,8 @@ export const Article: React.FC<ArticleProps> = ({
         <meta name="publisher" content="Gyanmitra News" />
 
         {/* Keywords */}
-        <meta name="keywords" content={Array.isArray(article.tags) ? article.tags.join(', ') : ''} />
+        <meta name="keywords" content={displayTags.join(', ')} />
+        <meta name="news_keywords" content={displayTags.join(', ')} />
       </Helmet>
 
       {/* --- DYNAMIC BREAKING BAR --- */}
@@ -348,9 +368,27 @@ export const Article: React.FC<ArticleProps> = ({
         {/* --- MAIN CONTENT AREA --- */}
         <article className="lg:col-span-8 space-y-6 pt-4">
           <div className="space-y-4">
-            <Badge className="bg-[#e98571] text-white rounded-none uppercase text-[9px] font-black tracking-[0.2em] px-3 py-1 border-none">
-              {article.categoryName || 'News'}
-            </Badge>
+            {/* --- BREADCRUMBS & CATEGORY PILL --- */}
+            <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-xs font-semibold text-zinc-500">
+              <Link to="/" className="hover:text-[#e98571] transition-colors font-bold flex items-center gap-1">
+                होम (Home)
+              </Link>
+              <span className="text-zinc-300">/</span>
+              <Link
+                to={`/categories/${encodeURIComponent(displayCategorySlug)}`}
+                className="hover:text-[#e98571] transition-colors font-bold text-[#e98571]"
+              >
+                {displayCategoryName}
+              </Link>
+            </nav>
+
+            <div className="flex items-center gap-2">
+              <Link to={`/categories/${encodeURIComponent(displayCategorySlug)}`}>
+                <Badge className="bg-[#e98571] hover:bg-[#d87460] text-white rounded-none uppercase text-[10px] font-black tracking-widest px-3 py-1 border-none shadow-2xs transition-all cursor-pointer">
+                  {displayCategoryName}
+                </Badge>
+              </Link>
+            </div>
             
             <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold leading-snug text-slate-900">
               {article.headline}
@@ -365,12 +403,12 @@ export const Article: React.FC<ArticleProps> = ({
                     <Avatar className="h-9 w-9 border border-zinc-200 shadow-xs ring-1 ring-black/5 shrink-0 overflow-hidden">
                       <AvatarImage
                         src={formatAvatarUrl(article.authorInfo?.avatar)}
-                        alt={article.authorInfo?.name || article.authorName}
+                        alt={displayAuthorName}
                         className="object-cover h-full w-full"
                       />
                       <AvatarFallback className="bg-sky-50 text-sky-800 font-bold text-xs">
                         {getInitials(
-                          article.authorInfo?.name || article.authorName,
+                          displayAuthorName,
                           article.authorInfo?.firstName,
                           article.authorInfo?.lastName
                         )}
@@ -384,7 +422,7 @@ export const Article: React.FC<ArticleProps> = ({
                         </span>
                       </div>
                       <span className="font-bold text-xs md:text-sm text-zinc-900 capitalize leading-tight">
-                        {article.authorInfo?.name || article.authorName}
+                        {displayAuthorName}
                         {article.coAuthors && article.coAuthors.length > 0 &&
                           `, ${article.coAuthors.map((c) => c.name || `${c.firstName || ''} ${c.lastName || ''}`.trim()).join(', ')}`}
                       </span>
@@ -432,12 +470,12 @@ export const Article: React.FC<ArticleProps> = ({
                     <Avatar className="h-9 w-9 border border-zinc-200 shadow-xs ring-1 ring-black/5 shrink-0 overflow-hidden">
                       <AvatarImage
                         src={formatAvatarUrl(article.authorInfo?.avatar)}
-                        alt={article.authorInfo?.name || article.authorName}
+                        alt={displayAuthorName}
                         className="object-cover h-full w-full"
                       />
                       <AvatarFallback className="bg-sky-50 text-sky-800 font-bold text-xs">
                         {getInitials(
-                          article.authorInfo?.name || article.authorName,
+                          displayAuthorName,
                           article.authorInfo?.firstName,
                           article.authorInfo?.lastName
                         )}
@@ -451,11 +489,26 @@ export const Article: React.FC<ArticleProps> = ({
                         </span>
                       </div>
                       <span className="font-bold text-xs md:text-sm text-zinc-900 capitalize leading-tight">
-                        {article.authorInfo?.name || article.authorName}
+                        {displayAuthorName}
                       </span>
                     </div>
                   </div>
                 )}
+
+                {/* --- CATEGORY IN BYLINE --- */}
+                <Separator orientation="vertical" className="h-7 hidden sm:block bg-zinc-200" />
+                <div className="flex flex-col justify-center">
+                  <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1">
+                    <BookOpen className="w-2.5 h-2.5" />
+                    Category
+                  </span>
+                  <Link
+                    to={`/categories/${encodeURIComponent(displayCategorySlug)}`}
+                    className="font-bold text-xs text-[#e98571] hover:underline leading-tight"
+                  >
+                    {displayCategoryName}
+                  </Link>
+                </div>
 
                 {/* --- EDITED BY (WHEN EDITOR EXISTS OR CO-AUTHORS EXIST) --- */}
                 {(article.editorInfo || (article.coAuthors && article.coAuthors.length > 0)) && (
@@ -465,12 +518,12 @@ export const Article: React.FC<ArticleProps> = ({
                       <Avatar className="h-9 w-9 border border-zinc-200 shadow-xs ring-1 ring-black/5 shrink-0 overflow-hidden">
                         <AvatarImage
                           src={formatAvatarUrl(article.editorInfo?.avatar || article.authorInfo?.avatar)}
-                          alt={article.editorInfo?.name || article.authorInfo?.name || article.authorName}
+                          alt={article.editorInfo?.name || displayAuthorName}
                           className="object-cover h-full w-full"
                         />
                         <AvatarFallback className="bg-[#e98571]/10 text-[#d87460] font-bold text-xs">
                           {getInitials(
-                            article.editorInfo?.name || article.authorInfo?.name || article.authorName,
+                            article.editorInfo?.name || displayAuthorName,
                             article.editorInfo?.firstName || article.authorInfo?.firstName,
                             article.editorInfo?.lastName || article.authorInfo?.lastName
                           )}
@@ -484,7 +537,7 @@ export const Article: React.FC<ArticleProps> = ({
                           </span>
                         </div>
                         <span className="font-bold text-xs md:text-sm text-zinc-900 capitalize leading-tight">
-                          {article.editorInfo?.name || article.authorInfo?.name || article.authorName}
+                          {article.editorInfo?.name || displayAuthorName}
                         </span>
                       </div>
                     </div>
@@ -758,6 +811,21 @@ export const Article: React.FC<ArticleProps> = ({
             <p className="text-lg text-zinc-500 font-bold  leading-relaxed border-l-2 border-[#e98571] pl-6 py-2 bg-zinc-50">
               {article.description}
             </p>
+
+            {/* --- QUICK ARTICLE TAGS BAR --- */}
+            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+              <span className="text-[10px] font-black uppercase tracking-wider text-zinc-400 mr-1">Tags:</span>
+              {displayTags.map((tag, idx) => (
+                <Link
+                  key={idx}
+                  to={`/search?q=${encodeURIComponent(tag)}`}
+                >
+                  <Badge variant="outline" className="rounded-none px-2.5 py-0.5 border-zinc-200 hover:border-[#e98571] hover:text-[#e98571] hover:bg-[#e98571]/5 transition-colors text-[10px] font-bold text-zinc-700 cursor-pointer">
+                    #{tag}
+                  </Badge>
+                </Link>
+              ))}
+            </div>
           </div>
 
           <div className="prose prose-slate max-w-none pt-4 prose-headings:font-bold prose-p:text-slate-700 prose-p:leading-relaxed prose-strong:text-slate-900" 
@@ -850,12 +918,12 @@ export const Article: React.FC<ArticleProps> = ({
                     <Avatar className="h-9 w-9 border border-zinc-200 shadow-xs shrink-0 overflow-hidden">
                       <AvatarImage
                         src={formatAvatarUrl(article.authorInfo?.avatar)}
-                        alt={article.authorInfo?.name || article.authorName}
+                        alt={displayAuthorName}
                         className="object-cover h-full w-full"
                       />
                       <AvatarFallback className="bg-sky-50 text-sky-800 font-bold text-xs">
                         {getInitials(
-                          article.authorInfo?.name || article.authorName,
+                          displayAuthorName,
                           article.authorInfo?.firstName,
                           article.authorInfo?.lastName
                         )}
@@ -863,7 +931,7 @@ export const Article: React.FC<ArticleProps> = ({
                     </Avatar>
                     <div className="flex flex-col min-w-0">
                       <span className="font-bold text-xs text-zinc-800 capitalize truncate">
-                        {article.authorInfo?.name || article.authorName}
+                        {displayAuthorName}
                       </span>
                       <span className="text-[10px] text-zinc-500 capitalize">
                         {article.authorInfo?.role || 'Reporter'}
@@ -906,12 +974,12 @@ export const Article: React.FC<ArticleProps> = ({
                   <Avatar className="h-11 w-11 border border-zinc-200 shadow-sm shrink-0 overflow-hidden">
                     <AvatarImage
                       src={formatAvatarUrl(article.editorInfo?.avatar || article.authorInfo?.avatar)}
-                      alt={article.editorInfo?.name || article.authorInfo?.name || article.authorName}
+                      alt={article.editorInfo?.name || displayAuthorName}
                       className="object-cover h-full w-full"
                     />
                     <AvatarFallback className="bg-[#e98571]/10 text-[#d87460] font-bold text-sm">
                       {getInitials(
-                        article.editorInfo?.name || article.authorInfo?.name || article.authorName,
+                        article.editorInfo?.name || displayAuthorName,
                         article.editorInfo?.firstName || article.authorInfo?.firstName,
                         article.editorInfo?.lastName || article.authorInfo?.lastName
                       )}
@@ -927,7 +995,7 @@ export const Article: React.FC<ArticleProps> = ({
                       </span>
                     </div>
                     <h4 className="font-bold text-sm text-zinc-900 capitalize truncate">
-                      {article.editorInfo?.name || article.authorInfo?.name || article.authorName}
+                      {article.editorInfo?.name || displayAuthorName}
                     </h4>
                     <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed line-clamp-3">
                       {article.editorInfo?.bio || 'Editorial reviewer responsible for review, formatting, verification, and publication oversight.'}
@@ -939,12 +1007,12 @@ export const Article: React.FC<ArticleProps> = ({
                   <Avatar className="h-11 w-11 border border-zinc-200 shadow-sm shrink-0 overflow-hidden">
                     <AvatarImage
                       src={formatAvatarUrl(article.authorInfo?.avatar)}
-                      alt={article.authorInfo?.name || article.authorName}
+                      alt={displayAuthorName}
                       className="object-cover h-full w-full"
                     />
                     <AvatarFallback className="bg-[#e98571]/10 text-[#d87460] font-bold text-sm">
                       {getInitials(
-                        article.authorInfo?.name || article.authorName,
+                        displayAuthorName,
                         article.authorInfo?.firstName,
                         article.authorInfo?.lastName
                       )}
@@ -962,7 +1030,7 @@ export const Article: React.FC<ArticleProps> = ({
                       )}
                     </div>
                     <h4 className="font-bold text-sm text-zinc-900 capitalize truncate">
-                      {article.authorInfo?.name || article.authorName}
+                      {displayAuthorName}
                     </h4>
                     <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed line-clamp-3">
                       {article.authorInfo?.bio || 'Direct publication by author with full editorial responsibility.'}
@@ -976,10 +1044,15 @@ export const Article: React.FC<ArticleProps> = ({
           <div className="pt-10 border-t border-zinc-100">
              <div className="flex flex-wrap gap-2 mb-12">
                 <span className="text-[9px] font-black uppercase text-zinc-400 w-full mb-1 tracking-widest">Tagged Under</span>
-                {Array.isArray(article.tags) && article.tags.map((tag, index) => (
-                  <Badge variant="outline" key={index} className="rounded-none px-3 py-1 border-zinc-200 hover:border-[#e98571] hover:text-[#e98571] transition-colors cursor-pointer text-[10px] font-bold">
-                    #{tag}
-                  </Badge>
+                {displayTags.map((tag, index) => (
+                  <Link
+                    key={index}
+                    to={`/search?q=${encodeURIComponent(tag)}`}
+                  >
+                    <Badge variant="outline" className="rounded-none px-3.5 py-1.5 border-zinc-200 hover:border-[#e98571] hover:text-[#e98571] hover:bg-[#e98571]/5 transition-colors cursor-pointer text-[11px] font-bold">
+                      #{tag}
+                    </Badge>
+                  </Link>
                 ))}
              </div>
 
