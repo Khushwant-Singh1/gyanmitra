@@ -10,6 +10,7 @@ console.log("🟢 app imported");
 
 import { initializeDB } from "./db/index.db";
 import { initMinio } from "./utils/minioClient";
+import { cleanupJunkArticles } from "./utils/cleanupJunkArticles";
 console.log("🟢 initializeDB imported");
 
 import { initScheduler } from "./services/scheduler.services";
@@ -21,6 +22,9 @@ const PORT = Number(process.env.PORT) || 8000;
     console.log("➡️ Before initializeDB");
     await initializeDB();
     console.log("➡️ After initializeDB");
+
+    // Clean up any test/junk/numeric-slug articles from DB
+    await cleanupJunkArticles();
 
     console.log("➡️ Before initMinio");
     await initMinio();

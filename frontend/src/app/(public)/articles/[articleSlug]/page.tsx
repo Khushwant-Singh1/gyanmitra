@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { Article as ArticleView } from '@/views/Article.pages';
+import { isValidArticleSlug } from '@/utils/slug.utils';
 
 interface Props {
   params: Promise<{ articleSlug: string }>;
@@ -139,7 +141,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   }
 
-  if (!article) {
+  if (!article || !isValidArticleSlug(decodedSlug)) {
     return {
       title: '404 - समाचार नहीं मिला | Gyanmitra',
       description: 'यह समाचार या पृष्ठ उपलब्ध नहीं है। मुख्य पृष्ठ पर जाएं।',
@@ -212,6 +214,10 @@ export default async function ArticlePage({ params }: Props) {
     getArticleMeta(decodedSlug),
     getArticleFull(decodedSlug),
   ]);
+
+  if (!isValidArticleSlug(decodedSlug) || (!articleMetaRes && !articleData?.articleDetails)) {
+    notFound();
+  }
 
   const article = articleMetaRes || (articleData?.articleDetails ? {
     title: articleData.articleDetails.metaTitle || articleData.articleDetails.headline,
