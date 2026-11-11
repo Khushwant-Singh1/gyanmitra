@@ -6,7 +6,8 @@
     "dev": "nodemon",
     "start": "node ./dist/index.js",
     "build": "tsc",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "migrate:categories": "node ./dist/scripts/migrateCategories.js"
   },
   "author": "Shubham",
   "license": "ISC",

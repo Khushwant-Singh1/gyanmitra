@@ -266,6 +266,18 @@ const CATEGORY_SLUG_MAP: Record<string, string[]> = {
   'sports': ['sports', 'khel', 'खेल', 'cricket'],
   'manoranjan': ['manoranjan', 'मनोरंजन', 'entertainment', 'bollywood', 'बॉलीवुड', 'cinema'],
   'entertainment': ['entertainment', 'manoranjan', 'मनोरंजन', 'bollywood'],
+  'rajasthan': ['rajasthan', 'राजस्थान'],
+  'uttarakhand': ['uttarakhand', 'uttaranchal', 'उत्तराखंड', 'उत्तराखण्ड'],
+  'haryana': ['haryana', 'हरियाणा'],
+  'punjab': ['punjab', 'पंजाब'],
+  'madhya-pradesh': ['madhya pradesh', 'madhyapradesh', 'मध्य प्रदेश', 'मध्यप्रदेश'],
+  'bihar': ['bihar', 'बिहार'],
+  'jharkhand': ['jharkhand', 'झारखंड', 'झारखण्ड'],
+  'chhattisgarh': ['chhattisgarh', 'छत्तीसगढ़', 'छत्तीसगढ़'],
+  'dharmakarm': ['धर्मकर्म', 'धर्म कर्म', 'धर्म-कर्म', 'dharmakarm', 'dharma karma'],
+  'mahila-hit': ['महिला हित', 'महिल हित', 'महिलाहित', 'women interest', 'mahila hit'],
+  'utility': ['यूटिलिटी', 'utility'],
+  'youth': ['यूथ', 'youth'],
   'education': ['education', 'शिक्षा', 'career', 'job', 'करियर', 'रोजगार'],
   'shiksha': ['shiksha', 'शिक्षा', 'education', 'career'],
   'business': ['business', 'व्यापार', 'कारोबार', 'bazaar', 'बाजार', 'अर्थव्यवस्था', 'economy'],
@@ -537,4 +549,3 @@ export const getActiveCategories = AsyncHandler(
     return res.status(200).send(new ApiResponse(200, category));
   }
 );
-
