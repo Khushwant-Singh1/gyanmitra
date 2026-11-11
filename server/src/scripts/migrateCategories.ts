@@ -1,4 +1,4 @@
- import dotenv from 'dotenv';
+import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { Article } from '../models/article.models';
 import { Category } from '../models/category.models';
@@ -111,27 +111,14 @@ export async function migrateCategories() {
   await mongoose.connect(uri);
 
   const categories = await Category.find();
+
+  // 1. Unparent children of any 'Article' parent and delete the parent
   const articleParent = getSingleMatch(
     categories,
     ARTICLE_PARENT_ALIASES,
     'Article parent'
   );
 
-  if (articleParent) {
-    const articlesAssignedToParent = await Article.countDocuments({
-      categoryId: articleParent._id,
-    });
-    if (articlesAssignedToParent > 0) {
-      throw new Error(
-        `Cannot remove "${articleParent.get('name')}": ${articlesAssignedToParent} articles are assigned directly to it. Reassign them first.`
-      );
-    }
-  }
-
-  const categoryMatches = CATEGORY_GROUPS.map((group) => ({
-    group,
-    category: getSingleMatch(categories, group.aliases, group.name),
-  }));
   const nextRootIndex = () => {
     const rootIndexes = categories
       .filter((category) => !category.get('parentId'))
@@ -142,39 +129,91 @@ export async function migrateCategories() {
   let index = nextRootIndex();
 
   if (articleParent) {
+    const articlesAssignedToParent = await Article.countDocuments({
+      categoryId: articleParent._id,
+    });
+    if (articlesAssignedToParent > 0) {
+      throw new Error(
+        `Cannot remove "${articleParent.get('name')}": ${articlesAssignedToParent} articles are assigned directly to it. Reassign them first.`
+      );
+    }
+
     const children = categories.filter(
       (category) =>
         String(category.get('parentId') || '') ===
         String(articleParent._id)
     );
     for (const child of children) {
-      child.set({ parentId: undefined, index: index++ });
-      await child.save();
+      await Category.updateOne(
+        { _id: child._id },
+        {
+          $set: { index: index++ },
+          $unset: { parentId: 1 },
+        }
+      );
     }
     await articleParent.deleteOne();
+    console.log(`Deleted Article parent category "${articleParent.get('name')}".`);
   }
 
-  for (const { group, category: existingCategory } of categoryMatches) {
-    const category =
-      existingCategory ||
-      new Category({
+  // 2. Separate धर्मकर्म from अन्य (reassign any articles from 'धर्म-अध्यात्म' to 'धर्मकर्म' and delete legacy subcategory)
+  const dharmAdhyatm = categories.find((c) =>
+    ['धर्म-अध्यात्म', 'धर्म अध्यात्म', 'dharm-adhyatm'].includes(
+      String(c.get('name'))
+    )
+  );
+
+  let dharmakarm = categories.find(
+    (c) => String(c.get('name')) === 'धर्मकर्म'
+  );
+  if (!dharmakarm) {
+    dharmakarm = await Category.create({
+      name: 'धर्मकर्म',
+      isActive: true,
+      index: index++,
+    });
+    categories.push(dharmakarm);
+  }
+
+  if (dharmAdhyatm) {
+    const updateResult = await Article.updateMany(
+      { categoryId: dharmAdhyatm._id },
+      { $set: { categoryId: dharmakarm._id } }
+    );
+    console.log(
+      `Reassigned ${updateResult.modifiedCount} articles from "${dharmAdhyatm.get('name')}" to "धर्मकर्म"`
+    );
+    await Category.deleteOne({ _id: dharmAdhyatm._id });
+    console.log(`Deleted legacy subcategory "${dharmAdhyatm.get('name')}" from "अन्य".`);
+  }
+
+  // 3. Ensure all 14 requested categories exist, are active, and have no parentId
+  for (const group of CATEGORY_GROUPS) {
+    const existingCategory = getSingleMatch(categories, group.aliases, group.name);
+    if (existingCategory) {
+      await Category.updateOne(
+        { _id: existingCategory._id },
+        {
+          $set: {
+            name: group.name,
+            isActive: true,
+            index: existingCategory.get('index') || index++,
+          },
+          $unset: { parentId: 1 },
+        }
+      );
+    } else {
+      const created = await Category.create({
         name: group.name,
         isActive: true,
         index: index++,
       });
-
-    category.set({
-      name: group.name,
-      parentId: undefined,
-      isActive: true,
-      index: category.get('index') || index++,
-    });
-
-    await category.save();
+      categories.push(created);
+    }
   }
 
   console.log(
-    `Category migration complete. Ensured ${CATEGORY_GROUPS.length} categories and removed the Article parent.`
+    `Category migration complete. Ensured all ${CATEGORY_GROUPS.length} categories are active and independent.`
   );
 }
 
