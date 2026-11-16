@@ -346,9 +346,6 @@ export default async function ArticlePage({ params }: Props) {
 
   return (
     <>
-      {normalizedHeroImage && (
-        <link rel="preload" as="image" href={normalizedHeroImage} fetchPriority="high" />
-      )}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaJson) }}

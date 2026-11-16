@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
+import Image from 'next/image';
 import { MEDIA_FILE_TYPES } from '@/constants/index.constants';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay } from '@fortawesome/free-solid-svg-icons';
@@ -42,6 +43,24 @@ const normalizeMediaUrl = (url?: string) => {
   }
 
   return normalized.startsWith('/') ? normalized : `/${normalized}`;
+};
+
+const isOptimizable = (url?: string): boolean => {
+  if (!url) return false;
+  if (url.startsWith('/')) return true;
+  try {
+    const host = new URL(url).hostname;
+    return (
+      host === 'gyanmitranews.com' ||
+      host === 'www.gyanmitranews.com' ||
+      host === 'api.gyanmitranews.com' ||
+      host === 'localhost' ||
+      host === '127.0.0.1' ||
+      host === 'server'
+    );
+  } catch {
+    return false;
+  }
 };
 
 export const FeaturedMedia: React.FC<{
@@ -111,23 +130,30 @@ export const FeaturedMedia: React.FC<{
     );
   }
 
-  if (hasError) {
+  if (hasError || !resolvedUrl) {
     return <ImagePlaceholder name={name} className={className} />;
   }
 
-  // Fallback for non-video files (Images)
+  const optimizable = isOptimizable(resolvedUrl);
+
   return (
-    <img
+    <Image
       src={resolvedUrl}
       className={`${className} skelton`}
       loading={priority ? 'eager' : 'lazy'}
-      fetchPriority={priority ? 'high' : 'auto'}
-      decoding="async"
+      priority={priority}
       width={width}
       height={height}
-      // SEO FIX: Alt aur Title dono ko article/image name se map kiya
+      sizes={
+        width <= 200
+          ? '160px'
+          : width <= 500
+          ? '(max-width: 768px) 100vw, 400px'
+          : '(max-width: 768px) 100vw, 1200px'
+      }
       alt={name || 'Gyanmitra News Featured Image'} 
       title={name || 'Gyanmitra News Featured Image'}
+      unoptimized={!optimizable}
       onError={() => setHasError(true)}
     />
   );

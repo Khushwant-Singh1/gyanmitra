@@ -248,18 +248,18 @@ const Header: React.FC = () => {
 
       {/* MOBILE BOTTOM NAVIGATION */}
       <div className="fixed bottom-0 left-0 right-0 z-50 flex h-16 w-full items-center justify-around border-t bg-white md:hidden shadow-[0_-2px_15px_rgba(0,0,0,0.1)]">
-        <NavLink to="/" className={({ isActive }) => cn("flex flex-col items-center gap-1 min-w-[60px]", isActive ? "text-secondary font-bold" : "text-muted-foreground")}>
+        <NavLink to="/" className={({ isActive }) => cn("flex flex-col items-center justify-center min-h-[48px] py-1 gap-1 min-w-[60px]", isActive ? "text-secondary font-bold" : "text-muted-foreground")}>
           <FontAwesomeIcon icon={faHome} className="text-xl" />
           <span className="text-[10px]">Home</span>
         </NavLink>
 
-        <NavLink to="/competitions" className={({ isActive }) => cn("flex flex-col items-center gap-1 min-w-[60px]", isActive ? "text-secondary font-bold" : "text-muted-foreground")}>
+        <NavLink to="/competitions" className={({ isActive }) => cn("flex flex-col items-center justify-center min-h-[48px] py-1 gap-1 min-w-[60px]", isActive ? "text-secondary font-bold" : "text-muted-foreground")}>
           <FontAwesomeIcon icon={faShapes} className="text-xl" />
           <span className="text-[10px]">Competition</span>
         </NavLink>
 
         <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger className="flex flex-col items-center gap-1 min-w-[60px] text-muted-foreground">
+          <SheetTrigger className="flex flex-col items-center justify-center min-h-[48px] py-1 gap-1 min-w-[60px] text-muted-foreground">
             <FontAwesomeIcon icon={faBars} className="text-xl" />
             <span className="text-[10px]">Menu</span>
           </SheetTrigger>

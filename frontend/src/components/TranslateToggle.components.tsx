@@ -5,8 +5,9 @@ import { Globe } from 'lucide-react';
 
 export const TranslateToggle: React.FC = () => {
   useEffect(() => {
-    // Add Google Translate script only once
-    if (!document.getElementById('google-translate-script')) {
+    const loadTranslate = () => {
+      if (document.getElementById('google-translate-script')) return;
+
       const addScript = document.createElement('script');
       addScript.id = 'google-translate-script';
       addScript.setAttribute(
@@ -26,6 +27,20 @@ export const TranslateToggle: React.FC = () => {
           'google_translate_element'
         );
       };
+    };
+
+    if (typeof window !== 'undefined') {
+      if ('requestIdleCallback' in window) {
+        const handle = (window as unknown as { requestIdleCallback: (cb: () => void, opts: { timeout: number }) => number }).requestIdleCallback(loadTranslate, { timeout: 3500 });
+        return () => {
+          if ('cancelIdleCallback' in window) {
+            (window as unknown as { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(handle);
+          }
+        };
+      } else {
+        const timer = setTimeout(loadTranslate, 2000);
+        return () => clearTimeout(timer);
+      }
     }
   }, []);
 

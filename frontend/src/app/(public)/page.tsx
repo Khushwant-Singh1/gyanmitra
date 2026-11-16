@@ -99,9 +99,6 @@ export default async function HomePage() {
 
   return (
     <>
-      {heroImageUrl && (
-        <link rel="preload" as="image" href={heroImageUrl} fetchPriority="high" />
-      )}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaJson) }}

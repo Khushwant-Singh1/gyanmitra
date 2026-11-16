@@ -21,7 +21,11 @@ const nextConfig: NextConfig = {
       { protocol: 'http', hostname: '127.0.0.1' },
       { protocol: 'http', hostname: 'server' },
       { protocol: 'https', hostname: 'gyanmitranews.com' },
+      { protocol: 'http', hostname: 'gyanmitranews.com' },
+      { protocol: 'https', hostname: 'www.gyanmitranews.com' },
+      { protocol: 'http', hostname: 'www.gyanmitranews.com' },
       { protocol: 'https', hostname: 'api.gyanmitranews.com' },
+      { protocol: 'http', hostname: 'api.gyanmitranews.com' },
     ],
   },
   async rewrites() {
