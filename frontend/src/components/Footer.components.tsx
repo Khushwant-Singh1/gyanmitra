@@ -152,18 +152,6 @@ export default function Footer() {
               
               <div className="space-y-1 text-[13px] text-gray-500">
                 <p>© {new Date().getFullYear()} All Rights Reserved</p>
-                <p>
-                  Developed by{' '}
-                  <a
-                    href="https://www.tecxontech.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title="Tecxon Technology IT Solutions Company"
-                    className="font-bold text-gray-800 transition-colors hover:text-secondary"
-                  >
-                    Tecxon Technology
-                  </a>
-                </p>
               </div>
             </div>
           </div>
