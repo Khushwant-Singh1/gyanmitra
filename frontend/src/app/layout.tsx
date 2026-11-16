@@ -55,6 +55,18 @@ export default function RootLayout({
           href="https://gyanmitranews.com/.well-known/ard.json"
           type="application/json"
         />
+        <link
+          rel="alternate"
+          type="text/markdown"
+          href="https://gyanmitranews.com/llms.txt"
+          title="LLMs Text"
+        />
+        <link
+          rel="alternate"
+          type="text/markdown"
+          href="https://gyanmitranews.com/llms.md"
+          title="LLM Guide"
+        />
       </head>
       <body className="antialiased">
         <Script

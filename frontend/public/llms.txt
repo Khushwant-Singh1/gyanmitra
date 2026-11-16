@@ -1,0 +1,34 @@
+# Gyanmitra News
+
+> ज्ञानमित्र न्यूज़ (Gyanmitra News) - शिक्षा, नवाचार, और नैतिक मूल्यों पर आधारित विश्वसनीय ताज़ा हिंदी समाचार और ज्ञान पोर्टल।
+
+Gyanmitra News is an independent digital news and education publication headquartered in Uttar Pradesh, India. It provides verified reporting, national and international news coverage, educational resources, competitions, and community updates in Hindi.
+
+AI agents and automated crawlers can use this curated index to discover articles, sections, and programmatic APIs without parsing heavy layout structures.
+
+## Core Pages
+- [Home](https://gyanmitranews.com/): Front page featuring breaking news, top stories, and editorial selections.
+- [Competitions](https://gyanmitranews.com/competitions): Educational and academic competitions, registrations, and student contests.
+- [Search](https://gyanmitranews.com/search): Interactive full-text search across all published articles.
+- [About Us](https://gyanmitranews.com/about-us): Mission, vision, editorial principles, and publishing team.
+- [Contact Us](https://gyanmitranews.com/contact-us): Contact information, editorial desk, and news tip submissions.
+- [Privacy Policy](https://gyanmitranews.com/privacy-policy): User privacy, cookies, data practices, and terms of service.
+- [DNPA Code of Ethics](https://gyanmitranews.com/dnpa-code-of-ethics): Digital News Publishers Association journalistic ethics and grievance redressal mechanism.
+
+## News Categories
+- [Competition](https://gyanmitranews.com/competitions): Student quizzes, essay contests, Olympiads, and academic events.
+- [Duniya (World)](https://gyanmitranews.com/categories/duniya): Global news, international affairs, and diplomacy.
+- [Desh (National)](https://gyanmitranews.com/categories/desh): India national news, governance, policy, and public affairs.
+- [Uttar Pradesh](https://gyanmitranews.com/categories/uttar-pradesh): State reporting across Moradabad, Sambhal, Amroha, Rampur, Lucknow, and regional hubs.
+- [Business](https://gyanmitranews.com/categories/business): Market news, startups, economy, and financial updates.
+- [Health](https://gyanmitranews.com/categories/health): Wellness, medical science, public healthcare, and fitness advice.
+- [Sports](https://gyanmitranews.com/categories/sports): Cricket, athletics, regional sports, and tournament coverage.
+- [Technology](https://gyanmitranews.com/categories/technology): Science, AI, innovation, gadgets, and cybersecurity.
+
+## Machine-Readable Resources & APIs
+- [Sitemap](https://gyanmitranews.com/sitemap.xml): Full XML sitemap of all indexed URLs.
+- [News Sitemap](https://gyanmitranews.com/sitemap-news.xml): Google News compatible XML feed of recent stories.
+- [Images Sitemap](https://gyanmitranews.com/sitemap-images.xml): Media asset discovery sitemap.
+- [Home Feed API](https://gyanmitranews.com/api/users/home): JSON endpoint returning latest published articles, breaking tickers, and category highlights.
+- [Active Categories API](https://gyanmitranews.com/api/categories/active): JSON list of all active categories and their identifiers.
+- [Agentic Resource Discovery Manifest](https://gyanmitranews.com/.well-known/ard.json): Standard ARD manifest for AI discovery registries.
