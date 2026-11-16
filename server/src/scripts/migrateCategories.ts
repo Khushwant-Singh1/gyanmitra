@@ -62,6 +62,10 @@ const CATEGORY_GROUPS = [
     name: 'यूथ',
     aliases: ['यूथ', 'youth'],
   },
+  {
+    name: 'हेल्थ',
+    aliases: ['हेल्थ', 'स्वास्थ्य', 'health', 'swasthya', 'fitness'],
+  },
 ] as const;
 
 const ARTICLE_PARENT_ALIASES = [
@@ -187,7 +191,35 @@ export async function migrateCategories() {
     console.log(`Deleted legacy subcategory "${dharmAdhyatm.get('name')}" from "अन्य".`);
   }
 
-  // 3. Ensure all 14 requested categories exist, are active, and have no parentId
+  // 3. Consolidate legacy health categories if both exist
+  const legacyHealthMatches = findMatchingCategories(categories, [
+    'हेल्थ',
+    'स्वास्थ्य',
+    'health',
+    'swasthya',
+  ]);
+  if (legacyHealthMatches.length > 1) {
+    const primary =
+      legacyHealthMatches.find((c) => String(c.get('name')) === 'हेल्थ') ||
+      legacyHealthMatches[0];
+    const duplicates = legacyHealthMatches.filter(
+      (c) => String(c._id) !== String(primary._id)
+    );
+    for (const dup of duplicates) {
+      const reassigned = await Article.updateMany(
+        { categoryId: dup._id },
+        { $set: { categoryId: primary._id } }
+      );
+      console.log(
+        `Reassigned ${reassigned.modifiedCount} articles from "${dup.get('name')}" to "${primary.get('name')}"`
+      );
+      await Category.deleteOne({ _id: dup._id });
+      const idx = categories.findIndex((c) => String(c._id) === String(dup._id));
+      if (idx !== -1) categories.splice(idx, 1);
+    }
+  }
+
+  // 4. Ensure all 15 requested categories exist, are active, and have no parentId
   for (const group of CATEGORY_GROUPS) {
     const existingCategory = getSingleMatch(categories, group.aliases, group.name);
     if (existingCategory) {

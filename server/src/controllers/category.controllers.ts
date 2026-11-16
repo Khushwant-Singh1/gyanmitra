@@ -299,8 +299,10 @@ const CATEGORY_SLUG_MAP: Record<string, string[]> = {
   'vyapar': ['vyapar', 'व्यापार', 'business', 'कारोबार'],
   'tech': ['tech', 'technology', 'तकनीक', 'टेक', 'gadgets'],
   'technology': ['technology', 'tech', 'तकनीक', 'टेक'],
-  'lifestyle': ['lifestyle', 'जीवनशैली', 'स्वास्थ्य', 'health', 'fitness'],
-  'health': ['health', 'स्वास्थ्य', 'lifestyle', 'fitness'],
+  'lifestyle': ['lifestyle', 'जीवनशैली', 'fitness'],
+  'health': ['health', 'हेल्थ', 'स्वास्थ्य', 'fitness'],
+  'हेल्थ': ['health', 'हेल्थ', 'स्वास्थ्य', 'fitness'],
+  'स्वास्थ्य': ['health', 'हेल्थ', 'स्वास्थ्य', 'fitness'],
   'crime': ['crime', 'अपराध', 'जुर्म'],
 };
 
