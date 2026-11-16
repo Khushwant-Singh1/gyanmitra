@@ -154,7 +154,7 @@ const Header: React.FC = () => {
 
           <Link to="/" className="flex items-center shrink-0">
             <img
-              src="/assets/gyanmitra.png"
+              src="/assets/gyanmitra.png?v=2"
               alt="GyanMitra Logo"
               title="GyanMitra News - ताज़ा हिंदी समाचार" 
               className="h-9 md:h-11 w-auto object-contain"

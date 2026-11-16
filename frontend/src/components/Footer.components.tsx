@@ -20,7 +20,7 @@ export default function Footer() {
             <Link to="/" className="mb-4 block w-20" title="GyanMitra Home">
               <AspectRatio ratio={1 / 1}>
                 <img
-                  src={'/assets/gyanmitra.png'}
+                  src={'/assets/gyanmitra.png?v=2'}
                   alt="GyanMitra Logo"
                   title="GyanMitra News - ताज़ा हिंदी समाचार" 
                   className="rounded-lg object-cover"
