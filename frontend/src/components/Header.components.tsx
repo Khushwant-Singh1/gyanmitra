@@ -152,17 +152,13 @@ const Header: React.FC = () => {
             className="hidden md:flex items-center"
           />
 
-          <Link to="/" className="flex items-center gap-2 shrink-0">
+          <Link to="/" className="flex items-center shrink-0">
             <img
               src="/assets/gyanmitra.png"
               alt="GyanMitra Logo"
               title="GyanMitra News - ताज़ा हिंदी समाचार" 
               className="h-9 md:h-11 w-auto object-contain"
             />
-            <div className="flex flex-col leading-none border-l pl-2 border-gray-300">
-              <span className="text-sm md:text-base font-bold tracking-tight text-gray-800">Gyanmitra</span>
-              <span className="text-[10px] font-semibold text-secondary uppercase tracking-widest">News</span>
-            </div>
           </Link>
         </div>
 
