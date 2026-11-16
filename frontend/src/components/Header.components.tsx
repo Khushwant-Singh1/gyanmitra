@@ -158,6 +158,10 @@ const Header: React.FC = () => {
               alt="GyanMitra Logo"
               title="GyanMitra News - ताज़ा हिंदी समाचार" 
               className="h-9 md:h-11 w-auto object-contain"
+              width={150}
+              height={44}
+              loading="eager"
+              fetchPriority="high"
             />
           </Link>
         </div>

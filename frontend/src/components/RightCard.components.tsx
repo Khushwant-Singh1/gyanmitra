@@ -43,14 +43,16 @@ const RightCard: React.FC<RightCardProps> = ({
       </h2>
       <DateDisplay date={date} className="whitespace-nowrap text-[11px] text-slate-400 font-medium mt-1" />
     </div>
-    <div className="w-1/3 shrink-0 rounded-md overflow-hidden shadow-sm group-hover:shadow-md transition-all duration-300 self-center">
+    <div className="w-1/3 shrink-0 aspect-square rounded-md overflow-hidden bg-zinc-100 shadow-sm group-hover:shadow-md transition-all duration-300 self-center">
       <FeaturedMedia
-        className="aspect-square h-[80px] w-full rounded-md object-cover group-hover:scale-105 transition-transform duration-500"
+        className="aspect-square h-full w-full rounded-md object-cover group-hover:scale-105 transition-transform duration-500"
         fileType={fileType}
         playable={false}
         thumbnail={thumbnail}
         name={name}
         url={mediaSrc}
+        width={160}
+        height={160}
       />
     </div>
   </Link>

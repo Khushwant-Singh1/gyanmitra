@@ -31,7 +31,7 @@ const LeftCard: React.FC<LeftCardProps> = ({
     to={link}
     className="flex w-full flex-row items-start gap-4 overflow-hidden py-3 group"
   >
-    <div className="w-1/3 shrink-0 rounded-md overflow-hidden shadow-sm group-hover:shadow-md transition-all duration-300">
+    <div className="w-1/3 shrink-0 aspect-video rounded-md overflow-hidden bg-zinc-100 shadow-sm group-hover:shadow-md transition-all duration-300">
       <FeaturedMedia
         className="aspect-video w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         fileType={fileType}
@@ -39,6 +39,8 @@ const LeftCard: React.FC<LeftCardProps> = ({
         name={name || title} 
         thumbnail={thumbnail}
         url={mediaSrc}
+        width={400}
+        height={225}
       />
     </div>
     <div className="flex flex-col gap-1 w-2/3">

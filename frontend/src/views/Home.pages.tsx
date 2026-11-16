@@ -98,6 +98,7 @@ const Home: React.FC<HomeProps> = ({ initialHomeData }) => {
     initialData: initialHomeData
       ? { success: true, statusCode: 200, data: initialHomeData }
       : undefined,
+    staleTime: 5 * 60 * 1000,
   });
 
   if (isLoading) return <div className="flex h-screen items-center justify-center"><Spinner /></div>;
@@ -144,7 +145,7 @@ const Home: React.FC<HomeProps> = ({ initialHomeData }) => {
       <div className="bg-[#e98571] text-white py-2 shadow-sm sticky top-0 z-40 overflow-hidden">
         <div className="max-w-[95%] mx-auto px-4 flex items-center gap-4">
           <div className="flex items-center gap-1 bg-white/20 px-3 py-1 rounded-sm shrink-0 z-10 shadow-sm">
-            <Zap className="h-3 w-3 fill-white animate-pulse" />
+            <Zap className="h-3 w-3 fill-white" />
             <span className="font-black uppercase  text-[10px] tracking-widest">Breaking</span>
           </div>
           

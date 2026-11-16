@@ -36,7 +36,7 @@ const CenterCard: React.FC<CenterCardProps> = ({
     to={link}
     className="flex flex-col items-center overflow-hidden px-0 sm:px-3 group"
   >
-    <div className="mb-3 aspect-video w-full rounded-md overflow-hidden shadow-sm group-hover:shadow-md transition-all duration-300">
+    <div className="mb-3 aspect-video w-full rounded-md overflow-hidden bg-zinc-100 shadow-sm group-hover:shadow-md transition-all duration-300">
       <FeaturedMedia
         className="aspect-video w-full shrink-0 overflow-hidden object-cover group-hover:scale-105 transition-transform duration-500"
         fileType={fileType}
@@ -45,6 +45,8 @@ const CenterCard: React.FC<CenterCardProps> = ({
         thumbnail={thumbnail}
         name={name}
         priority={priority}
+        width={1200}
+        height={675}
       />
     </div>
     <Badge variant={'secondary'} className="text-[10px] uppercase tracking-wider font-bold mb-2">

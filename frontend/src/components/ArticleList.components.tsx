@@ -60,7 +60,7 @@ const ArticleList: React.FC<ArticleListProps> = ({ articles }) => {
                 "active:scale-[0.98] lg:active:scale-100"
               )}
             >
-              <div className="relative aspect-video w-full overflow-hidden">
+              <div className="relative aspect-video w-full overflow-hidden bg-zinc-100">
                 <FeaturedMedia
                   name={article.featuredMedia.name}
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -68,6 +68,8 @@ const ArticleList: React.FC<ArticleListProps> = ({ articles }) => {
                   playable={true}
                   thumbnail={article.featuredMedia.thumbnail}
                   url={article.featuredMedia.url}
+                  width={600}
+                  height={338}
                 />
                 <div className="absolute top-3 left-3">
                   <Badge className="bg-[#e98571] text-white text-[8px] font-black uppercase border-none rounded-sm px-2 py-0.5">
@@ -167,7 +169,17 @@ const ArticleList: React.FC<ArticleListProps> = ({ articles }) => {
 
       {/* LOWER SECTION: 3-Card Full Width Feed */}
       <div className="space-y-12 lg:space-y-16">
-        {otherCategories.slice(1).map((cat) => renderCategorySection(cat, false, true))}
+        {otherCategories.slice(1, 4).map((cat) => renderCategorySection(cat, false, true))}
+      </div>
+
+      <div className="flex justify-center pt-6">
+        <Link
+          to="/categories/top-news"
+          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-sm bg-zinc-900 text-white hover:bg-[#e98571] text-xs font-bold uppercase tracking-wider transition-colors shadow-sm"
+        >
+          <span>सभी कैटेगरीज़ देखें (View All Categories)</span>
+          <ChevronRight className="h-4 w-4" />
+        </Link>
       </div>
 
     </div>

@@ -24,6 +24,10 @@ export default function Footer() {
                   alt="GyanMitra Logo"
                   title="GyanMitra News - ताज़ा हिंदी समाचार" 
                   className="rounded-lg object-cover"
+                  width={80}
+                  height={80}
+                  loading="lazy"
+                  decoding="async"
                 />
               </AspectRatio>
             </Link>

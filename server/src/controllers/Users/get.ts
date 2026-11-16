@@ -166,7 +166,7 @@ export const getHomePageContent = AsyncHandler(
           ],
           mixedArticles: [
             { $sort: { lastPublishedDate: -1 } },
-            { $limit: 200 },
+            { $limit: 48 },
             {
               $lookup: {
                 from: 'categories',
