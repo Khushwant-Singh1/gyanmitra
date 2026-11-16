@@ -10,3 +10,6 @@ Allow: /
 Sitemap: https://gyanmitranews.com/sitemap.xml
 Sitemap: https://gyanmitranews.com/sitemap-news.xml
 Sitemap: https://gyanmitranews.com/sitemap-images.xml
+
+# Agentic Resource Discovery
+Agentmap: https://gyanmitranews.com/.well-known/ard.json

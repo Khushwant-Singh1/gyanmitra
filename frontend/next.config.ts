@@ -28,6 +28,18 @@ const nextConfig: NextConfig = {
       { protocol: 'http', hostname: 'api.gyanmitranews.com' },
     ],
   },
+  async headers() {
+    return [
+      {
+        source: '/.well-known/ard.json',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Content-Type', value: 'application/json' },
+          { key: 'Cache-Control', value: 'public, max-age=3600, stale-while-revalidate=86400' },
+        ],
+      },
+    ];
+  },
   async rewrites() {
     return [
       {

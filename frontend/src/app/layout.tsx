@@ -49,6 +49,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="hi" className={`${inter.variable} ${notoSansDevanagari.variable}`}>
+      <head>
+        <link
+          rel="ard"
+          href="https://gyanmitranews.com/.well-known/ard.json"
+          type="application/json"
+        />
+      </head>
       <body className="antialiased">
         <Script
           id="google-adsense"

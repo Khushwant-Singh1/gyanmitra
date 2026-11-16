@@ -198,7 +198,7 @@ const Header: React.FC = () => {
           )}
           
           <div className="md:hidden">
-            <Link to="/search">
+            <Link to="/search" aria-label="Search articles" title="Search articles">
               <SearchButton />
             </Link>
           </div>
@@ -240,7 +240,7 @@ const Header: React.FC = () => {
           />
         </div>
 
-        <Link to="/search" className={cn(buttonVariants({ variant: 'ghost' }), 'border-secondary rounded-none border-b flex items-center gap-2 h-12 shrink-0 ml-4')}>
+        <Link to="/search" aria-label="Search articles" className={cn(buttonVariants({ variant: 'ghost' }), 'border-secondary rounded-none border-b flex items-center gap-2 h-12 shrink-0 ml-4')}>
           <span>Search</span>
           <SearchButton />
         </Link>
