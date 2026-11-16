@@ -12,7 +12,10 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   trailingSlash: false,
   reactCompiler: true,
+  compress: true,
   images: {
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 86400,
     remotePatterns: [
       { protocol: 'http', hostname: 'localhost' },
       { protocol: 'http', hostname: '127.0.0.1' },

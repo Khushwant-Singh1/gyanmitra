@@ -210,3 +210,24 @@ svg.svg-inline--fa {
   overflow: visible;
   vertical-align: -0.125em;
 }
+
+/* GPU-accelerated composited Marquee Ticker */
+@keyframes marqueeScroll {
+  0% {
+    transform: translate3d(100%, 0, 0);
+  }
+  100% {
+    transform: translate3d(-100%, 0, 0);
+  }
+}
+
+.animate-marquee-scroll {
+  display: flex;
+  white-space: nowrap;
+  animation: marqueeScroll 25s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-scroll:hover {
+  animation-play-state: paused;
+}

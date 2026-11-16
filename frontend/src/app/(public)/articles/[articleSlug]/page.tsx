@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { cache } from 'react';
 import { Article as ArticleView } from '@/views/Article.pages';
 import { isValidArticleSlug } from '@/utils/slug.utils';
+import { MDToHTMLConverter } from '@/utils/MDToHTML.utils';
 
 interface Props {
   params: Promise<{ articleSlug: string }>;
@@ -66,28 +68,7 @@ const normalizePublicImageUrl = (
   return url;
 };
 
-import { MDToHTMLConverter } from '@/utils/MDToHTML.utils';
-
-async function getArticleMeta(articleSlug: string) {
-  const rawApiUrl = (process.env.API_URL || 'http://localhost:8000').replace(/\/+$/, '');
-  const apiBase = rawApiUrl.replace(/\/api\/?$/, '');
-
-  try {
-    const res = await fetch(
-      `${apiBase}/api/meta/articles/${encodeURIComponent(articleSlug)}`,
-      { next: { revalidate: 60 } }
-    );
-    if (res.ok) {
-      const json = await res.json();
-      return json?.data || null;
-    }
-  } catch (err) {
-    console.error('Error fetching article metadata:', err);
-  }
-  return null;
-}
-
-async function getArticleFull(articleSlug: string) {
+const getArticleFull = cache(async (articleSlug: string) => {
   const rawApiUrl = (process.env.API_URL || 'http://localhost:8000').replace(/\/+$/, '');
   const apiBase = rawApiUrl.replace(/\/api\/?$/, '');
 
@@ -104,7 +85,26 @@ async function getArticleFull(articleSlug: string) {
     console.error('Error fetching full article data:', err);
   }
   return null;
-}
+});
+
+const getArticleMeta = cache(async (articleSlug: string) => {
+  const rawApiUrl = (process.env.API_URL || 'http://localhost:8000').replace(/\/+$/, '');
+  const apiBase = rawApiUrl.replace(/\/api\/?$/, '');
+
+  try {
+    const res = await fetch(
+      `${apiBase}/api/meta/articles/${encodeURIComponent(articleSlug)}`,
+      { next: { revalidate: 60 } }
+    );
+    if (res.ok) {
+      const json = await res.json();
+      return json?.data || null;
+    }
+  } catch (err) {
+    console.error('Error fetching article metadata:', err);
+  }
+  return null;
+});
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { articleSlug } = await params;
@@ -114,31 +114,35 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ? 'https://gyanmitranews.com'
     : rawBaseURL;
 
-  // Try fetching meta endpoint first, fallback to full article endpoint if meta fails
-  let article = await getArticleMeta(decodedSlug);
-  if (!article) {
-    const fullData = await getArticleFull(decodedSlug);
-    if (fullData?.articleDetails) {
-      const details = fullData.articleDetails;
-      const media = details.featuredMediaInfo;
-      const mediaUrl =
-        media?.fileType === 'video'
-          ? media?.thumbnail || media?.url
-          : media?.url;
+  // Use getArticleFull (cached across the request)
+  const fullData = await getArticleFull(decodedSlug);
+  let article: any = null;
 
-      article = {
-        title: details.metaTitle || details.headline,
-        description: details.description,
-        slug: details.slug,
-        authorName: details.authorName,
-        canonicalUrl: details.canonicalUrl,
-        robotsTag: details.robotsTag,
-        createdAt: details.publishedDate,
-        lastPublishedDate: details.publishedDate,
-        updatedAt: details.publishedDate,
-        image: mediaUrl,
-      };
-    }
+  if (fullData?.articleDetails) {
+    const details = fullData.articleDetails;
+    const media = details.featuredMediaInfo;
+    const mediaUrl =
+      media?.fileType === 'video'
+        ? media?.thumbnail || media?.url
+        : media?.url;
+
+    article = {
+      title: details.metaTitle || details.headline,
+      description: details.description,
+      slug: details.slug,
+      authorName: details.authorName,
+      canonicalUrl: details.canonicalUrl,
+      robotsTag: details.robotsTag,
+      createdAt: details.publishedDate,
+      lastPublishedDate: details.publishedDate,
+      updatedAt: details.publishedDate,
+      image: mediaUrl,
+      categoryName: details.categoryName,
+      tags: details.tags,
+    };
+  } else {
+    // Fallback to meta endpoint
+    article = await getArticleMeta(decodedSlug);
   }
 
   if (!article || !isValidArticleSlug(decodedSlug)) {
@@ -226,132 +230,129 @@ export default async function ArticlePage({ params }: Props) {
     ? 'https://gyanmitranews.com'
     : rawBaseURL;
 
-  const [articleMetaRes, articleData] = await Promise.all([
-    getArticleMeta(decodedSlug),
-    getArticleFull(decodedSlug),
-  ]);
+  // Re-uses the cached getArticleFull promise from generateMetadata
+  const articleData = await getArticleFull(decodedSlug);
 
-  if (!isValidArticleSlug(decodedSlug) || (!articleMetaRes && !articleData?.articleDetails)) {
+  if (!isValidArticleSlug(decodedSlug) || !articleData?.articleDetails) {
     notFound();
   }
 
-  const article = articleMetaRes || (articleData?.articleDetails ? {
-    title: articleData.articleDetails.metaTitle || articleData.articleDetails.headline,
-    description: articleData.articleDetails.description,
-    slug: articleData.articleDetails.slug,
-    authorName: articleData.articleDetails.authorName,
-    canonicalUrl: articleData.articleDetails.canonicalUrl,
-    image: articleData.articleDetails.featuredMediaInfo?.fileType === 'video'
-      ? articleData.articleDetails.featuredMediaInfo?.thumbnail || articleData.articleDetails.featuredMediaInfo?.url
-      : articleData.articleDetails.featuredMediaInfo?.url,
-    createdAt: articleData.articleDetails.publishedDate,
-    lastPublishedDate: articleData.articleDetails.publishedDate,
-    updatedAt: articleData.articleDetails.publishedDate,
-  } : null);
+  const details = articleData.articleDetails;
+  const media = details.featuredMediaInfo;
+  const rawMediaUrl =
+    media?.fileType === 'video'
+      ? media?.thumbnail || media?.url
+      : media?.url;
+
+  const article = {
+    title: details.metaTitle || details.headline,
+    description: details.description,
+    slug: details.slug,
+    authorName: details.authorName,
+    canonicalUrl: details.canonicalUrl,
+    image: rawMediaUrl,
+    categoryName: details.categoryName,
+    tags: details.tags,
+    createdAt: details.publishedDate,
+    lastPublishedDate: details.publishedDate,
+    updatedAt: details.publishedDate,
+  };
+
+  const normalizedHeroImage = normalizePublicImageUrl(rawMediaUrl, baseURL);
 
   let contentHtml = '';
-  if (articleData?.articleDetails?.contentData) {
+  if (details.contentData) {
     try {
-      contentHtml = await MDToHTMLConverter(articleData.articleDetails.contentData);
+      contentHtml = await MDToHTMLConverter(details.contentData);
     } catch (err) {
       console.error('Error converting markdown to HTML in SSR:', err);
     }
   }
 
-  let schemaJson: any = null;
-  if (article) {
-    const canonical =
-      article.canonicalUrl || `${baseURL}/articles/${encodeURIComponent(article.slug || decodedSlug)}`;
-    const image = normalizePublicImageUrl(article.image, baseURL);
+  const canonical =
+    article.canonicalUrl || `${baseURL}/articles/${encodeURIComponent(article.slug || decodedSlug)}`;
 
-    const authorName =
-      (article?.authorName && article.authorName !== 'Invitations'
-        ? article.authorName
-        : articleData?.articleDetails?.authorName && articleData.articleDetails.authorName !== 'Invitations'
-        ? articleData.articleDetails.authorName
-        : 'ज्ञानमित्र ब्यूरो (Gyanmitra Bureau)');
+  const authorName =
+    (article.authorName && article.authorName !== 'Invitations'
+      ? article.authorName
+      : 'ज्ञानमित्र ब्यूरो (Gyanmitra Bureau)');
 
-    const categoryName =
-      article?.categoryName ||
-      articleData?.articleDetails?.categoryName ||
-      'ताज़ा समाचार (Top News)';
+  const categoryName = article.categoryName || 'ताज़ा समाचार (Top News)';
 
-    const tagsList: string[] =
-      Array.isArray(article?.tags) && article.tags.length > 0 && article.tags.some((t: string) => t && t.trim())
-        ? article.tags.filter((t: string) => t && t.trim())
-        : (Array.isArray(articleData?.articleDetails?.tags) && articleData.articleDetails.tags.length > 0
-          ? articleData.articleDetails.tags.filter((t: string) => t && t.trim())
-          : [categoryName, 'ताज़ा समाचार', 'Gyanmitra News', 'Hindi News']);
+  const tagsList: string[] =
+    Array.isArray(article.tags) && article.tags.length > 0 && article.tags.some((t: string) => t && t.trim())
+      ? article.tags.filter((t: string) => t && t.trim())
+      : [categoryName, 'ताज़ा समाचार', 'Gyanmitra News', 'Hindi News'];
 
-    schemaJson = {
-      '@context': 'https://schema.org',
-      '@graph': [
-        {
-          '@type': 'NewsArticle',
-          '@id': `${canonical}#article`,
-          isPartOf: {
-            '@type': 'WebPage',
-            '@id': canonical,
-          },
-          headline: cleanText(article.title, 110),
-          description: cleanText(article.description, 200),
-          image: [image],
-          datePublished: article.lastPublishedDate || article.createdAt || new Date().toISOString(),
-          dateModified: article.updatedAt || article.lastPublishedDate || new Date().toISOString(),
-          articleSection: categoryName,
-          keywords: tagsList.join(', '),
-          inLanguage: 'hi',
-          author: {
-            '@type': 'Person',
-            name: authorName,
-            url: `${baseURL}/about-us`,
-          },
-          publisher: {
-            '@type': 'Organization',
-            name: 'Gyanmitra News',
-            url: baseURL,
-            logo: {
-              '@type': 'ImageObject',
-              url: `${baseURL}/assets/s.png`,
-            },
+  const schemaJson = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'NewsArticle',
+        '@id': `${canonical}#article`,
+        isPartOf: {
+          '@type': 'WebPage',
+          '@id': canonical,
+        },
+        headline: cleanText(article.title, 110),
+        description: cleanText(article.description, 200),
+        image: [normalizedHeroImage],
+        datePublished: article.lastPublishedDate || article.createdAt || new Date().toISOString(),
+        dateModified: article.updatedAt || article.lastPublishedDate || new Date().toISOString(),
+        articleSection: categoryName,
+        keywords: tagsList.join(', '),
+        inLanguage: 'hi',
+        author: {
+          '@type': 'Person',
+          name: authorName,
+          url: `${baseURL}/about-us`,
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: 'Gyanmitra News',
+          url: baseURL,
+          logo: {
+            '@type': 'ImageObject',
+            url: `${baseURL}/assets/s.png`,
           },
         },
-        {
-          '@type': 'BreadcrumbList',
-          '@id': `${canonical}#breadcrumb`,
-          itemListElement: [
-            {
-              '@type': 'ListItem',
-              position: 1,
-              name: 'Home',
-              item: baseURL,
-            },
-            {
-              '@type': 'ListItem',
-              position: 2,
-              name: categoryName,
-              item: `${baseURL}/categories/${encodeURIComponent(categoryName.toLowerCase().replace(/\s+/g, '-'))}`,
-            },
-            {
-              '@type': 'ListItem',
-              position: 3,
-              name: cleanText(article.title, 80),
-              item: canonical,
-            },
-          ],
-        },
-      ],
-    };
-  }
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${canonical}#breadcrumb`,
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: baseURL,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: categoryName,
+            item: `${baseURL}/categories/${encodeURIComponent(categoryName.toLowerCase().replace(/\s+/g, '-'))}`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: cleanText(article.title, 80),
+            item: canonical,
+          },
+        ],
+      },
+    ],
+  };
 
   return (
     <>
-      {schemaJson && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaJson) }}
-        />
+      {normalizedHeroImage && (
+        <link rel="preload" as="image" href={normalizedHeroImage} fetchPriority="high" />
       )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaJson) }}
+      />
       <ArticleView
         initialArticle={articleData}
         initialContentHtml={contentHtml}

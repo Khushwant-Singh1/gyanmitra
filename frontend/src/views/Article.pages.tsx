@@ -45,7 +45,6 @@ import { Separator } from '@/components/ui/separator';
 import { Helmet } from 'react-helmet-async';
 import { MDToHTMLConverter } from '@/utils/MDToHTML.utils';
 import { ArticleCommentsSection } from '@/components/ArticleComments.components';
-import { motion } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Feather,
@@ -338,11 +337,7 @@ export const Article: React.FC<ArticleProps> = ({
             <span className="font-black uppercase  text-[10px] tracking-widest">Breaking</span>
           </div>
           <div className="flex-1 overflow-hidden relative">
-            <motion.div
-              className="flex whitespace-nowrap gap-12"
-              animate={{ x: ["100%", "-100%"] }}
-              transition={{ repeat: Infinity, duration: 25, ease: "linear" }}
-            >
+            <div className="animate-marquee-scroll gap-12">
               {marqueeData.length > 0 ? (
                 marqueeData.map((news, idx) => (
                   <Link 
@@ -359,7 +354,7 @@ export const Article: React.FC<ArticleProps> = ({
                   Gyanmitra News: ताज़ा खबरों के लिए बने रहें...
                 </span>
               )}
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>
@@ -675,6 +670,7 @@ export const Article: React.FC<ArticleProps> = ({
                         />
                         <Button
                           variant="default"
+                          aria-label="Copy article link to clipboard"
                           className={cn(
                             "rounded-none text-xs font-bold gap-1.5 shrink-0 h-9 px-3.5 transition-all shadow-xs",
                             copied
@@ -703,6 +699,7 @@ export const Article: React.FC<ArticleProps> = ({
                     {typeof navigator !== 'undefined' && 'share' in navigator && (
                       <Button
                         variant="default"
+                        aria-label="Share article via device apps"
                         className="w-full rounded-none h-10 gap-2 text-xs font-bold bg-zinc-900 hover:bg-black text-white shadow-xs transition-all active:scale-[0.99]"
                         onClick={handleNativeShare}
                         disabled={isSharing}
@@ -727,6 +724,7 @@ export const Article: React.FC<ArticleProps> = ({
                         <a
                           href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
                           target="_blank"
+                          aria-label="Share on WhatsApp"
                           className={cn(
                             buttonVariants({ variant: 'outline' }),
                             "rounded-none justify-start gap-2.5 text-xs bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] border-[#25D366]/30 font-bold transition-all"
@@ -738,6 +736,7 @@ export const Article: React.FC<ArticleProps> = ({
                         <a
                           href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(article.headline)}`}
                           target="_blank"
+                          aria-label="Share on Telegram"
                           className={cn(
                             buttonVariants({ variant: 'outline' }),
                             "rounded-none justify-start gap-2.5 text-xs bg-[#229ED9]/10 hover:bg-[#229ED9]/20 text-[#1D84B5] border-[#229ED9]/30 font-bold transition-all"
@@ -749,6 +748,7 @@ export const Article: React.FC<ArticleProps> = ({
                         <a
                           href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(article.headline)}&url=${encodeURIComponent(shareUrl)}`}
                           target="_blank"
+                          aria-label="Share on X (Twitter)"
                           className={cn(
                             buttonVariants({ variant: 'outline' }),
                             "rounded-none justify-start gap-2.5 text-xs bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border-zinc-200 font-bold transition-all"
@@ -760,6 +760,7 @@ export const Article: React.FC<ArticleProps> = ({
                         <a
                           href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
                           target="_blank"
+                          aria-label="Share on Facebook"
                           className={cn(
                             buttonVariants({ variant: 'outline' }),
                             "rounded-none justify-start gap-2.5 text-xs bg-[#1877F2]/10 hover:bg-[#1877F2]/20 text-[#1877F2] border-[#1877F2]/30 font-bold transition-all"
@@ -771,6 +772,7 @@ export const Article: React.FC<ArticleProps> = ({
                         <a
                           href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`}
                           target="_blank"
+                          aria-label="Share on LinkedIn"
                           className={cn(
                             buttonVariants({ variant: 'outline' }),
                             "rounded-none justify-start gap-2.5 text-xs bg-[#0A66C2]/10 hover:bg-[#0A66C2]/20 text-[#0A66C2] border-[#0A66C2]/30 font-bold transition-all"
@@ -781,6 +783,7 @@ export const Article: React.FC<ArticleProps> = ({
                         </a>
                         <a
                           href={`mailto:?subject=${encodeURIComponent(article.headline)}&body=${encodeURIComponent(shareText)}`}
+                          aria-label="Share via Email"
                           className={cn(
                             buttonVariants({ variant: 'outline' }),
                             "rounded-none justify-start gap-2.5 text-xs bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border-zinc-200 font-bold transition-all"
@@ -801,6 +804,9 @@ export const Article: React.FC<ArticleProps> = ({
               name={article.headline}
               className="w-full rounded-sm shadow-sm overflow-hidden aspect-video object-cover"
               thumbnail={article.featuredMediaInfo.thumbnail}
+              priority={true}
+              width={1200}
+              height={675}
             />
             {article.featuredMediaCaption && (
               <p className="text-xs text-zinc-500 italic text-center -mt-4">

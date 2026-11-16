@@ -14,8 +14,6 @@ import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Trophy, ArrowUpRight, Hash, Layers, Zap, PlayCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
-
 import { cn } from '@/lib/utils';
 
 interface CategorySectionDef {
@@ -151,16 +149,7 @@ const Home: React.FC<HomeProps> = ({ initialHomeData }) => {
           </div>
           
           <div className="flex-1 overflow-hidden relative">
-            <motion.div
-              className="flex whitespace-nowrap gap-12"
-              animate={{ x: ["100%", "-100%"] }}
-              transition={{
-                repeat: Infinity,
-                duration: 20,
-                ease: "linear",
-              }}
-              whileHover={{ transition: { duration: 0 } }}
-            >
+            <div className="animate-marquee-scroll gap-12">
               {breakingNewsList.length > 0 ? (
                 breakingNewsList.map((article, index) => (
                   <Link 
@@ -177,7 +166,7 @@ const Home: React.FC<HomeProps> = ({ initialHomeData }) => {
                   ताज़ा खबरों के लिए बने रहें...
                 </span>
               )}
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>

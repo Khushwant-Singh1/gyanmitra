@@ -52,7 +52,19 @@ export const FeaturedMedia: React.FC<{
   playable?: boolean;
   thumbnail?: string;
   priority?: boolean;
-}> = ({ fileType, url, className, name, playable = true, thumbnail, priority = false }) => {
+  width?: number;
+  height?: number;
+}> = ({
+  fileType,
+  url,
+  className,
+  name,
+  playable = true,
+  thumbnail,
+  priority = false,
+  width = 1200,
+  height = 675,
+}) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -109,7 +121,10 @@ export const FeaturedMedia: React.FC<{
       src={resolvedUrl}
       className={`${className} skelton`}
       loading={priority ? 'eager' : 'lazy'}
+      fetchPriority={priority ? 'high' : 'auto'}
       decoding="async"
+      width={width}
+      height={height}
       // SEO FIX: Alt aur Title dono ko article/image name se map kiya
       alt={name || 'Gyanmitra News Featured Image'} 
       title={name || 'Gyanmitra News Featured Image'}
