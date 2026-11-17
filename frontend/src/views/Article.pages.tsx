@@ -817,21 +817,6 @@ export const Article: React.FC<ArticleProps> = ({
             <p className="text-lg text-zinc-500 font-bold  leading-relaxed border-l-2 border-[#e98571] pl-6 py-2 bg-zinc-50">
               {article.description}
             </p>
-
-            {/* --- QUICK ARTICLE TAGS BAR --- */}
-            <div className="flex flex-wrap items-center gap-1.5 pt-1">
-              <span className="text-[10px] font-black uppercase tracking-wider text-zinc-400 mr-1">Tags:</span>
-              {displayTags.map((tag, idx) => (
-                <Link
-                  key={idx}
-                  to={`/search?q=${encodeURIComponent(tag)}`}
-                >
-                  <Badge variant="outline" className="rounded-none px-2.5 py-0.5 border-zinc-200 hover:border-[#e98571] hover:text-[#e98571] hover:bg-[#e98571]/5 transition-colors text-[10px] font-bold text-zinc-700 cursor-pointer">
-                    #{tag}
-                  </Badge>
-                </Link>
-              ))}
-            </div>
           </div>
 
           <div className="prose prose-slate max-w-none pt-4 prose-headings:font-bold prose-p:text-slate-700 prose-p:leading-relaxed prose-strong:text-slate-900" 
