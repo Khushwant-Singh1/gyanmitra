@@ -23,6 +23,7 @@ export interface ILinksWithName {
 
 export const GET_HELP_LINKS: ILinksWithName[] = [
   { name: 'About Us', link: '/about-us' },
+  { name: 'Our Team', link: '/team' },
   { name: 'Contact & FAQ', link: '/contact-us' },
   { name: 'Competitions', link: '/competitions' },
 ];
@@ -31,6 +32,8 @@ export const LEGAL_LINKS: ILinksWithName[] = [
   { name: 'Privacy Policy', link: '/privacy-policy' },
   { name: 'Terms & Conditions', link: '/terms-and-conditions' },
   { name: 'Disclaimer', link: '/disclaimer' },
+  { name: 'Complaints & Grievance Redressal', link: '/complaints-grievance-redressal' },
+  { name: 'DNPA Code of Ethics', link: '/dnpa-code-of-ethics' },
 ];
 
 export const ADMINISTRATOR_SIDEBAR: {

@@ -2,8 +2,12 @@ import type { Metadata } from 'next';
 import { AboutUs as AboutUsView } from '@/views/AboutUs.pages';
 
 export const metadata: Metadata = {
-  title: 'About Us - Gyanmitra',
-  description: 'ज्ञानमित्र न्यूज़ के बारे में जानें - हमारी दृष्टि, मिशन और संपादकीय मूल्य।',
+  title: 'About Us – Gyanmitra News',
+  description:
+    'Gyanmitra News is an independent Hindi digital news platform committed to bringing readers accurate, credible and meaningful journalism.',
+  alternates: {
+    canonical: 'https://gyanmitranews.com/about-us',
+  },
 };
 
 export default function AboutUsPage() {

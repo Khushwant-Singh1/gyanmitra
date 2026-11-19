@@ -22,69 +22,110 @@ export default function DisclaimerPage() {
 
       <div className="space-y-8 text-base leading-relaxed text-gray-700">
         <section>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">1. General Information Purpose</h2>
           <p>
-            The information provided by <strong>Gyanmitra News</strong> (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) on{' '}
-            <a href="https://gyanmitranews.com" className="text-blue-600 underline">
-              https://gyanmitranews.com
-            </a>{' '}
-            (the &quot;Site&quot;) is published in good faith for general informational, educational, and journalistic purposes only.
-            Gyanmitra News makes no representation or warranty of any kind, express or implied, regarding the accuracy,
-            adequacy, validity, reliability, availability, or completeness of any information on the Site.
+            At Gyanmitra News, we are committed to providing our readers with accurate, reliable and relevant
+            information on a wide range of topics. Our editorial team makes reasonable efforts to verify the
+            authenticity and accuracy of the content published on our platform.
+          </p>
+          <p className="mt-3">
+            However, despite editorial care, inadvertent errors, omissions or inaccuracies may occasionally occur. We
+            believe in transparency and remain committed to responsible journalistic standards.
           </p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">2. Editorial Opinions &amp; Authenticity (संपादकीय विचार)</h2>
+          <h2 className="mb-3 text-2xl font-bold text-gray-900">General Information</h2>
           <p>
-            Articles, opinion pieces, columns, and blogs published on Gyanmitra News represent the personal views and research
-            of their respective authors and reporters. They do not necessarily reflect the official policy or stance of
-            Gyanmitra News, its management, or its editors. While our editorial team makes every effort to verify facts
-            through official press releases, news agencies, and government portals, readers are encouraged to verify
-            critical information independently.
+            All information published on Gyanmitra News is intended for general informational and public awareness
+            purposes.
+          </p>
+          <p className="mt-3">
+            While we strive to ensure the accuracy, completeness and reliability of our reporting, we do not provide an
+            absolute guarantee or warranty regarding the accuracy or completeness of every item published on our website.
+          </p>
+          <p className="mt-3">
+            Readers are encouraged to independently verify information, particularly before making important personal,
+            professional, financial or other decisions based on published content.
           </p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">3. External Links &amp; Third-Party Content</h2>
+          <h2 className="mb-3 text-2xl font-bold text-gray-900">External Links &amp; Third-Party Content</h2>
           <p>
-            The Site may contain links to external websites, services, or embedded content (such as videos, social media posts,
-            and advertisements) that are not owned, maintained, or controlled by Gyanmitra News. Please note that we do not
-            guarantee the accuracy, relevance, timeliness, or completeness of any information on these external websites.
-            Inclusion of any third-party link does not imply endorsement by Gyanmitra News.
+            Our website may contain links to external websites, resources and third-party platforms for additional
+            information and reference. These websites are independently operated and are beyond our direct control.
+          </p>
+          <p className="mt-3">
+            Gyanmitra News is not responsible for the content, accuracy, reliability, privacy practices or availability
+            of information published on external websites.
+          </p>
+          <p className="mt-3">
+            The inclusion of any external link does not necessarily imply our endorsement of the views, opinions,
+            products or services presented on those platforms.
           </p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">4. Financial, Educational &amp; Career Guidance Disclaimer</h2>
+          <h2 className="mb-3 text-2xl font-bold text-gray-900">Opinions, Views &amp; Endorsements</h2>
           <p>
-            Any articles or updates related to government schemes, financial tips, stock markets, examinations, or employment
-            opportunities are for educational awareness only. They must not be considered professional financial, legal, or
-            academic advice. Readers must consult authorized consultants or official government notifications before taking
-            any financial or legal action.
+            News reports, opinion articles, guest contributions and other published materials may reflect the views of
+            their respective authors or contributors. Such views do not necessarily represent the official position of
+            Gyanmitra News.
+          </p>
+          <p className="mt-3">
+            Unless explicitly stated, the mention or publication of any product, service, individual, organisation or
+            institution should not be interpreted as an endorsement or recommendation by Gyanmitra News.
           </p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">5. Fair Use &amp; Copyright Notice (उचित उपयोग)</h2>
+          <h2 className="mb-3 text-2xl font-bold text-gray-900">No Professional Advice</h2>
           <p>
-            Gyanmitra News respects intellectual property rights. Certain media, images, or excerpts may be used under the
-            &quot;Fair Use&quot; provisions of applicable copyright laws for news reporting, criticism, review, and educational commentary.
-            If you are the copyright holder of any material and believe it has been used without authorization, please notify us
-            immediately at <a href="mailto:gyanmitranews@gmail.com" className="text-blue-600 underline">gyanmitranews@gmail.com</a>{' '}
-            with relevant proof, and we will take prompt corrective action.
+            Information available on Gyanmitra News is intended for general awareness and informational purposes. It
+            should not be considered a substitute for professional advice, including legal, financial, medical or other
+            specialised advice.
+          </p>
+          <p className="mt-3">
+            Readers are advised to consult qualified professionals before making decisions concerning specific legal,
+            financial, medical or professional matters.
           </p>
         </section>
 
-        <section className="border-t border-gray-200 pt-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-2">6. Contact for Corrections &amp; Clarifications</h2>
-          <p className="text-sm text-gray-600">
-            If you discover an error or wish to request a factual correction in any published report, please write to our
-            editorial grievance desk at{' '}
-            <a href="mailto:gyanmitranews@gmail.com" className="text-blue-600 underline">
-              gyanmitranews@gmail.com
-            </a>{' '}
-            or contact us at +91 7500801004.
+        <section>
+          <h2 className="mb-3 text-2xl font-bold text-gray-900">Limitation of Liability</h2>
+          <p>
+            To the extent permitted by applicable law, Gyanmitra News shall not be liable for any loss, damage or
+            consequences arising from the use of, reliance upon or interpretation of information published on our website
+            or accessed through external links.
+          </p>
+          <p className="mt-3">
+            Nothing in this Disclaimer is intended to exclude or limit any liability that cannot lawfully be excluded
+            or limited under applicable law.
+          </p>
+          <p className="mt-3">
+            Readers are encouraged to exercise their own judgment and independently assess information before taking any
+            action based on the content available on our platform.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-2xl font-bold text-gray-900">Updates &amp; Changes</h2>
+          <p>
+            Gyanmitra News reserves the right to update, modify or revise this Disclaimer whenever necessary to reflect
+            changes in our editorial practices, website policies or applicable requirements.
+          </p>
+          <p className="mt-3">Any revisions will be published on this page.</p>
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-2xl font-bold text-gray-900">Our Commitment to Readers</h2>
+          <p>
+            At Gyanmitra News, we believe credible journalism is built on accuracy, transparency, fairness and
+            accountability. We continuously strive to improve the quality of our reporting and provide meaningful
+            information that helps readers stay informed.
+          </p>
+          <p className="mt-3">
+            Our commitment remains to responsible journalism, independent reporting and the public interest.
           </p>
         </section>
       </div>

@@ -146,6 +146,22 @@ export default function Footer() {
                 </Link>
                 <span>•</span>
                 <Link
+                  to="/complaints-grievance-redressal"
+                  title="Complaints & Grievance Redressal"
+                  className="hover:text-secondary"
+                >
+                  Grievance Redressal
+                </Link>
+                <span>•</span>
+                <Link
+                  to="/dnpa-code-of-ethics"
+                  title="DNPA Code of Ethics"
+                  className="hover:text-secondary"
+                >
+                  DNPA Code of Ethics
+                </Link>
+                <span>•</span>
+                <Link
                   to="/contact-us"
                   title="Contact Us"
                   className="hover:text-secondary"

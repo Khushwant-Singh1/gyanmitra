@@ -57,10 +57,13 @@ export const getAllArticlesSitemap = AsyncHandler(async (req: Request, res: Resp
   const staticPages = [
     { loc: 'https://gyanmitranews.com/', priority: '1.0', changefreq: 'hourly' },
     { loc: 'https://gyanmitranews.com/about-us', priority: '0.8', changefreq: 'monthly' },
+    { loc: 'https://gyanmitranews.com/team', priority: '0.8', changefreq: 'monthly' },
     { loc: 'https://gyanmitranews.com/contact-us', priority: '0.8', changefreq: 'monthly' },
     { loc: 'https://gyanmitranews.com/privacy-policy', priority: '0.8', changefreq: 'monthly' },
     { loc: 'https://gyanmitranews.com/terms-and-conditions', priority: '0.8', changefreq: 'monthly' },
     { loc: 'https://gyanmitranews.com/disclaimer', priority: '0.8', changefreq: 'monthly' },
+    { loc: 'https://gyanmitranews.com/complaints-grievance-redressal', priority: '0.8', changefreq: 'monthly' },
+    { loc: 'https://gyanmitranews.com/dnpa-code-of-ethics', priority: '0.8', changefreq: 'monthly' },
     { loc: 'https://gyanmitranews.com/competitions', priority: '0.8', changefreq: 'daily' },
   ];
 
