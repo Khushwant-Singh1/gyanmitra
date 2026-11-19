@@ -16,12 +16,25 @@ import numeral from 'numeral';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Link } from 'react-router-dom';
 import { buttonVariants } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { IApiDashboard, IApiResponse } from '@/api/client.api';
+import { USER_ROLE } from '@/constants/index.constants';
 import { useQuery } from '@tanstack/react-query';
 import { Spinner } from '@/components/Spinner.components';
 import axios, { isAxiosError } from 'axios';
 import { ErrorAlert } from '@/components/ErrorAlert.components';
 import { Helmet } from 'react-helmet-async';
+import { cn } from '@/lib/utils';
+import {
+  Eye,
+  Flame,
+  MessageSquare,
+  Users,
+  FileText,
+  Clock,
+  ArrowRight,
+  PenSquare,
+} from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
   const { data, isLoading, error } = useQuery<IApiResponse<IApiDashboard>>({
@@ -61,223 +74,445 @@ export const Dashboard: React.FC = () => {
 
   return (
     <>
-      <div className="flex flex-wrap gap-4 *:basis-[450px]">
-        <Helmet>
-          <title>Dashboard - Gyanmitra</title>
-        </Helmet>
-        {/* Views Card */}
-        <Card className="flex-1">
-          <CardHeader className="pb-2">
-            <CardTitle>Views</CardTitle>
-            <CardDescription className="text-3xl font-bold uppercase text-black">
-              +{numeral(data?.data.totalViews).format('0.[0]a')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col divide-y">
-              {data?.data.topArticles.length ? (
-                data?.data.topArticles.map((article) => (
-                  <div
-                    className="flex h-20 flex-row items-center gap-2 py-2"
-                    key={article._id}
-                  >
-                    <FeaturedMedia
-                      className="aspect-video h-full shrink-0 overflow-hidden rounded-lg object-cover"
-                      fileType={article.featuredMedia.fileType}
-                      playable={false}
-                      url={article.featuredMedia.fileUrl}
-                      thumbnail={article.featuredMedia.thumbnail}
-                      name={article.featuredMedia.name}
-                    />
-                    <div className="my-auto space-y-0.5">
-                      <h3 className="line-clamp-1 text-base font-semibold">
-                        {article.headline}
-                      </h3>
-                      <div className="text-customMediumGray flex space-x-5 text-xs md:text-sm">
-                        <TimeAgo timestamp={new Date(article.published)} />
-                        <span>
-                          views •
-                          <span className="text-tertiary font-semibold">
-                            {numeral(article.views).format('0.[0]a')}
-                          </span>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="py-5 text-center">No top articles found</div>
+      <Helmet>
+        <title>Dashboard - Gyanmitra</title>
+      </Helmet>
+
+      <div className="space-y-6">
+        {/* Welcome & Actions Header */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
+              Dashboard Overview
+            </h1>
+            <p className="text-sm text-zinc-500">
+              Monitor key metrics, top performing stories, and editorial activity.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/administrator/articles-draft"
+              className={cn(
+                buttonVariants({ variant: 'default', size: 'sm' }),
+                'bg-secondary hover:bg-secondary/90 text-white font-medium shadow-xs'
               )}
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Link
-              to="/administrator/articles?topViewed=1"
-              className={buttonVariants({ variant: 'link' })}
             >
-              Get More Details
+              <PenSquare className="mr-1.5 h-4 w-4" />
+              Write Article
             </Link>
-          </CardFooter>
-        </Card>
+          </div>
+        </div>
 
-        {/* Comments Card */}
-        <Card className="flex-1">
-          <CardHeader>
-            <CardTitle>Comments</CardTitle>
-            <CardDescription>New Comments On Article</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {data?.data.recentComments.length ? (
-              <div className="flex flex-col divide-y">
-                {data?.data.recentComments.map((comment) => (
-                  <div
-                    className="flex flex-row items-center gap-2 py-2"
-                    key={comment._id}
-                  >
-                    <Avatar className="aspect-square h-full rounded-lg">
-                      <AvatarFallback className="rounded-lg uppercase">
-                        {comment.firstName.charAt(0) +
-                          comment.lastName.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="my-auto space-y-0.5">
-                      <h3 className="line-clamp-2 text-base font-semibold">
-                        {comment.message}
-                      </h3>
-                      <div className="text-customMediumGray flex space-x-5 text-xs md:text-sm">
-                        <TimeAgo timestamp={new Date(comment.createdAt)} />
-                        <span>
-                          By •{' '}
-                          <span className="text-customGray font-semibold capitalize">
-                            {comment.firstName + ' ' + comment.lastName}
+        {/* Metric Cards Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Stat 1: Total Views */}
+          <Card className="border border-zinc-200/80 shadow-xs bg-white">
+            <CardContent className="p-5 flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+                  Total Views
+                </p>
+                <p className="text-2xl font-bold tracking-tight text-zinc-900">
+                  +{numeral(data?.data.totalViews || 0).format('0.[0]a')}
+                </p>
+                <p className="text-xs text-zinc-400">Total reader viewership</p>
+              </div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50 text-amber-600 border border-amber-200/60">
+                <Eye className="h-6 w-6" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Stat 2: Top Articles Count */}
+          <Card className="border border-zinc-200/80 shadow-xs bg-white">
+            <CardContent className="p-5 flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+                  Top Stories
+                </p>
+                <p className="text-2xl font-bold tracking-tight text-zinc-900">
+                  {data?.data.topArticles?.length || 0}
+                </p>
+                <p className="text-xs text-zinc-400">High engagement articles</p>
+              </div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-50 text-rose-600 border border-rose-200/60">
+                <Flame className="h-6 w-6" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Stat 3: Recent Comments */}
+          <Card className="border border-zinc-200/80 shadow-xs bg-white">
+            <CardContent className="p-5 flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+                  Comments
+                </p>
+                <p className="text-2xl font-bold tracking-tight text-zinc-900">
+                  {data?.data.recentComments?.length || 0}
+                </p>
+                <p className="text-xs text-zinc-400">Recent reader feedback</p>
+              </div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-200/60">
+                <MessageSquare className="h-6 w-6" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Stat 4: Recent Users */}
+          <Card className="border border-zinc-200/80 shadow-xs bg-white">
+            <CardContent className="p-5 flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+                  Members
+                </p>
+                <p className="text-2xl font-bold tracking-tight text-zinc-900">
+                  {data?.data.recentUsers?.length || 0}
+                </p>
+                <p className="text-xs text-zinc-400">Recent registrations</p>
+              </div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/60">
+                <Users className="h-6 w-6" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content Grid: 2 Columns on Desktop */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Card 1: Top Performing Articles */}
+          <Card className="flex flex-col border border-zinc-200/80 shadow-xs bg-white">
+            <CardHeader className="pb-3 border-b border-zinc-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-amber-600 border border-amber-200/60">
+                    <Flame className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base font-semibold text-zinc-900">
+                      Top Performing Articles
+                    </CardTitle>
+                    <CardDescription className="text-xs text-zinc-500">
+                      Articles with highest reader views
+                    </CardDescription>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-xs font-semibold bg-zinc-50 text-zinc-600">
+                  Top 5
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 p-3 sm:p-4">
+              <div className="flex flex-col divide-y divide-zinc-100">
+                {data?.data.topArticles.length ? (
+                  data?.data.topArticles.map((article, index) => (
+                    <div
+                      className="group flex items-center gap-3 py-3 first:pt-1 last:pb-1"
+                      key={article._id}
+                    >
+                      {/* Rank Indicator */}
+                      <span
+                        className={cn(
+                          'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold',
+                          index === 0
+                            ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                            : index === 1
+                            ? 'bg-slate-100 text-slate-700 border border-slate-300'
+                            : index === 2
+                            ? 'bg-orange-100 text-orange-800 border border-orange-300'
+                            : 'bg-zinc-100 text-zinc-500'
+                        )}
+                      >
+                        {index + 1}
+                      </span>
+
+                      {/* Thumbnail Container: STRICTLY CONSTRAINED */}
+                      <div className="relative aspect-video h-14 w-24 sm:h-16 sm:w-28 shrink-0 overflow-hidden rounded-md bg-zinc-100 border border-zinc-200/70 shadow-2xs">
+                        <FeaturedMedia
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          fileType={article.featuredMedia.fileType}
+                          playable={false}
+                          url={article.featuredMedia.fileUrl}
+                          thumbnail={article.featuredMedia.thumbnail}
+                          name={article.featuredMedia.name}
+                          width={240}
+                          height={135}
+                        />
+                      </div>
+
+                      {/* Content */}
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <h4 className="line-clamp-2 text-sm font-semibold text-zinc-900 group-hover:text-secondary transition-colors leading-snug">
+                          {article.headline}
+                        </h4>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500">
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3 text-zinc-400" />
+                            <TimeAgo timestamp={new Date(article.published)} />
                           </span>
-                        </span>
+                          <span>•</span>
+                          <span className="inline-flex items-center gap-1 font-semibold text-emerald-600">
+                            <Eye className="h-3 w-3" />
+                            {numeral(article.views).format('0,0')} views
+                          </span>
+                        </div>
                       </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="py-8 text-center text-sm text-zinc-400">
+                    No top articles found
                   </div>
-                ))}
+                )}
               </div>
-            ) : (
-              <div className="py-5 text-center">No new comments found</div>
-            )}
-          </CardContent>
-          <CardFooter>
-            <Link
-              to="/administrator/comments"
-              className={buttonVariants({ variant: 'link' })}
-            >
-              Get More Details
-            </Link>
-          </CardFooter>
-        </Card>
+            </CardContent>
+            <CardFooter className="pt-3 border-t border-zinc-100">
+              <Link
+                to="/administrator/articles?topViewed=1"
+                className="inline-flex items-center text-xs font-semibold text-secondary hover:text-secondary/80 gap-1.5 transition-colors"
+              >
+                <span>View all top articles</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </CardFooter>
+          </Card>
 
-        {/* Users Card */}
-        <Card className="w-full min-w-[280px] flex-1">
-          <CardHeader>
-            <CardTitle>Users</CardTitle>
-            <CardDescription>New Users have joined</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {data?.data.recentUsers.length ? (
-              <div className="flex flex-col divide-y">
-                {data?.data.recentUsers.map((user) => (
-                  <div
-                    className="flex flex-row items-center gap-2 py-2"
-                    key={user._id}
-                  >
-                    <Avatar className="h-10 w-10 shrink-0 rounded-lg">
-                      <AvatarFallback className="rounded-lg uppercase">
-                        {user.firstName.charAt(0) + user.lastName.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0 flex-1 space-y-0.5">
-                      <h3 className="truncate text-base font-semibold">
-                        {user.email}
-                      </h3>
-                      <div className="text-customMediumGray flex flex-wrap gap-2 text-xs md:text-sm">
+          {/* Card 2: Recently Published Articles */}
+          <Card className="flex flex-col border border-zinc-200/80 shadow-xs bg-white">
+            <CardHeader className="pb-3 border-b border-zinc-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 border border-blue-200/60">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base font-semibold text-zinc-900">
+                      Recently Published
+                    </CardTitle>
+                    <CardDescription className="text-xs text-zinc-500">
+                      Latest articles published on the platform
+                    </CardDescription>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-xs font-semibold bg-zinc-50 text-zinc-600">
+                  Recent 5
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 p-3 sm:p-4">
+              <div className="flex flex-col divide-y divide-zinc-100">
+                {data?.data.recentArticles.length ? (
+                  data?.data.recentArticles.map((article) => (
+                    <div
+                      className="group flex items-center gap-3 py-3 first:pt-1 last:pb-1"
+                      key={article._id}
+                    >
+                      {/* Thumbnail Container: STRICTLY CONSTRAINED */}
+                      <div className="relative aspect-video h-14 w-24 sm:h-16 sm:w-28 shrink-0 overflow-hidden rounded-md bg-zinc-100 border border-zinc-200/70 shadow-2xs">
+                        <FeaturedMedia
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          fileType={article.featuredMedia.fileType}
+                          playable={false}
+                          thumbnail={article.featuredMedia.thumbnail}
+                          url={article.featuredMedia.fileUrl}
+                          name={article.featuredMedia.name}
+                          width={240}
+                          height={135}
+                        />
+                      </div>
+
+                      {/* Content */}
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <h4 className="line-clamp-2 text-sm font-semibold text-zinc-900 group-hover:text-secondary transition-colors leading-snug">
+                          {article.headline}
+                        </h4>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500">
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3 text-zinc-400" />
+                            <TimeAgo timestamp={new Date(article.published)} />
+                          </span>
+                          <span>•</span>
+                          <span>
+                            By{' '}
+                            <span className="font-semibold text-zinc-700 capitalize">
+                              {article.firstName} {article.lastName}
+                            </span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="py-8 text-center text-sm text-zinc-400">
+                    No recent articles found
+                  </div>
+                )}
+              </div>
+            </CardContent>
+            <CardFooter className="pt-3 border-t border-zinc-100">
+              <Link
+                to="/administrator/articles?newest=1"
+                className="inline-flex items-center text-xs font-semibold text-secondary hover:text-secondary/80 gap-1.5 transition-colors"
+              >
+                <span>Manage all articles</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </CardFooter>
+          </Card>
+
+          {/* Card 3: Recent Comments */}
+          <Card className="flex flex-col border border-zinc-200/80 shadow-xs bg-white">
+            <CardHeader className="pb-3 border-b border-zinc-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-purple-50 text-purple-600 border border-purple-200/60">
+                    <MessageSquare className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base font-semibold text-zinc-900">
+                      Recent Comments
+                    </CardTitle>
+                    <CardDescription className="text-xs text-zinc-500">
+                      New comments and feedback from readers
+                    </CardDescription>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-xs font-semibold bg-zinc-50 text-zinc-600">
+                  Latest
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 p-3 sm:p-4">
+              <div className="flex flex-col divide-y divide-zinc-100">
+                {data?.data.recentComments.length ? (
+                  data?.data.recentComments.map((comment) => (
+                    <div
+                      className="flex items-start gap-3 py-3 first:pt-1 last:pb-1"
+                      key={comment._id}
+                    >
+                      <Avatar className="h-9 w-9 shrink-0 rounded-full border border-purple-200/70 bg-purple-50">
+                        <AvatarFallback className="rounded-full text-xs font-bold text-purple-700 uppercase">
+                          {comment.firstName.charAt(0) +
+                            comment.lastName.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1 space-y-1.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-sm font-semibold text-zinc-900 capitalize">
+                            {comment.firstName} {comment.lastName}
+                          </span>
+                          <span className="text-xs text-zinc-400 whitespace-nowrap">
+                            <TimeAgo timestamp={new Date(comment.createdAt)} />
+                          </span>
+                        </div>
+                        <p className="rounded-md bg-zinc-50 border border-zinc-200/60 p-2.5 text-xs text-zinc-700 italic line-clamp-2 leading-relaxed">
+                          "{comment.message}"
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="py-8 text-center text-sm text-zinc-400">
+                    No new comments found
+                  </div>
+                )}
+              </div>
+            </CardContent>
+            <CardFooter className="pt-3 border-t border-zinc-100">
+              <Link
+                to="/administrator/comments"
+                className="inline-flex items-center text-xs font-semibold text-secondary hover:text-secondary/80 gap-1.5 transition-colors"
+              >
+                <span>View all comments</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </CardFooter>
+          </Card>
+
+          {/* Card 4: Registered Users & Members */}
+          <Card className="flex flex-col border border-zinc-200/80 shadow-xs bg-white">
+            <CardHeader className="pb-3 border-b border-zinc-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/60">
+                    <Users className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base font-semibold text-zinc-900">
+                      Recent Members
+                    </CardTitle>
+                    <CardDescription className="text-xs text-zinc-500">
+                      Newly registered users and team members
+                    </CardDescription>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-xs font-semibold bg-zinc-50 text-zinc-600">
+                  Newest
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 p-3 sm:p-4">
+              <div className="flex flex-col divide-y divide-zinc-100">
+                {data?.data.recentUsers.length ? (
+                  data?.data.recentUsers.map((user) => (
+                    <div
+                      className="flex items-center gap-3 py-3 first:pt-1 last:pb-1"
+                      key={user._id}
+                    >
+                      <Avatar className="h-9 w-9 shrink-0 rounded-full border border-zinc-200 bg-zinc-100">
+                        <AvatarFallback className="rounded-full text-xs font-bold text-zinc-700 uppercase">
+                          {user.firstName.charAt(0) + user.lastName.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1 space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="truncate text-sm font-semibold text-zinc-900 capitalize">
+                            {user.firstName} {user.lastName}
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              'text-[10px] font-semibold uppercase px-1.5 py-0 h-4 rounded-xs',
+                              user.role === USER_ROLE.Admin ||
+                                user.role === USER_ROLE.Owner
+                                ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                : user.role === USER_ROLE.Editor
+                                ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                : user.role === USER_ROLE.Reporter
+                                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                : 'bg-zinc-100 text-zinc-600 border-zinc-200'
+                            )}
+                          >
+                            {user.role}
+                          </Badge>
+                        </div>
+                        <p className="truncate text-xs text-zinc-500">
+                          {user.email}
+                        </p>
+                      </div>
+                      <span className="text-xs text-zinc-400 whitespace-nowrap shrink-0">
                         <TimeAgo timestamp={new Date(user.createdAt)} />
-                        <span className="whitespace-nowrap">
-                          Name •{' '}
-                          <span className="text-tertiary font-semibold capitalize">
-                            {user.firstName + ' ' + user.lastName}
-                          </span>
-                        </span>
-                        <span className="whitespace-nowrap">
-                          Role • {user.role}
-                        </span>
-                      </div>
+                      </span>
                     </div>
+                  ))
+                ) : (
+                  <div className="py-8 text-center text-sm text-zinc-400">
+                    No new users found
                   </div>
-                ))}
+                )}
               </div>
-            ) : (
-              <div className="py-5 text-center">No new users found</div>
-            )}
-          </CardContent>
-          <CardFooter>
-            <Link
-              to="/administrator/members"
-              className={buttonVariants({ variant: 'link' })}
-            >
-              Get More Details
-            </Link>
-          </CardFooter>
-        </Card>
-
-        {/* Articles Card */}
-        <Card className="flex-1">
-          <CardHeader>
-            <CardTitle>Articles</CardTitle>
-            <CardDescription>
-              Recent articles that have been published recently
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col divide-y">
-              {data?.data.recentArticles.length ? (
-                data?.data.recentArticles.map((article) => (
-                  <div
-                    className="flex h-20 flex-row items-center gap-2 py-2"
-                    key={article._id}
-                  >
-                    <FeaturedMedia
-                      className="aspect-video h-full shrink-0 overflow-hidden rounded-lg object-cover"
-                      fileType={article.featuredMedia.fileType}
-                      playable={false}
-                      thumbnail={article.featuredMedia.thumbnail}
-                      url={article.featuredMedia.fileUrl}
-                      name={article.featuredMedia.name}
-                    />
-                    <div className="my-auto space-y-0.5">
-                      <h3 className="line-clamp-2 text-base font-semibold leading-tight">
-                        {article.headline}
-                      </h3>
-                      <div className="text-customMediumGray flex space-x-5 text-xs md:text-sm">
-                        <TimeAgo timestamp={new Date(article.published)} />
-                        <span>
-                          Name •{' '}
-                          <span className="text-customGray font-semibold capitalize">
-                            {article.firstName + ' ' + article.lastName}
-                          </span>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="py-5 text-center">No recent articles found</div>
-              )}
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Link
-              to="/administrator/articles?newest=1"
-              className={buttonVariants({ variant: 'link' })}
-            >
-              Get More Details
-            </Link>
-          </CardFooter>
-        </Card>
+            </CardContent>
+            <CardFooter className="pt-3 border-t border-zinc-100">
+              <Link
+                to="/administrator/members"
+                className="inline-flex items-center text-xs font-semibold text-secondary hover:text-secondary/80 gap-1.5 transition-colors"
+              >
+                <span>Manage all members</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </CardFooter>
+          </Card>
+        </div>
       </div>
     </>
   );

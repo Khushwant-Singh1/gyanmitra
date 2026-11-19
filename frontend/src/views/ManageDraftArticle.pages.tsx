@@ -424,14 +424,18 @@ export const DraftArticle: React.FC = () => {
                 className="flex h-auto flex-col gap-4 overflow-auto rounded-xl border p-4 transition-colors hover:bg-gray-50 sm:h-36 sm:flex-row md:h-32"
                 key={article._id}
               >
-                <FeaturedMedia
-                  url={article.featuredMedia.fileUrl}
-                  playable={false}
-                  fileType={article.featuredMedia.fileType}
-                  thumbnail={article.featuredMedia.thumbnail}
-                  name={article.featuredMedia.name}
-                  className="aspect-video h-full rounded-md object-cover sm:aspect-square"
-                />
+                <div className="relative aspect-video sm:aspect-square h-28 sm:h-full w-full sm:w-32 shrink-0 overflow-hidden rounded-md bg-zinc-100 border border-zinc-200/60 shadow-2xs">
+                  <FeaturedMedia
+                    url={article.featuredMedia.fileUrl}
+                    playable={false}
+                    fileType={article.featuredMedia.fileType}
+                    thumbnail={article.featuredMedia.thumbnail}
+                    name={article.featuredMedia.name}
+                    className="h-full w-full object-cover"
+                    width={240}
+                    height={180}
+                  />
+                </div>
                 <div className="flex w-full flex-col justify-between">
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center justify-between">
