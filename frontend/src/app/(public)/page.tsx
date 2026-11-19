@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import HomeView from '@/views/Home.pages';
 import type { IApiHome } from '@/api/client.api';
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: 'Gyanmitra - Hindi News & Knowledge Portal',
   description:

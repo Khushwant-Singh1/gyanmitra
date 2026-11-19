@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import CompetitionHub from '@/views/CompetitionHub.page';
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: 'Competitions & Quizzes - Gyanmitra',
   description:

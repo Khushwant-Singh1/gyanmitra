@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import { Category as CategoryView } from '@/views/Category.pages';
 
+export const revalidate = 60;
+export const dynamicParams = true;
+
 interface Props {
   params: Promise<{ categoryName: string }>;
 }

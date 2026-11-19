@@ -5,6 +5,9 @@ import { Article as ArticleView } from '@/views/Article.pages';
 import { isValidArticleSlug } from '@/utils/slug.utils';
 import { MDToHTMLConverter } from '@/utils/MDToHTML.utils';
 
+export const revalidate = 60;
+export const dynamicParams = true;
+
 interface Props {
   params: Promise<{ articleSlug: string }>;
 }
