@@ -12,6 +12,6 @@ Sitemap: https://gyanmitranews.com/sitemap-news.xml
 Sitemap: https://gyanmitranews.com/sitemap-images.xml
 
 # Agentic Resource Discovery & LLMs
-Agentmap: https://gyanmitranews.com/.well-known/ard.json
+# Agentmap: https://gyanmitranews.com/.well-known/ard.json
 # LLM Index: https://gyanmitranews.com/llms.txt
 # LLM Markdown: https://gyanmitranews.com/llms.md

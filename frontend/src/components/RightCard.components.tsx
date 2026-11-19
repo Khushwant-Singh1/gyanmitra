@@ -53,6 +53,7 @@ const RightCard: React.FC<RightCardProps> = ({
         url={mediaSrc}
         width={160}
         height={160}
+        sizes="(max-width: 768px) 30vw, 160px"
       />
     </div>
   </Link>

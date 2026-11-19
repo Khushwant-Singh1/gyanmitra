@@ -73,6 +73,7 @@ export const FeaturedMedia: React.FC<{
   priority?: boolean;
   width?: number;
   height?: number;
+  sizes?: string;
 }> = ({
   fileType,
   url,
@@ -83,6 +84,7 @@ export const FeaturedMedia: React.FC<{
   priority = false,
   width = 1200,
   height = 675,
+  sizes,
 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -145,11 +147,12 @@ export const FeaturedMedia: React.FC<{
       width={width}
       height={height}
       sizes={
-        width <= 200
-          ? '160px'
+        sizes ||
+        (width <= 200
+          ? '(max-width: 768px) 30vw, 160px'
           : width <= 500
-          ? '(max-width: 768px) 100vw, 400px'
-          : '(max-width: 768px) 100vw, 1200px'
+          ? '(max-width: 768px) 35vw, 400px'
+          : '(max-width: 768px) 100vw, 800px')
       }
       alt={name || 'Gyanmitra News Featured Image'} 
       title={name || 'Gyanmitra News Featured Image'}

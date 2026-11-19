@@ -196,7 +196,7 @@ export const EditArticle: React.FC = () => {
             <FontAwesomeIcon icon={faArrowLeft} />
           </Button>
           <Avatar className="h-10 w-10">
-            <AvatarImage src={'/assets/gyanmitra.png'} />
+            <AvatarImage src={'/assets/gyanmitra.webp'} />
             <AvatarFallback>GM</AvatarFallback>
           </Avatar>
           <h1 className="font-bold text-lg hidden md:block text-slate-700">Editor</h1>

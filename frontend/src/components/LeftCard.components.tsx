@@ -41,6 +41,7 @@ const LeftCard: React.FC<LeftCardProps> = ({
         url={mediaSrc}
         width={400}
         height={225}
+        sizes="(max-width: 768px) 35vw, 400px"
       />
     </div>
     <div className="flex flex-col gap-1 w-2/3">

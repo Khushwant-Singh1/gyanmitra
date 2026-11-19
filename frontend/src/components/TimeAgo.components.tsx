@@ -55,7 +55,7 @@ const TimeAgo: React.FC<TimeAgoProps> = ({
     }
 
     return (
-      <span className={className}>
+      <span className={className} suppressHydrationWarning>
         {icon ? (
           <FontAwesomeIcon
             icon={faClock}
@@ -66,7 +66,7 @@ const TimeAgo: React.FC<TimeAgoProps> = ({
       </span>
     );
   } else {
-    return <span>समय उपलब्ध नहीं है</span>; // Hindi fallback for invalid timestamps
+    return <span suppressHydrationWarning>समय उपलब्ध नहीं है</span>; // Hindi fallback for invalid timestamps
   }
 };
 

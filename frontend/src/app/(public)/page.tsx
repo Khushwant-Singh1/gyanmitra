@@ -99,6 +99,16 @@ export default async function HomePage() {
 
   return (
     <>
+      {heroImageUrl && (
+        <link
+          rel="preload"
+          as="image"
+          href={`/_next/image?url=${encodeURIComponent(heroImageUrl)}&w=750&q=75`}
+          imageSrcSet={`/_next/image?url=${encodeURIComponent(heroImageUrl)}&w=640&q=75 640w, /_next/image?url=${encodeURIComponent(heroImageUrl)}&w=750&q=75 750w, /_next/image?url=${encodeURIComponent(heroImageUrl)}&w=828&q=75 828w, /_next/image?url=${encodeURIComponent(heroImageUrl)}&w=1080&q=75 1080w, /_next/image?url=${encodeURIComponent(heroImageUrl)}&w=1200&q=75 1200w`}
+          imageSizes="(max-width: 768px) 100vw, 800px"
+          fetchPriority="high"
+        />
+      )}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaJson) }}

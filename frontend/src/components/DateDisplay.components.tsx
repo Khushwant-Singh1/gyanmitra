@@ -11,6 +11,11 @@ interface DateDisplayProps {
   className?: string;
 }
 
+const IST_DATE_OPTION: Intl.DateTimeFormatOptions = {
+  ...DATE_OPTION,
+  timeZone: 'Asia/Kolkata',
+};
+
 export const DateDisplay: React.FC<DateDisplayProps> = ({
   date,
   className,
@@ -21,12 +26,12 @@ export const DateDisplay: React.FC<DateDisplayProps> = ({
     : 'hi-IN'; // Set locale based on route
 
   return (
-    <div className={className}>
+    <div className={className} suppressHydrationWarning>
       <span>
         <FontAwesomeIcon icon={faCalendar} />
-        <span className="ml-2 whitespace-nowrap capitalize">
+        <span className="ml-2 whitespace-nowrap capitalize" suppressHydrationWarning>
           {date
-            ? date.toLocaleDateString(locale, DATE_OPTION) // Dynamically apply locale
+            ? date.toLocaleDateString(locale, IST_DATE_OPTION) // Dynamically apply locale with fixed IST timezone
             : locale === 'hi-IN'
               ? 'दिनांक उपलब्ध नहीं है'
               : 'Date not available'}

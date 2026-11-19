@@ -43,17 +43,6 @@ function GlobalDataPrefetcher() {
         staleTime: Infinity,
         retry: 1,
       },
-      {
-        queryKey: ['subCategories', '67e442af58df1db1ee298769', 'active'],
-        queryFn: async () => {
-          const response = await axios.get<IApiResponse<{ name: string }[]>>(
-            `/api/categories/67e442af58df1db1ee298769/subcategories/active`
-          );
-          return response.data;
-        },
-        staleTime: Infinity,
-        retry: 1,
-      },
     ],
   });
 

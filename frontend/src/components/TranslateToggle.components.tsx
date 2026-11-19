@@ -45,9 +45,9 @@ export const TranslateToggle: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2" suppressHydrationWarning>
       <Globe className="h-4 w-4 text-zinc-500" />
-      <div id="google_translate_element" className="translate-widget-container"></div>
+      <div id="google_translate_element" className="translate-widget-container" suppressHydrationWarning></div>
       <style>
         {`
           /* Hide Google Translate top banner */

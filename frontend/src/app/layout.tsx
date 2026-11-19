@@ -48,7 +48,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="hi" className={`${inter.variable} ${notoSansDevanagari.variable}`}>
+    <html lang="hi" className={`${inter.variable} ${notoSansDevanagari.variable}`} suppressHydrationWarning>
       <head>
         <link
           rel="ard"
@@ -68,7 +68,7 @@ export default function RootLayout({
           title="LLM Guide"
         />
       </head>
-      <body className="antialiased">
+      <body className="antialiased" suppressHydrationWarning>
         <Script
           id="google-adsense"
           strategy="lazyOnload"

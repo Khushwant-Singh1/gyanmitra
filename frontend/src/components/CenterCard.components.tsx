@@ -47,6 +47,7 @@ const CenterCard: React.FC<CenterCardProps> = ({
         priority={priority}
         width={1200}
         height={675}
+        sizes="(max-width: 768px) 100vw, 800px"
       />
     </div>
     <Badge variant={'secondary'} className="text-[10px] uppercase tracking-wider font-bold mb-2">
