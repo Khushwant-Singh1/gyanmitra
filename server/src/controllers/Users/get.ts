@@ -257,127 +257,152 @@ export const getCurrentUserSession = AsyncHandler(
 
 export const getDashboardContent = AsyncHandler(
   async (req: IJwtRequest, res: Response, next: NextFunction) => {
-    const aggregationResult = await Article.aggregate([
-      {
-        $facet: {
-          topArticles: [
-            { $match: { status: ARTICLE_STATUS.Published } },
-            {
-              $lookup: {
-                from: 'article_views',
-                localField: '_id',
-                foreignField: 'articleId',
-                as: 'views',
-              },
+    const [topArticles, recentArticles, recentComments, recentUsers, totalViews] =
+      await Promise.all([
+        // Top 5 published articles ranked by view count (grouped by articleId from ArticleView)
+        ArticleView.aggregate([
+          {
+            $group: {
+              _id: '$articleId',
+              views: { $sum: 1 },
             },
-            { $addFields: { views: { $size: '$views' } } },
-            { $sort: { views: -1 } },
-            { $limit: 5 },
-            ...getMediaLookupPipeline,
-            {
-              $lookup: {
-                from: 'article_views',
-                localField: '_id',
-                foreignField: 'articleId',
-                as: 'views',
-              },
+          },
+          { $sort: { views: -1 } },
+          { $limit: 20 },
+          {
+            $lookup: {
+              from: 'articles',
+              localField: '_id',
+              foreignField: '_id',
+              as: 'article',
             },
-            {
-              $project: {
-                _id: 1,
-                headline: 1,
-                views: { $size: '$views' },
-                published: '$lastPublishedDate',
-                featuredMedia: {
-                  fileUrl: '$featuredMedia.fileUrl',
-                  fileType: '$featuredMedia.fileType',
-                  name: '$featuredMedia.name',
-                  thumbnail: {
-                    $ifNull: ['$thumbnailMedia.fileUrl', null],
-                  },
+          },
+          { $unwind: '$article' },
+          { $match: { 'article.status': ARTICLE_STATUS.Published } },
+          { $limit: 5 },
+          {
+            $lookup: {
+              from: 'mediafiles',
+              localField: 'article.featuredMediaId',
+              foreignField: '_id',
+              as: 'featuredMedia',
+            },
+          },
+          {
+            $unwind: {
+              path: '$featuredMedia',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $lookup: {
+              from: 'mediafiles',
+              localField: 'featuredMedia.thumbnail',
+              foreignField: '_id',
+              as: 'thumbnailMedia',
+            },
+          },
+          {
+            $unwind: {
+              path: '$thumbnailMedia',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $project: {
+              _id: '$article._id',
+              headline: '$article.headline',
+              views: 1,
+              published: '$article.lastPublishedDate',
+              featuredMedia: {
+                fileUrl: '$featuredMedia.fileUrl',
+                fileType: '$featuredMedia.fileType',
+                name: '$featuredMedia.name',
+                thumbnail: {
+                  $ifNull: ['$thumbnailMedia.fileUrl', null],
                 },
               },
             },
-          ],
-          recentArticles: [
-            { $match: { status: ARTICLE_STATUS.Published } },
-            { $sort: { lastPublishedDate: -1 } },
-            { $limit: 5 },
-            {
-              $lookup: {
-                from: 'users',
-                localField: 'authorId',
-                foreignField: '_id',
-                as: 'authorDetails',
-              },
+          },
+        ]),
+
+        // 5 most recently published articles
+        Article.aggregate([
+          { $match: { status: ARTICLE_STATUS.Published } },
+          { $sort: { lastPublishedDate: -1 } },
+          { $limit: 5 },
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'authorId',
+              foreignField: '_id',
+              as: 'authorDetails',
             },
-            ...getMediaLookupPipeline,
-            { $unwind: '$authorDetails' },
-            {
-              $project: {
-                _id: 1,
-                headline: 1,
-                firstName: '$authorDetails.firstName',
-                lastName: '$authorDetails.lastName',
-                published: '$lastPublishedDate',
-                featuredMedia: {
-                  fileUrl: '$featuredMedia.fileUrl',
-                  fileType: '$featuredMedia.fileType',
-                  name: '$featuredMedia.name',
-                  thumbnail: {
-                    $ifNull: ['$thumbnailMedia.fileUrl', null],
-                  },
+          },
+          ...getMediaLookupPipeline,
+          { $unwind: '$authorDetails' },
+          {
+            $project: {
+              _id: 1,
+              headline: 1,
+              firstName: '$authorDetails.firstName',
+              lastName: '$authorDetails.lastName',
+              published: '$lastPublishedDate',
+              featuredMedia: {
+                fileUrl: '$featuredMedia.fileUrl',
+                fileType: '$featuredMedia.fileType',
+                name: '$featuredMedia.name',
+                thumbnail: {
+                  $ifNull: ['$thumbnailMedia.fileUrl', null],
                 },
               },
             },
-          ],
-        },
-      },
-    ]);
+          },
+        ]),
 
-    // Aggregate recent comments (adjust the limit here)
-    const recentComments = await Comment.aggregate([
-      { $sort: { createdAt: -1 } },
-      { $limit: 6 },
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'userId',
-          foreignField: '_id',
-          as: 'userDetails',
-        },
-      },
-      {
-        $unwind: '$userDetails',
-      },
-      {
-        $project: {
-          _id: 1,
-          message: 1,
-          createdAt: 1,
-          firstName: '$userDetails.firstName', // Access firstName directly
-          lastName: '$userDetails.lastName', // Access lastName directly
-        },
-      },
-    ]);
+        // Recent comments
+        Comment.aggregate([
+          { $sort: { createdAt: -1 } },
+          { $limit: 6 },
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'userId',
+              foreignField: '_id',
+              as: 'userDetails',
+            },
+          },
+          { $unwind: '$userDetails' },
+          {
+            $project: {
+              _id: 1,
+              message: 1,
+              createdAt: 1,
+              firstName: '$userDetails.firstName',
+              lastName: '$userDetails.lastName',
+            },
+          },
+        ]),
 
-    const recentUsers = await User.aggregate([
-      { $sort: { createdAt: -1 } },
-      { $limit: 5 },
-      {
-        $project: {
-          _id: 1,
-          firstName: '$firstName',
-          lastName: '$lastName',
-          createdAt: 1,
-          role: 1,
-          email: 1,
-        },
-      },
-    ]);
-    const totalViews = await ArticleView.countDocuments();
-    const topArticles = aggregationResult[0].topArticles;
-    const recentArticles = aggregationResult[0].recentArticles;
+        // Recent users
+        User.aggregate([
+          { $sort: { createdAt: -1 } },
+          { $limit: 5 },
+          {
+            $project: {
+              _id: 1,
+              firstName: '$firstName',
+              lastName: '$lastName',
+              createdAt: 1,
+              role: 1,
+              email: 1,
+            },
+          },
+        ]),
+
+        // Total views count
+        ArticleView.countDocuments(),
+      ]);
 
     return res.status(200).json(
       new ApiResponse(200, {

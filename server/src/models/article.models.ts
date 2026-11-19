@@ -181,6 +181,7 @@ ArticleSchema.index({
 
 // Compound Index for high-performance scheduled article queries
 ArticleSchema.index({ status: 1, scheduledPublishDate: 1 });
+ArticleSchema.index({ status: 1, lastPublishedDate: -1 });
 
 ArticleSchema.pre<IArticle>('save', function (next) {
   if (!this.slug) {

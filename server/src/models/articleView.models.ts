@@ -13,6 +13,7 @@ const articleViewSchema = new Schema<IArticleView>(
       type: Schema.Types.ObjectId,
       ref: MODELS.Article,
       required: true,
+      index: true,
     },
     userId: {
       type: Schema.Types.ObjectId,
