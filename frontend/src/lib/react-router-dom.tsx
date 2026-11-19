@@ -97,15 +97,17 @@ export interface LinkProps
   extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> {
   to: string;
   replace?: boolean;
+  prefetch?: boolean;
 }
 
 export const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(
-  ({ to, replace, children, className, ...props }, ref) => {
+  ({ to, replace, prefetch = false, children, className, ...props }, ref) => {
     return (
       <NextLink
         ref={ref}
         href={to}
         replace={replace}
+        prefetch={prefetch}
         className={className}
         {...props}
       >
@@ -121,7 +123,7 @@ export interface NavLinkProps extends Omit<LinkProps, 'className'> {
 }
 
 export const NavLink = React.forwardRef<HTMLAnchorElement, NavLinkProps>(
-  ({ to, replace, children, className, ...props }, ref) => {
+  ({ to, replace, prefetch = false, children, className, ...props }, ref) => {
     const pathname = useNextPathname();
     const isActive = pathname === to || (to !== '/' && pathname.startsWith(to));
 
@@ -135,6 +137,7 @@ export const NavLink = React.forwardRef<HTMLAnchorElement, NavLinkProps>(
         ref={ref}
         href={to}
         replace={replace}
+        prefetch={prefetch}
         className={computedClassName}
         {...props}
       >

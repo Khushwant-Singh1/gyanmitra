@@ -144,6 +144,8 @@ export const FeaturedMedia: React.FC<{
       className={`${className} skelton`}
       loading={priority ? 'eager' : 'lazy'}
       priority={priority}
+      fetchPriority={priority ? 'high' : 'low'}
+      decoding="async"
       width={width}
       height={height}
       sizes={

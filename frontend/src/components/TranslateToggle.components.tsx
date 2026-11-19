@@ -1,22 +1,18 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Globe } from 'lucide-react';
 
 export const TranslateToggle: React.FC = () => {
-  useEffect(() => {
-    const loadTranslate = () => {
-      if (document.getElementById('google-translate-script')) return;
+  const [isActivated, setIsActivated] = useState(false);
 
-      const addScript = document.createElement('script');
-      addScript.id = 'google-translate-script';
-      addScript.setAttribute(
-        'src',
-        '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit'
-      );
-      document.body.appendChild(addScript);
+  const loadTranslate = useCallback(() => {
+    setIsActivated(true);
+    if (typeof window === 'undefined') return;
+    if (document.getElementById('google-translate-script')) return;
 
-      window.googleTranslateElementInit = () => {
+    window.googleTranslateElementInit = () => {
+      if (window.google?.translate?.TranslateElement) {
         new window.google.translate.TranslateElement(
           {
             pageLanguage: 'hi',
@@ -26,28 +22,38 @@ export const TranslateToggle: React.FC = () => {
           },
           'google_translate_element'
         );
-      };
+      }
     };
 
-    if (typeof window !== 'undefined') {
-      if ('requestIdleCallback' in window) {
-        const handle = (window as unknown as { requestIdleCallback: (cb: () => void, opts: { timeout: number }) => number }).requestIdleCallback(loadTranslate, { timeout: 3500 });
-        return () => {
-          if ('cancelIdleCallback' in window) {
-            (window as unknown as { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(handle);
-          }
-        };
-      } else {
-        const timer = setTimeout(loadTranslate, 2000);
-        return () => clearTimeout(timer);
-      }
-    }
+    const addScript = document.createElement('script');
+    addScript.id = 'google-translate-script';
+    addScript.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+    document.body.appendChild(addScript);
   }, []);
 
+  useEffect(() => {
+    if (isActivated) {
+      loadTranslate();
+    }
+  }, [isActivated, loadTranslate]);
+
   return (
-    <div className="flex items-center gap-2" suppressHydrationWarning>
-      <Globe className="h-4 w-4 text-zinc-500" />
-      <div id="google_translate_element" className="translate-widget-container" suppressHydrationWarning></div>
+    <div
+      className="flex items-center gap-1.5 cursor-pointer py-0.5 px-1.5 rounded border border-zinc-200 bg-white hover:bg-zinc-50 transition-colors"
+      onPointerEnter={loadTranslate}
+      onClick={loadTranslate}
+      onTouchStart={loadTranslate}
+      title="Translate / भाषा बदलें"
+      suppressHydrationWarning
+    >
+      <Globe className="h-4 w-4 text-zinc-500 shrink-0" />
+      <div id="google_translate_element" className="translate-widget-container" suppressHydrationWarning>
+        {!isActivated && (
+          <span className="text-[11px] font-semibold text-zinc-600 select-none">
+            English / हिंदी
+          </span>
+        )}
+      </div>
       <style>
         {`
           /* Hide Google Translate top banner */

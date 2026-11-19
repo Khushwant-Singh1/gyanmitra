@@ -98,6 +98,7 @@ const Home: React.FC<HomeProps> = ({ initialHomeData }) => {
     initialData: initialHomeData
       ? { success: true, statusCode: 200, data: initialHomeData }
       : undefined,
+    initialDataUpdatedAt: Date.now(),
     staleTime: 5 * 60 * 1000,
   });
 

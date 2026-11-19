@@ -70,6 +70,7 @@ const ArticleList: React.FC<ArticleListProps> = ({ articles }) => {
                   url={article.featuredMedia.url}
                   width={600}
                   height={338}
+                  sizes="(max-width: 768px) 100vw, 400px"
                 />
                 <div className="absolute top-3 left-3">
                   <Badge className="bg-[#e98571] text-white text-[8px] font-black uppercase border-none rounded-sm px-2 py-0.5">
@@ -135,6 +136,9 @@ const ArticleList: React.FC<ArticleListProps> = ({ articles }) => {
                       playable={false}
                       thumbnail={article.featuredMedia.thumbnail}
                       url={article.featuredMedia.url}
+                      width={160}
+                      height={160}
+                      sizes="(max-width: 768px) 25vw, 120px"
                     />
                   </div>
                   <div className="flex flex-col gap-1">

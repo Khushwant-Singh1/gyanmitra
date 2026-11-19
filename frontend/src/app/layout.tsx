@@ -20,7 +20,7 @@ const notoSansDevanagari = Noto_Sans_Devanagari({
   subsets: ['devanagari'],
   variable: '--font-devanagari',
   display: 'swap',
-  weight: ['400', '500', '600', '700', '800', '900'],
+  weight: ['400', '600', '700'],
 });
 
 export const metadata: Metadata = {
@@ -50,6 +50,8 @@ export default function RootLayout({
   return (
     <html lang="hi" className={`${inter.variable} ${notoSansDevanagari.variable}`} suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://api.gyanmitranews.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://api.gyanmitranews.com" />
         <link
           rel="ard"
           href="https://gyanmitranews.com/.well-known/ard.json"
