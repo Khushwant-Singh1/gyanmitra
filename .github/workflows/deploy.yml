@@ -103,15 +103,14 @@ jobs:
 
             # Normalize legacy compose values that can break pulls on VPS
             sed -i '/^version:[[:space:]]*/d' docker-compose.yml
-            sed -i 's|quay.io/minio/minio:latest|minio/minio:latest|g' docker-compose.yml
 
             # Log in to GHCR on the VPS if credentials exist
             if [ -n "$GHCR_TOKEN" ] && [ -n "$GHCR_USERNAME" ]; then
               echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin || true
             fi
 
-            # Pull the prebuilt Docker images from GHCR
-            docker compose pull
+            # Pull the prebuilt app Docker images from GHCR
+            docker compose pull server frontend
 
             # Drop stray containers from older deploys still holding our published ports
             docker ps -q --filter publish=8000 --filter publish=3000 --filter publish=8080 | xargs -r docker rm -f
