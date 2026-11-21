@@ -4,7 +4,7 @@ import CompetitionHub from '@/views/CompetitionHub.page';
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: 'Competitions & Quizzes - Gyanmitra',
+  title: 'Competitions & Quizzes',
   description:
     'ज्ञानमित्र प्रतियोगिता हब - निबंध, पेंटिंग, क्विज़ और विभिन्न प्रतियोगिताओं में भाग लें और पुरस्कार जीतें।',
 };

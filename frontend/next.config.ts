@@ -65,6 +65,14 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: '/ads.txt',
+        headers: [
+          { key: 'Content-Type', value: 'text/plain; charset=UTF-8' },
+          { key: 'Cache-Control', value: 'public, max-age=3600, stale-while-revalidate=86400' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+        ],
+      },
+      {
         source: '/.well-known/ard.json',
         headers: [
           { key: 'Access-Control-Allow-Origin', value: '*' },

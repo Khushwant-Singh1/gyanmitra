@@ -113,7 +113,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const canonical = `${baseURL}/categories/${encodeURIComponent(canonicalSlug)}`;
 
   return {
-    title: `${displayName} - ताज़ा हिंदी समाचार | Gyanmitra`,
+    title: `${displayName} - ताज़ा हिंदी समाचार`,
     description: `पढ़ें ${displayName} की ताज़ा और मुख्य खबरें, ब्रेकिंग न्यूज़ और विशेष कवरेज ज्ञानमित्र न्यूज़ पर।`,
     alternates: { canonical },
     openGraph: {

@@ -552,17 +552,42 @@ export const getActiveSubcategories = AsyncHandler(
 
 export const getActiveCategories = AsyncHandler(
   async (req: Request, res: Response) => {
+    // 1. Get all category IDs that have published articles
+    const publishedCategoryIds = await Article.distinct('categoryId', {
+      status: ARTICLE_STATUS.Published,
+    });
+
+    // 2. Also find parents of subcategories with published articles
+    const subcatsWithArticles = await Category.find({
+      _id: { $in: publishedCategoryIds },
+      parentId: { $ne: null },
+    }).select('parentId');
+
+    const parentIds = subcatsWithArticles
+      .map((s) => s.parentId?.toString())
+      .filter(Boolean);
+
+    const validCategoryIds = new Set([
+      ...publishedCategoryIds.map((id) => id?.toString()),
+      ...parentIds,
+    ]);
+
     const category = await Category.aggregate([
       {
         $match: {
           isActive: true,
-          parentId: { $in: [null, undefined] }
-        }
+          parentId: { $in: [null, undefined] },
+        },
       },
       { $sort: { index: 1 } },
-      { $project: { name: 1 } }
+      { $project: { name: 1 } },
     ]);
 
-    return res.status(200).send(new ApiResponse(200, category));
+    // Only return categories that have at least 1 published article
+    const filteredCategories = category.filter((c) =>
+      validCategoryIds.has(c._id.toString())
+    );
+
+    return res.status(200).send(new ApiResponse(200, filteredCategories));
   }
 );

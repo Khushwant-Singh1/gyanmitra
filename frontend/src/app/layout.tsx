@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Inter, Noto_Sans_Devanagari } from 'next/font/google';
-import Script from 'next/script';
 import { Providers } from './providers';
 import { ClientAnalyticsTracker } from '@/components/ClientAnalyticsTracker';
 import { Suspense } from 'react';
@@ -40,6 +39,9 @@ export const metadata: Metadata = {
     apple: '/apple-touch-icon.png',
   },
   manifest: '/site.webmanifest',
+  other: {
+    'google-adsense-account': 'ca-pub-1463940399847759',
+  },
 };
 
 export default function RootLayout({
@@ -69,14 +71,13 @@ export default function RootLayout({
           href="https://gyanmitranews.com/llms.md"
           title="LLM Guide"
         />
-      </head>
-      <body className="antialiased" suppressHydrationWarning>
-        <Script
-          id="google-adsense"
-          strategy="lazyOnload"
+        <script
+          async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1463940399847759"
           crossOrigin="anonymous"
         />
+      </head>
+      <body className="antialiased" suppressHydrationWarning>
         <Providers>
           <Suspense fallback={null}>
             <ClientAnalyticsTracker />

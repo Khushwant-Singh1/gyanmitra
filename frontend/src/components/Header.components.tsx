@@ -123,10 +123,22 @@ const Header: React.FC = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const activeCategories = categoriesResponse?.data || [];
+  const EMPTY_CATEGORY_NAMES = new Set([
+    'राजस्थान',
+    'हरियाणा',
+    'पंजाब',
+    'मध्य प्रदेश',
+    'बिहार',
+    'झारखंड',
+    'छत्तीसगढ़',
+    'हेल्थ',
+  ]);
+
+  const activeCategories = (categoriesResponse?.data || []).filter(
+    (c) => !EMPTY_CATEGORY_NAMES.has(c.name?.trim())
+  );
 
   const NAV_LINKS: { name: string; url: string }[] = [
-    { name: 'Competition', url: '/competitions' },
     { name: 'Home', url: '/' },
     ...activeCategories.map((val) => ({
       name: val.name,
@@ -252,9 +264,9 @@ const Header: React.FC = () => {
           <span className="text-[10px]">Home</span>
         </NavLink>
 
-        <NavLink to="/competitions" className={({ isActive }) => cn("flex flex-col items-center justify-center min-h-[48px] py-1 gap-1 min-w-[60px]", isActive ? "text-secondary font-bold" : "text-muted-foreground")}>
-          <FontAwesomeIcon icon={faShapes} className="text-xl" />
-          <span className="text-[10px]">Competition</span>
+        <NavLink to="/search" className={({ isActive }) => cn("flex flex-col items-center justify-center min-h-[48px] py-1 gap-1 min-w-[60px]", isActive ? "text-secondary font-bold" : "text-muted-foreground")}>
+          <FontAwesomeIcon icon={faSearch} className="text-xl" />
+          <span className="text-[10px]">Search</span>
         </NavLink>
 
         <Sheet open={open} onOpenChange={setOpen}>
