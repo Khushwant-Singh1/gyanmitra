@@ -41,6 +41,7 @@ export const metadata: Metadata = {
   manifest: '/site.webmanifest',
   other: {
     'google-adsense-account': 'ca-pub-1463940399847759',
+    '9634d5fd744c0998f26462f57e8f6da7cd26f5ef': '9634d5fd744c0998f26462f57e8f6da7cd26f5ef',
   },
 };
 
@@ -52,6 +53,10 @@ export default function RootLayout({
   return (
     <html lang="hi" className={`${inter.variable} ${notoSansDevanagari.variable}`} suppressHydrationWarning>
       <head>
+        <meta
+          name="9634d5fd744c0998f26462f57e8f6da7cd26f5ef"
+          content="9634d5fd744c0998f26462f57e8f6da7cd26f5ef"
+        />
         <link rel="preconnect" href="https://api.gyanmitranews.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://api.gyanmitranews.com" />
         <link
