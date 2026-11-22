@@ -6,6 +6,7 @@ import { MEDIA_FILE_TYPES } from '@/constants/index.constants';
 import { DateDisplay } from '@/components/DateDisplay.components';
 import TimeAgo from '@/components/TimeAgo.components';
 import { FeaturedMedia } from './FeaturedMedia.components';
+import { isJustNow } from '@/utils/date.utils';
 
 interface CenterCardProps {
   title: string;
@@ -50,9 +51,20 @@ const CenterCard: React.FC<CenterCardProps> = ({
         sizes="(max-width: 768px) 100vw, 800px"
       />
     </div>
-    <Badge variant={'secondary'} className="text-[10px] uppercase tracking-wider font-bold mb-2">
-      {category}
-    </Badge>
+    <div className="flex flex-wrap items-center justify-center gap-2 mb-2">
+      <Badge variant={'secondary'} className="text-[10px] uppercase tracking-wider font-bold">
+        {category}
+      </Badge>
+      {isJustNow(date) && (
+        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-50 border border-red-200 text-red-600 text-[10px] font-bold">
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-600"></span>
+          </span>
+          अभी-अभी
+        </span>
+      )}
+    </div>
     <h2 className="text-slate-900 mb-2 text-center text-2xl font-bold leading-normal group-hover:text-[#e98571] transition-colors">
       {title}
     </h2>

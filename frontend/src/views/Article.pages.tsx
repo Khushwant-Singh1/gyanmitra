@@ -294,9 +294,10 @@ export const Article: React.FC<ArticleProps> = ({
   };
 
   // --- READING PROGRESS & STICKY HEADER STATE ---
+  type FontSizeScale = 'small' | 'normal' | 'large';
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showStickyHeader, setShowStickyHeader] = useState(false);
-  const [fontSize, setFontSize] = useState<'normal' | 'large' | 'xlarge'>('normal');
+  const [fontSize, setFontSize] = useState<FontSizeScale>('normal');
   const [resumePrompt, setResumePrompt] = useState<{ show: boolean; progress: number } | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
 
@@ -304,15 +305,17 @@ export const Article: React.FC<ArticleProps> = ({
   useEffect(() => {
     try {
       const saved = localStorage.getItem('gyanmitra_article_font_size');
-      if (saved === 'large' || saved === 'xlarge' || saved === 'normal') {
-        setFontSize(saved);
+      if (saved === 'small' || saved === 'normal' || saved === 'large') {
+        setFontSize(saved as FontSizeScale);
+      } else if (saved === 'xlarge') {
+        setFontSize('large');
       }
     } catch {
       // Ignore localStorage errors
     }
   }, []);
 
-  const changeFontSize = (size: 'normal' | 'large' | 'xlarge') => {
+  const changeFontSize = (size: FontSizeScale) => {
     setFontSize(size);
     try {
       localStorage.setItem('gyanmitra_article_font_size', size);
@@ -533,12 +536,22 @@ export const Article: React.FC<ArticleProps> = ({
           {/* Font Size Toggle Pill */}
           <div className="flex items-center border border-zinc-200 rounded-md p-0.5 bg-zinc-50 text-[10px] font-bold">
             <button
+              onClick={() => changeFontSize('small')}
+              className={cn(
+                "px-1.5 py-0.5 rounded transition-colors",
+                fontSize === 'small' ? "bg-white text-zinc-900 shadow-xs font-black" : "text-zinc-500 hover:text-zinc-800"
+              )}
+              title="छोटा फ़ॉन्ट (16px)"
+            >
+              A-
+            </button>
+            <button
               onClick={() => changeFontSize('normal')}
               className={cn(
                 "px-1.5 py-0.5 rounded transition-colors",
                 fontSize === 'normal' ? "bg-white text-zinc-900 shadow-xs font-black" : "text-zinc-500 hover:text-zinc-800"
               )}
-              title="सामान्य फ़ॉन्ट (Default Font Size: 16px)"
+              title="सामान्य फ़ॉन्ट (18px)"
             >
               A
             </button>
@@ -548,19 +561,9 @@ export const Article: React.FC<ArticleProps> = ({
                 "px-1.5 py-0.5 rounded transition-colors",
                 fontSize === 'large' ? "bg-white text-zinc-900 shadow-xs font-black" : "text-zinc-500 hover:text-zinc-800"
               )}
-              title="मध्यम फ़ॉन्ट (Medium Font Size: 18px)"
+              title="बड़ा फ़ॉन्ट (20px)"
             >
               A+
-            </button>
-            <button
-              onClick={() => changeFontSize('xlarge')}
-              className={cn(
-                "px-1.5 py-0.5 rounded transition-colors",
-                fontSize === 'xlarge' ? "bg-white text-zinc-900 shadow-xs font-black" : "text-zinc-500 hover:text-zinc-800"
-              )}
-              title="बड़ा फ़ॉन्ट (Large Font Size: 20px)"
-            >
-              A++
             </button>
           </div>
 
@@ -1134,16 +1137,73 @@ export const Article: React.FC<ArticleProps> = ({
               </p>
             )}
 
-            <p className="text-lg text-zinc-500 font-bold  leading-relaxed border-l-2 border-[#e98571] pl-6 py-2 bg-zinc-50">
+            {/* --- DEVANAGARI FONT SIZING PILL BAR --- */}
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-zinc-50/90 border border-zinc-200/90 rounded-md px-3.5 py-2.5 my-4 shadow-2xs">
+              <div className="flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#e98571]/15 text-[#e98571] text-xs font-black font-mono shadow-xs">
+                  Aa
+                </span>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-zinc-800 leading-tight">फ़ॉन्ट आकार (Text Size)</span>
+                  <span className="text-[10px] text-zinc-500 font-medium">सुगम पठन हेतु आकार चुनें</span>
+                </div>
+              </div>
+              <div className="inline-flex items-center bg-white border border-zinc-200 rounded-md p-0.5 shadow-2xs gap-1">
+                <button
+                  type="button"
+                  onClick={() => changeFontSize('small')}
+                  className={cn(
+                    "px-3 py-1 rounded text-xs font-bold transition-all min-h-[32px] flex items-center gap-1",
+                    fontSize === 'small'
+                      ? "bg-[#e98571] text-white shadow-xs"
+                      : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
+                  )}
+                  title="छोटा फ़ॉन्ट (16px)"
+                >
+                  <span>छोटा</span>
+                  <span className="opacity-75 text-[10px] font-mono">(16px)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => changeFontSize('normal')}
+                  className={cn(
+                    "px-3 py-1 rounded text-xs font-bold transition-all min-h-[32px] flex items-center gap-1",
+                    fontSize === 'normal'
+                      ? "bg-[#e98571] text-white shadow-xs"
+                      : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
+                  )}
+                  title="सामान्य फ़ॉन्ट (18px)"
+                >
+                  <span>सामान्य</span>
+                  <span className="opacity-75 text-[10px] font-mono">(18px)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => changeFontSize('large')}
+                  className={cn(
+                    "px-3 py-1 rounded text-xs font-bold transition-all min-h-[32px] flex items-center gap-1",
+                    fontSize === 'large'
+                      ? "bg-[#e98571] text-white shadow-xs"
+                      : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
+                  )}
+                  title="बड़ा फ़ॉन्ट (20px)"
+                >
+                  <span>बड़ा</span>
+                  <span className="opacity-75 text-[10px] font-mono">(20px)</span>
+                </button>
+              </div>
+            </div>
+
+            <p className="text-base sm:text-lg text-zinc-600 font-bold leading-[1.8] border-l-4 border-[#e98571] pl-4 sm:pl-6 py-2.5 bg-zinc-50/80 rounded-r-sm">
               {article.description}
             </p>
           </div>
 
           <div className={cn(
                  "prose prose-slate max-w-none pt-4 prose-headings:font-bold prose-strong:text-slate-900 min-w-0 max-w-full overflow-hidden break-words transition-all duration-200",
-                 fontSize === 'normal' && "prose-base prose-p:text-base prose-p:leading-[1.75] prose-p:text-slate-700",
-                 fontSize === 'large' && "prose-lg prose-p:text-[1.125rem] prose-p:leading-[1.85] prose-p:text-slate-800",
-                 fontSize === 'xlarge' && "prose-xl prose-p:text-[1.25rem] prose-p:leading-[1.95] prose-p:text-slate-800"
+                 fontSize === 'small' && "prose-base prose-p:!text-[16px] prose-p:!leading-[1.8] prose-p:text-slate-700",
+                 fontSize === 'normal' && "prose-lg prose-p:!text-[18px] prose-p:!leading-[1.85] prose-p:text-slate-800",
+                 fontSize === 'large' && "prose-xl prose-p:!text-[20px] prose-p:!leading-[1.95] prose-p:text-slate-900"
                )} 
                dangerouslySetInnerHTML={{ __html: content || '' }} 
           />

@@ -8,6 +8,7 @@ import { FeaturedMedia } from './FeaturedMedia.components';
 import { DateDisplay } from './DateDisplay.components';
 import { Clock, ArrowUpRight, Hash, ChevronRight, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { isJustNow } from '@/utils/date.utils';
 
 interface ArticleListProps {
   articles: IApiHome['mixedArticles'];
@@ -72,10 +73,16 @@ const ArticleList: React.FC<ArticleListProps> = ({ articles }) => {
                   height={338}
                   sizes="(max-width: 768px) 100vw, 400px"
                 />
-                <div className="absolute top-3 left-3">
+                <div className="absolute top-3 left-3 flex items-center gap-1.5">
                   <Badge className="bg-[#e98571] text-white text-[8px] font-black uppercase border-none rounded-sm px-2 py-0.5">
                     Latest
                   </Badge>
+                  {isJustNow(article.uploaded) && (
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-600/90 text-white text-[9px] font-bold shadow-sm backdrop-blur-xs">
+                      <span className="h-1.5 w-1.5 rounded-full bg-white animate-ping" />
+                      अभी-अभी
+                    </span>
+                  )}
                 </div>
               </div>
 

@@ -239,6 +239,19 @@ svg.svg-inline--fa {
   word-break: break-word;
 }
 
+/* Devanagari & Article Reading Comfort */
+.prose p {
+  line-height: 1.8;
+  letter-spacing: 0.01em;
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+}
+
+.prose h1, .prose h2, .prose h3, .prose h4 {
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
 .prose table {
   display: block;
   width: 100%;
