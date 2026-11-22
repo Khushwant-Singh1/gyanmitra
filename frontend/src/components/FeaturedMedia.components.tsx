@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { MEDIA_FILE_TYPES } from '@/constants/index.constants';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -88,9 +88,13 @@ export const FeaturedMedia: React.FC<{
 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [hasError, setHasError] = useState(false);
+  const [fallbackStage, setFallbackStage] = useState(0);
   const resolvedUrl = normalizeMediaUrl(url);
   const resolvedThumbnail = normalizeMediaUrl(thumbnail);
+
+  useEffect(() => {
+    setFallbackStage(0);
+  }, [resolvedUrl]);
 
   const handlePlay = () => {
     if (videoRef.current) {
@@ -132,11 +136,47 @@ export const FeaturedMedia: React.FC<{
     );
   }
 
-  if (hasError || !resolvedUrl) {
+  if (fallbackStage >= 3 || !resolvedUrl) {
     return <ImagePlaceholder name={name} className={className} />;
   }
 
   const optimizable = isOptimizable(resolvedUrl);
+
+  if (fallbackStage === 1) {
+    return (
+      <img
+        src={
+          optimizable
+            ? `/_next/image?url=${encodeURIComponent(resolvedUrl)}&w=1200&q=75`
+            : resolvedUrl
+        }
+        className={`${className} skelton`}
+        loading={priority ? 'eager' : 'lazy'}
+        decoding="async"
+        width={width}
+        height={height}
+        alt={name || 'Gyanmitra News Featured Image'}
+        title={name || 'Gyanmitra News Featured Image'}
+        onError={() => setFallbackStage(2)}
+      />
+    );
+  }
+
+  if (fallbackStage === 2) {
+    return (
+      <img
+        src={resolvedUrl}
+        className={`${className} skelton`}
+        loading={priority ? 'eager' : 'lazy'}
+        decoding="async"
+        width={width}
+        height={height}
+        alt={name || 'Gyanmitra News Featured Image'}
+        title={name || 'Gyanmitra News Featured Image'}
+        onError={() => setFallbackStage(3)}
+      />
+    );
+  }
 
   return (
     <Image
@@ -159,7 +199,11 @@ export const FeaturedMedia: React.FC<{
       alt={name || 'Gyanmitra News Featured Image'} 
       title={name || 'Gyanmitra News Featured Image'}
       unoptimized={!optimizable}
-      onError={() => setHasError(true)}
+      onError={() => {
+        // If responsive Next.js image optimization fails (e.g. mobile 404 for w=256/w=640 due to missing upstream key),
+        // try the cached master 1200px variant first.
+        setFallbackStage(1);
+      }}
     />
   );
 };

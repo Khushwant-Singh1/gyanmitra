@@ -33,7 +33,7 @@ services:
     depends_on:
       - minio
     volumes:
-      - ./uploads:/usr/src/app/uploads:z
+      - ./uploads:/app/uploads:z
     restart: unless-stopped
 
   frontend:
@@ -50,6 +50,7 @@ services:
 
 volumes:
   minio_data:
+    name: minio_data
 
 networks:
   default:
