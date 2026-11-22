@@ -86,6 +86,16 @@ export const EditArticle: React.FC = () => {
   const [isSlugEdited, setIsSlugEdited] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // --- REAL-TIME AUTOSAVE & DRAFTING STATE ---
+  type DraftStatus = 'saved_cloud' | 'saving' | 'saved_local';
+  const [draftStatus, setDraftStatus] = useState<DraftStatus>('saved_cloud');
+  const [lastCloudSaveTime, setLastCloudSaveTime] = useState<string | null>(null);
+  const [lastLocalSaveTime, setLastLocalSaveTime] = useState<string | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isRestoredFromSession, setIsRestoredFromSession] = useState(false);
+  const [editorKey, setEditorKey] = useState(0);
+  const isInitialized = React.useRef(false);
+
   // SEO Score Logic
   const getSeoIssues = () => {
     const issues = [];
@@ -115,6 +125,18 @@ export const EditArticle: React.FC = () => {
     },
     onSuccess: () => {
       toast.success('Successfully saved article with SEO settings.');
+      setHasUnsavedChanges(false);
+      setDraftStatus('saved_cloud');
+      setIsRestoredFromSession(false);
+      const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+      setLastCloudSaveTime(nowStr);
+      try {
+        if (articleId) {
+          sessionStorage.removeItem(`gyanmitra_draft_${articleId}`);
+        }
+      } catch {
+        // Ignore
+      }
       clientQuery.invalidateQueries({
         queryKey: ['articles', 'draft', articleId],
       });
@@ -163,29 +185,140 @@ export const EditArticle: React.FC = () => {
     handleInputChange('slug', value);
   };
 
-  useEffect(() => {
-    if (data?.data) {
-      setIsSlugEdited(!!data.data.slug);
-      setFormData({
-        headline: data.data.headline,
-        content: data.data.content,
-        tags: data.data.tags?.join(',') || '',
-        slug: data.data.slug || '',
-        description: data.data.description || '',
-        featuredMediaId: data.data.featuredMedia,
-        featuredMediaCaption: data.data.featuredMediaCaption || '',
-        categoryId: data.data.categoryId,
-        coAuthorIds: data.data.coAuthorIds || [],
-        // Map from API if exists, else defaults
-        metaTitle: (data.data as any).metaTitle || data.data.headline,
-        focusKeyword: (data.data as any).focusKeyword || '',
-        canonicalUrl: (data.data as any).canonicalUrl || '',
-        robotsTag: (data.data as any).robotsTag || 'INDEX, FOLLOW',
-        author: (data.data as any).author || 'Invitations',
-        scheduledPublishDate: formatDateForInput(data.data.scheduledPublishDate),
-      });
+  // Discard local session draft and revert to original server content
+  const handleDiscardLocalDraft = () => {
+    if (!data?.data || !articleId) return;
+    try {
+      sessionStorage.removeItem(`gyanmitra_draft_${articleId}`);
+    } catch {
+      // Ignore
     }
-  }, [data]);
+    const serverData = {
+      headline: data.data.headline,
+      content: data.data.content,
+      tags: data.data.tags?.join(',') || '',
+      slug: data.data.slug || '',
+      description: data.data.description || '',
+      featuredMediaId: data.data.featuredMedia,
+      featuredMediaCaption: data.data.featuredMediaCaption || '',
+      categoryId: data.data.categoryId,
+      coAuthorIds: data.data.coAuthorIds || [],
+      metaTitle: (data.data as any).metaTitle || data.data.headline,
+      focusKeyword: (data.data as any).focusKeyword || '',
+      canonicalUrl: (data.data as any).canonicalUrl || '',
+      robotsTag: (data.data as any).robotsTag || 'INDEX, FOLLOW',
+      author: (data.data as any).author || 'Invitations',
+      scheduledPublishDate: formatDateForInput(data.data.scheduledPublishDate),
+    };
+    setFormData(serverData);
+    setIsRestoredFromSession(false);
+    setHasUnsavedChanges(false);
+    setDraftStatus('saved_cloud');
+    setEditorKey((k) => k + 1);
+    toast.success('Local draft discarded. Restored original server content.');
+  };
+
+  // Initial load and sessionStorage recovery
+  useEffect(() => {
+    if (!data?.data || isInitialized.current) return;
+
+    const serverData = {
+      headline: data.data.headline,
+      content: data.data.content,
+      tags: data.data.tags?.join(',') || '',
+      slug: data.data.slug || '',
+      description: data.data.description || '',
+      featuredMediaId: data.data.featuredMedia,
+      featuredMediaCaption: data.data.featuredMediaCaption || '',
+      categoryId: data.data.categoryId,
+      coAuthorIds: data.data.coAuthorIds || [],
+      metaTitle: (data.data as any).metaTitle || data.data.headline,
+      focusKeyword: (data.data as any).focusKeyword || '',
+      canonicalUrl: (data.data as any).canonicalUrl || '',
+      robotsTag: (data.data as any).robotsTag || 'INDEX, FOLLOW',
+      author: (data.data as any).author || 'Invitations',
+      scheduledPublishDate: formatDateForInput(data.data.scheduledPublishDate),
+    };
+
+    setIsSlugEdited(!!data.data.slug);
+
+    const initialCloudTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+    setLastCloudSaveTime(initialCloudTime);
+
+    // Check for existing sessionStorage draft
+    if (articleId && mode !== 'View') {
+      try {
+        const savedDraftRaw = sessionStorage.getItem(`gyanmitra_draft_${articleId}`);
+        if (savedDraftRaw) {
+          const savedDraft = JSON.parse(savedDraftRaw);
+          const hasEdits =
+            savedDraft.headline !== serverData.headline ||
+            savedDraft.content !== serverData.content ||
+            savedDraft.description !== serverData.description ||
+            savedDraft.slug !== serverData.slug;
+
+          if (hasEdits) {
+            setFormData(savedDraft);
+            setIsRestoredFromSession(true);
+            setDraftStatus('saved_local');
+            setHasUnsavedChanges(true);
+            if (savedDraft.savedAt) {
+              const localTime = new Date(savedDraft.savedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+              setLastLocalSaveTime(localTime);
+            }
+            isInitialized.current = true;
+            setEditorKey((k) => k + 1);
+            toast.info('Restored unsaved draft from this session.');
+            return;
+          }
+        }
+      } catch {
+        // Ignore sessionStorage parse errors
+      }
+    }
+
+    setFormData(serverData);
+    setDraftStatus('saved_cloud');
+    isInitialized.current = true;
+    setEditorKey((k) => k + 1);
+  }, [data, articleId, mode]);
+
+  // Debounced Autosave to sessionStorage (2 seconds)
+  useEffect(() => {
+    if (!isInitialized.current || mode === 'View' || !articleId) return;
+
+    setDraftStatus('saving');
+    setHasUnsavedChanges(true);
+
+    const timer = setTimeout(() => {
+      try {
+        const snapshot = {
+          ...formData,
+          savedAt: Date.now(),
+        };
+        sessionStorage.setItem(`gyanmitra_draft_${articleId}`, JSON.stringify(snapshot));
+        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+        setLastLocalSaveTime(timeStr);
+        setDraftStatus('saved_local');
+      } catch (err) {
+        console.error('Failed to autosave draft to sessionStorage:', err);
+      }
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [formData, articleId, mode]);
+
+  // BeforeUnload guard to prevent accidental tab closing when unsaved changes exist
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges && mode !== 'View') {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges, mode]);
 
   if (isLoading) return <div className="flex h-screen items-center justify-center"><Spinner /></div>;
   if (error || !data) return <div className="flex h-screen items-center justify-center"><ErrorAlert message="Error loading article" /></div>;
@@ -354,8 +487,8 @@ export const EditArticle: React.FC = () => {
         {formData.canonicalUrl && <link rel="canonical" href={formData.canonicalUrl} />}
       </Helmet>
 
-      <header className="flex items-center justify-between border-b px-3 sm:px-4 py-2 bg-white sticky top-0 z-30 shrink-0">
-        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+      <header className="flex items-center justify-between border-b px-3 sm:px-4 py-2 bg-white sticky top-0 z-30 shrink-0 gap-2">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => window.history.back()} title="Back">
             <FontAwesomeIcon icon={faArrowLeft} />
           </Button>
@@ -364,6 +497,53 @@ export const EditArticle: React.FC = () => {
             <AvatarFallback>GM</AvatarFallback>
           </Avatar>
           <h1 className="font-bold text-base sm:text-lg hidden sm:block text-slate-700 truncate">Editor</h1>
+
+          {/* Non-intrusive Draft Status Indicator */}
+          <div className="flex items-center ml-1 sm:ml-2 shrink-0">
+            {draftStatus === 'saved_cloud' && (
+              <div
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs transition-all"
+                title={`Saved to cloud at ${lastCloudSaveTime || 'just now'}`}
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="hidden sm:inline">Saved to cloud</span>
+                <span className="sm:hidden">Saved</span>
+                {lastCloudSaveTime && (
+                  <span className="font-mono text-[10px] text-emerald-600/80">({lastCloudSaveTime})</span>
+                )}
+              </div>
+            )}
+
+            {draftStatus === 'saving' && (
+              <div
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/80 shadow-2xs transition-all"
+                title="Autosaving changes to local session..."
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                </span>
+                <span className="hidden sm:inline">Saving draft...</span>
+                <span className="sm:hidden">Saving...</span>
+              </div>
+            )}
+
+            {draftStatus === 'saved_local' && (
+              <div
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200/90 shadow-2xs transition-all"
+                title={`Local draft stored in sessionStorage at ${lastLocalSaveTime || 'just now'}`}
+              >
+                <span className="h-2 w-2 rounded-full bg-slate-400"></span>
+                <span className="hidden sm:inline">Local draft stored</span>
+                <span className="sm:hidden">Draft stored</span>
+                {lastLocalSaveTime && (
+                  <span className="font-mono text-[10px] text-slate-500">({lastLocalSaveTime})</span>
+                )}
+              </div>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <div className={`text-[11px] sm:text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${seoIssues.length === 0 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
@@ -406,6 +586,37 @@ export const EditArticle: React.FC = () => {
       <section className="flex flex-1 flex-col lg:flex-row h-[calc(100vh-57px)] overflow-hidden">
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col gap-4 overflow-y-auto p-4 sm:p-6 min-w-0 bg-[#fcfcfc]">
+          {/* Recovery banner if restored from sessionStorage */}
+          {isRestoredFromSession && (
+            <div className="flex items-center justify-between gap-3 bg-amber-50/90 border border-amber-200/80 text-amber-900 px-3.5 py-2.5 rounded-md text-xs font-medium shadow-2xs animate-in fade-in slide-in-from-top-1 duration-200">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                <span className="truncate">
+                  <strong>Unsaved draft recovered:</strong> Restored your latest session edits.
+                </span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2.5 text-[11px] text-amber-800 hover:text-amber-950 hover:bg-amber-100 font-bold border border-amber-300/60"
+                  onClick={handleDiscardLocalDraft}
+                >
+                  Discard &amp; Use Server Version
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => setIsRestoredFromSession(false)}
+                  className="text-amber-500 hover:text-amber-700 text-xs px-1 font-bold"
+                  aria-label="Dismiss recovery notice"
+                  title="Keep recovered draft"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-1.5">
             <Label htmlFor="headline" className="text-muted-foreground text-xs uppercase tracking-wider font-bold">
               Article Headline
@@ -421,7 +632,8 @@ export const EditArticle: React.FC = () => {
 
           <div className="flex-1 min-h-[400px] sm:min-h-[500px] rounded-md border bg-white shadow-xs overflow-hidden">
             <MdxEditorComponent
-              initialContent={data.data.content}
+              key={editorKey}
+              initialContent={formData.content}
               onChange={(newContent) => handleInputChange('content', newContent)}
             />
           </div>
