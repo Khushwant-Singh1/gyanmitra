@@ -39,16 +39,16 @@ export const Search: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col gap-5 py-5">
-      <form className="flex justify-center gap-2" onSubmit={handleSearch}>
+    <div className="max-w-[1350px] mx-auto w-full px-4 sm:px-6 flex flex-col gap-5 py-5">
+      <form className="flex w-full max-w-md mx-auto items-center gap-2" onSubmit={handleSearch}>
         <Input
           type="text"
           placeholder="Search..."
-          className="w-96"
+          className="w-full flex-1"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <Button type="submit">Search</Button>
+        <Button type="submit" className="shrink-0">Search</Button>
       </form>
       {queryParam && (
         <>

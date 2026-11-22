@@ -76,7 +76,7 @@ export const SignUp: React.FC = () => {
       <Helmet>
         <title>Sign Up - Gyanmitra</title>
       </Helmet>
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center px-4">
         <Card className="w-full max-w-[500px]">
           <CardHeader>
             <CardTitle>Create an Account</CardTitle>

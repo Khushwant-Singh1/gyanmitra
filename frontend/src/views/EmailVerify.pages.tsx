@@ -122,7 +122,7 @@ export const EmailVerify: React.FC = () => {
       <Helmet>
         <title>Verify Email - Gyanmitra</title>
       </Helmet>
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center px-4">
         <Card className="w-full max-w-[500px]">
           <CardHeader>
             <CardTitle>Verify Your Email</CardTitle>
