@@ -6,7 +6,8 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import axios from 'axios';
 import { format } from 'date-fns';
 import { 
-  Trophy, Calendar, Upload, Grid, ChevronLeft, Loader2, LayoutGrid, Mail, Phone, Info, Zap
+  Trophy, Calendar, Upload, Grid, ChevronLeft, Loader2, LayoutGrid, Mail, Phone, Info, Zap,
+  ArrowRight, ArrowLeft, FileText, CheckCircle2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,11 +15,22 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 const CompetitionDetails = () => {
   const { slug } = useParams(); 
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
+  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
+  const [formDataState, setFormDataState] = useState({
+    fullName: '',
+    schoolCollege: '',
+    classRollNo: '',
+    address: '',
+    emailId: '',
+    mobileNumber: '',
+    answer: '',
+  });
 
   // 1. Fetch Current Competition Data
   const { data: comp, isLoading } = useQuery({
@@ -61,17 +73,61 @@ const CompetitionDetails = () => {
     }
   });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleNextStep = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!formDataState.fullName.trim()) {
+      toast.error("Please enter student name");
+      return;
+    }
+    if (!formDataState.schoolCollege.trim()) {
+      toast.error("Please enter institute name");
+      return;
+    }
+    if (!formDataState.address.trim()) {
+      toast.error("Please enter complete address");
+      return;
+    }
+    setCurrentStep(2);
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!comp?._id) return toast.error("Data loading...");
-    const formData = new FormData(e.currentTarget);
-    formData.append('competitionId', comp._id);
-    if (file) {
-      formData.append('uploadFile', file); 
-    } else {
-      return toast.error("Please upload your project PDF");
+    if (!formDataState.fullName.trim() || !formDataState.schoolCollege.trim() || !formDataState.address.trim()) {
+      toast.error("Please complete student details in Step 1");
+      setCurrentStep(1);
+      return;
     }
-    registerMutation.mutate(formData);
+    if (!formDataState.mobileNumber.trim()) {
+      toast.error("Please enter mobile/WhatsApp number");
+      return;
+    }
+    if (!formDataState.emailId.trim()) {
+      toast.error("Please enter email address");
+      return;
+    }
+    if (!file) {
+      toast.error("Please upload your project PDF");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File exceeds 10MB limit. Please compress your PDF.");
+      return;
+    }
+
+    const data = new FormData();
+    data.append('competitionId', comp._id);
+    data.append('fullName', formDataState.fullName.trim());
+    data.append('schoolCollege', formDataState.schoolCollege.trim());
+    data.append('address', formDataState.address.trim());
+    data.append('emailId', formDataState.emailId.trim());
+    data.append('mobileNumber', formDataState.mobileNumber.trim());
+    const answerText = formDataState.classRollNo
+      ? `Class & Roll No: ${formDataState.classRollNo}\n\n${formDataState.answer}`.trim()
+      : formDataState.answer.trim();
+    data.append('answer', answerText);
+    data.append('uploadFile', file);
+    registerMutation.mutate(data);
   };
 
   if (isLoading) return <div className="flex h-screen items-center justify-center bg-[#fcfcfc]"><Loader2 className="animate-spin text-[#e98571]" /></div>;
@@ -161,56 +217,267 @@ const CompetitionDetails = () => {
             <div className="bg-zinc-900 rounded-2xl shadow-2xl overflow-hidden border border-zinc-800 ring-1 ring-white/5 w-full">
               <div className="h-1.5 bg-[#e98571] w-full" />
               <div className="p-6 md:p-8">
-                <div className="mb-8 space-y-1">
-                  <h2 className="text-2xl font-bold text-white capitalize">Register Entry</h2>
-                  <p className="text-[10px] text-zinc-500 font-bold capitalize">Application Form</p>
+                {/* 2-Step Progress Stepper Header */}
+                <div className="mb-6 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-xl sm:text-2xl font-bold text-white capitalize">Register Entry</h2>
+                      <p className="text-[10px] text-zinc-400 font-bold capitalize">
+                        {currentStep === 1 ? "Step 1: Student Details" : "Step 2: Submission & Contact"}
+                      </p>
+                    </div>
+                    <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700">
+                      Step {currentStep} of 2
+                    </span>
+                  </div>
+
+                  {/* 2-Step Progress Bar */}
+                  <div className="space-y-1.5">
+                    <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-[#e98571] to-orange-400 transition-all duration-300 rounded-full"
+                        style={{ width: currentStep === 1 ? '50%' : '100%' }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[10px] font-bold">
+                      <button
+                        type="button"
+                        onClick={() => setCurrentStep(1)}
+                        className={cn(
+                          "transition-colors text-left flex items-center gap-1",
+                          currentStep === 1 ? "text-[#e98571]" : "text-emerald-400 hover:underline cursor-pointer"
+                        )}
+                      >
+                        {currentStep === 2 ? "✓ 1. Student Details" : "1. Student Details"}
+                      </button>
+                      <span className={cn(currentStep === 2 ? "text-[#e98571]" : "text-zinc-500")}>
+                        2. Submission &amp; Contact
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5 w-full">
-                  <div className="space-y-1.5">
-                    <Label className="text-[10px] font-bold text-zinc-400 capitalize ml-1">Full Student Name</Label>
-                    <Input name="fullName" required className="bg-zinc-800/40 border-zinc-700 h-12 text-white text-xs font-bold capitalize focus:ring-1 focus:ring-[#e98571] w-full" placeholder="Enter Full Name" />
-                  </div>
-                  
-                  <div className="space-y-1.5">
-                    <Label className="text-[10px] font-bold text-zinc-400 capitalize ml-1">Institute Name</Label>
-                    <Input name="schoolCollege" required className="bg-zinc-800/40 border-zinc-700 h-12 text-white text-xs font-bold capitalize focus:ring-1 focus:ring-[#e98571] w-full" placeholder="School / College" />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* STEP 1: Student Details */}
+                {currentStep === 1 && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-200">
                     <div className="space-y-1.5">
-                      <Label className="text-[10px] font-bold text-zinc-400 capitalize ml-1">Email ID</Label>
-                      <Input name="emailId" type="email" required className="bg-zinc-800/40 border-zinc-700 h-12 text-white text-xs font-bold focus:ring-1 focus:ring-[#e98571] w-full" placeholder="mail@example.com" />
+                      <Label className="text-[10px] font-bold text-zinc-400 capitalize ml-1">
+                        Full Student Name <span className="text-[#e98571]">*</span>
+                      </Label>
+                      <Input
+                        name="fullName"
+                        value={formDataState.fullName}
+                        onChange={(e) => setFormDataState((prev) => ({ ...prev, fullName: e.target.value }))}
+                        required
+                        className="bg-zinc-800/40 border-zinc-700 h-12 text-white text-xs font-bold capitalize focus:ring-1 focus:ring-[#e98571] w-full"
+                        placeholder="Enter Student Full Name"
+                      />
                     </div>
+                    
                     <div className="space-y-1.5">
-                      <Label className="text-[10px] font-bold text-zinc-400 capitalize ml-1">WhatsApp No.</Label>
-                      <Input name="mobileNumber" required className="bg-zinc-800/40 border-zinc-700 h-12 text-white text-xs font-bold focus:ring-1 focus:ring-[#e98571] w-full" placeholder="Mobile" />
+                      <Label className="text-[10px] font-bold text-zinc-400 capitalize ml-1">
+                        Institute Name <span className="text-[#e98571]">*</span>
+                      </Label>
+                      <Input
+                        name="schoolCollege"
+                        value={formDataState.schoolCollege}
+                        onChange={(e) => setFormDataState((prev) => ({ ...prev, schoolCollege: e.target.value }))}
+                        required
+                        className="bg-zinc-800/40 border-zinc-700 h-12 text-white text-xs font-bold capitalize focus:ring-1 focus:ring-[#e98571] w-full"
+                        placeholder="School / College / Institute"
+                      />
                     </div>
-                  </div>
 
-                  <div className="space-y-1.5">
-                    <Label className="text-[10px] font-bold text-zinc-400 capitalize ml-1">Complete Address</Label>
-                    <Input name="address" required className="bg-zinc-800/40 border-zinc-700 h-12 text-white text-xs font-bold capitalize focus:ring-1 focus:ring-[#e98571] w-full" placeholder="City, State, Pincode" />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label className="text-[10px] font-bold text-zinc-400 capitalize ml-1">Brief</Label>
-                    <Textarea name="answer" className="bg-zinc-800/40 border-zinc-700 h-24 text-white text-[11px] font-medium resize-none focus:ring-1 focus:ring-[#e98571] w-full" placeholder="Explain your entry..." />
-                  </div>
-
-                  <div className="space-y-2 pt-2">
-                    <Label className="text-[10px] font-bold text-zinc-400 capitalize ml-1">Project (PDF)</Label>
-                    <div className="relative group border-2 border-dashed border-zinc-700 rounded-xl p-5 text-center hover:border-[#e98571] transition-all cursor-pointer bg-zinc-800/20">
-                      <input type="file" accept=".pdf" className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={(e) => setFile(e.target.files?.[0] || null)} />
-                      <Upload className="mx-auto h-5 w-5 text-zinc-600 group-hover:text-[#e98571] mb-2" />
-                      <p className="text-[9px] font-bold text-zinc-500 capitalize truncate px-2">{file ? <span className="text-emerald-400">{file.name}</span> : "Upload PDF (10MB Max)"}</p>
+                    <div className="space-y-1.5">
+                      <Label className="text-[10px] font-bold text-zinc-400 capitalize ml-1">
+                        Class &amp; Roll No. (Optional)
+                      </Label>
+                      <Input
+                        name="classRollNo"
+                        value={formDataState.classRollNo}
+                        onChange={(e) => setFormDataState((prev) => ({ ...prev, classRollNo: e.target.value }))}
+                        className="bg-zinc-800/40 border-zinc-700 h-12 text-white text-xs font-bold focus:ring-1 focus:ring-[#e98571] w-full"
+                        placeholder="e.g. Class 12-B / Roll 42"
+                      />
                     </div>
-                  </div>
 
-                  <Button type="submit" disabled={registerMutation.isPending} className="w-full bg-[#e98571] hover:bg-white hover:text-black text-white font-bold h-14 mt-4 text-[11px] capitalize shadow-xl active:scale-95 transition-all rounded-xl">
-                    {registerMutation.isPending ? <Loader2 className="animate-spin h-5 w-5" /> : "Verify & Submit Entry"}
-                  </Button>
-                </form>
+                    <div className="space-y-1.5">
+                      <Label className="text-[10px] font-bold text-zinc-400 capitalize ml-1">
+                        Complete Address <span className="text-[#e98571]">*</span>
+                      </Label>
+                      <Input
+                        name="address"
+                        value={formDataState.address}
+                        onChange={(e) => setFormDataState((prev) => ({ ...prev, address: e.target.value }))}
+                        required
+                        className="bg-zinc-800/40 border-zinc-700 h-12 text-white text-xs font-bold capitalize focus:ring-1 focus:ring-[#e98571] w-full"
+                        placeholder="City, District, State, Pincode"
+                      />
+                    </div>
+
+                    <Button
+                      type="button"
+                      onClick={handleNextStep}
+                      className="w-full bg-[#e98571] hover:bg-[#d87460] text-white font-bold h-13 mt-4 text-xs capitalize shadow-xl active:scale-[0.99] transition-all rounded-xl flex items-center justify-center gap-2"
+                    >
+                      <span>Continue to Step 2: Submission</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+
+                {/* STEP 2: Submission & Contact */}
+                {currentStep === 2 && (
+                  <form onSubmit={handleFormSubmit} className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-200">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div className="space-y-1.5">
+                        <Label className="text-[10px] font-bold text-zinc-400 capitalize ml-1">
+                          WhatsApp No. <span className="text-[#e98571]">*</span>
+                        </Label>
+                        <Input
+                          name="mobileNumber"
+                          type="tel"
+                          value={formDataState.mobileNumber}
+                          onChange={(e) => setFormDataState((prev) => ({ ...prev, mobileNumber: e.target.value }))}
+                          required
+                          className="bg-zinc-800/40 border-zinc-700 h-12 text-white text-xs font-bold focus:ring-1 focus:ring-[#e98571] w-full"
+                          placeholder="10-digit Mobile"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-[10px] font-bold text-zinc-400 capitalize ml-1">
+                          Email ID <span className="text-[#e98571]">*</span>
+                        </Label>
+                        <Input
+                          name="emailId"
+                          type="email"
+                          value={formDataState.emailId}
+                          onChange={(e) => setFormDataState((prev) => ({ ...prev, emailId: e.target.value }))}
+                          required
+                          className="bg-zinc-800/40 border-zinc-700 h-12 text-white text-xs font-bold focus:ring-1 focus:ring-[#e98571] w-full"
+                          placeholder="mail@example.com"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-[10px] font-bold text-zinc-400 capitalize ml-1">
+                        Brief Explanation of Entry (Optional)
+                      </Label>
+                      <Textarea
+                        name="answer"
+                        value={formDataState.answer}
+                        onChange={(e) => setFormDataState((prev) => ({ ...prev, answer: e.target.value }))}
+                        className="bg-zinc-800/40 border-zinc-700 h-20 text-white text-[11px] font-medium resize-none focus:ring-1 focus:ring-[#e98571] w-full"
+                        placeholder="Explain your project/solution in brief..."
+                      />
+                    </div>
+
+                    {/* PDF Upload with Live File Size Meter */}
+                    <div className="space-y-2 pt-1">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-[10px] font-bold text-zinc-400 capitalize ml-1">
+                          Project Submission (PDF) <span className="text-[#e98571]">*</span>
+                        </Label>
+                        <span className="text-[9px] text-zinc-500 font-mono">Max: 10 MB</span>
+                      </div>
+
+                      {file ? (
+                        <div className="bg-zinc-800/60 border border-zinc-700/80 rounded-xl p-3.5 space-y-2.5">
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <FileText className="h-4 w-4 text-[#e98571] shrink-0" />
+                              <span className="font-bold text-white truncate text-xs">{file.name}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setFile(null)}
+                              className="text-zinc-400 hover:text-red-400 text-xs px-1 font-bold cursor-pointer"
+                              title="Remove PDF"
+                            >
+                              ✕
+                            </button>
+                          </div>
+
+                          {/* File Size Meter */}
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-[10px] font-mono">
+                              <span className={file.size > 10 * 1024 * 1024 ? "text-red-400 font-bold" : "text-zinc-300"}>
+                                {(file.size / (1024 * 1024)).toFixed(2)} MB / 10.0 MB
+                              </span>
+                              <span className={file.size > 10 * 1024 * 1024 ? "text-red-400 font-bold" : "text-emerald-400 font-bold"}>
+                                {file.size > 10 * 1024 * 1024
+                                  ? "Exceeds 10MB limit!"
+                                  : `${Math.round((file.size / (10 * 1024 * 1024)) * 100)}% of limit`}
+                              </span>
+                            </div>
+                            <div className="h-1.5 w-full bg-zinc-700/60 rounded-full overflow-hidden">
+                              <div
+                                className={cn(
+                                  "h-full transition-all duration-300 rounded-full",
+                                  file.size > 10 * 1024 * 1024 ? "bg-red-500" : "bg-emerald-500"
+                                )}
+                                style={{ width: `${Math.min(100, (file.size / (10 * 1024 * 1024)) * 100)}%` }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="relative group border-2 border-dashed border-zinc-700 rounded-xl p-5 text-center hover:border-[#e98571] transition-all cursor-pointer bg-zinc-800/20">
+                          <input
+                            type="file"
+                            accept=".pdf,application/pdf"
+                            className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f) {
+                                if (f.type !== 'application/pdf' && !f.name.toLowerCase().endsWith('.pdf')) {
+                                  toast.error("Please upload a PDF file only");
+                                  return;
+                                }
+                                if (f.size > 10 * 1024 * 1024) {
+                                  toast.error("File size exceeds 10MB limit. Please compress your PDF.");
+                                  return;
+                                }
+                                setFile(f);
+                              }
+                            }}
+                          />
+                          <Upload className="mx-auto h-5 w-5 text-zinc-500 group-hover:text-[#e98571] mb-2" />
+                          <p className="text-xs font-bold text-zinc-300">Click or Drag &amp; Drop Project PDF</p>
+                          <p className="text-[10px] text-zinc-500 mt-0.5">PDF format only • Max file size 10MB</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Stepper Navigation CTAs */}
+                    <div className="flex items-center gap-3 pt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setCurrentStep(1)}
+                        className="w-1/3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700 h-13 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5"
+                      >
+                        <ArrowLeft className="h-3.5 w-3.5" />
+                        <span>Back</span>
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={registerMutation.isPending || !file}
+                        className="w-2/3 bg-[#e98571] hover:bg-white hover:text-black text-white font-bold h-13 text-xs capitalize shadow-xl active:scale-[0.99] transition-all rounded-xl"
+                      >
+                        {registerMutation.isPending ? (
+                          <div className="flex items-center gap-2">
+                            <Loader2 className="animate-spin h-4 w-4" />
+                            <span>Submitting...</span>
+                          </div>
+                        ) : (
+                          "Verify & Submit Entry"
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                )}
               </div>
             </div>
           </aside>
