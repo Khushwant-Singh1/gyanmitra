@@ -29,6 +29,21 @@ interface CategorySectionDef {
   aliases: string[];
 }
 
+type HomeArticleItem = {
+  _id: string;
+  headline: string;
+  slug: string;
+  category: string;
+  uploaded: Date;
+  description?: string;
+  featuredMedia: {
+    url: string;
+    fileType: MEDIA_FILE_TYPES;
+    thumbnail?: string;
+    name: string;
+  };
+};
+
 // 1. Top News, 2. Sambhal, 3. Moradabad, 4. Amroha, 5. Rampur, 6. Pradesh, 7. Desh, 8. Duniya
 const PRIMARY_SECTIONS: CategorySectionDef[] = [
   {
@@ -136,7 +151,7 @@ const Home: React.FC<HomeProps> = ({ initialHomeData }) => {
   };
 
   // Photo-Lead Big Card (Featured editorial lead for Top News)
-  const renderPhotoLeadCard = (article: IApiHome['mixedArticles'][0], priority = false) => (
+  const renderPhotoLeadCard = (article: HomeArticleItem, priority = false) => (
     <Link
       to={`/articles/${article.slug}`}
       key={article.slug}
@@ -190,7 +205,7 @@ const Home: React.FC<HomeProps> = ({ initialHomeData }) => {
   );
 
   // Compact 3-Item Bullet Feed for quick updates
-  const renderBulletFeed = (feedArticles: IApiHome['mixedArticles']) => (
+  const renderBulletFeed = (feedArticles: HomeArticleItem[]) => (
     <div className="bg-slate-50/80 border border-slate-200/80 rounded-md p-4 sm:p-5 flex flex-col justify-between shadow-2xs h-full">
       <div>
         <div className="flex items-center justify-between pb-3 mb-2 border-b border-slate-200">
@@ -242,7 +257,7 @@ const Home: React.FC<HomeProps> = ({ initialHomeData }) => {
   );
 
   // Video Spotlight Card (Dark luxury card with play overlay)
-  const renderVideoSpotlightCard = (article: IApiHome['mixedArticles'][0]) => (
+  const renderVideoSpotlightCard = (article: HomeArticleItem) => (
     <Link
       to={`/articles/${article.slug}`}
       key={article.slug}
@@ -288,7 +303,7 @@ const Home: React.FC<HomeProps> = ({ initialHomeData }) => {
   );
 
   // District Lead Card (Top-image card for alternating rhythm)
-  const renderDistrictLeadCard = (article: IApiHome['mixedArticles'][0]) => (
+  const renderDistrictLeadCard = (article: HomeArticleItem) => (
     <Link
       to={`/articles/${article.slug}`}
       key={article.slug}
