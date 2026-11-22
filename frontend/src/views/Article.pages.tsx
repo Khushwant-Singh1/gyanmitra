@@ -825,65 +825,6 @@ export const Article: React.FC<ArticleProps> = ({
                dangerouslySetInnerHTML={{ __html: content || '' }} 
           />
 
-          {/* --- INLINE SHARE THIS STORY CALLOUT --- */}
-          <div className="my-8 rounded-sm border border-zinc-200 bg-gradient-to-r from-zinc-50 via-[#fdf7f6] to-zinc-50 p-4 sm:p-5 shadow-xs">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="space-y-1">
-                <span className="text-[9px] font-black uppercase tracking-widest text-[#e98571] flex items-center gap-1.5">
-                  <FontAwesomeIcon icon={faShareNodes} className="h-2.5 w-2.5" /> Share This Story
-                </span>
-                <h4 className="text-sm font-bold text-zinc-900 leading-snug">
-                  Found this article informative? Share it with your friends & network.
-                </h4>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  variant={copied ? 'default' : 'outline'}
-                  size="sm"
-                  className={cn(
-                    "rounded-none min-h-[44px] h-11 sm:h-9 sm:min-h-[36px] gap-1.5 px-3.5 text-xs font-bold transition-all shadow-xs",
-                    copied
-                      ? "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600"
-                      : "bg-white border-zinc-200 hover:bg-zinc-100 text-zinc-800"
-                  )}
-                  onClick={handleCopyLink}
-                >
-                  {copied ? (
-                    <>
-                      <FontAwesomeIcon icon={faCheck} className="h-3 w-3" /> Copied Article Link!
-                    </>
-                  ) : (
-                    <>
-                      <FontAwesomeIcon icon={faLink} className="h-3 w-3 text-[#e98571]" /> Copy Article Link
-                    </>
-                  )}
-                </Button>
-                <a
-                  href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
-                  target="_blank"
-                  className={cn(
-                    buttonVariants({ variant: 'outline', size: 'sm' }),
-                    "rounded-none min-h-[44px] h-11 sm:h-9 sm:min-h-[36px] gap-1.5 px-3.5 text-xs bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] border-[#25D366]/30 font-bold"
-                  )}
-                  rel="noopener noreferrer"
-                >
-                  <FontAwesomeIcon icon={faWhatsapp} className="h-3.5 w-3.5 text-[#25D366]" /> WhatsApp
-                </a>
-                <a
-                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(article.headline)}&url=${encodeURIComponent(shareUrl)}`}
-                  target="_blank"
-                  className={cn(
-                    buttonVariants({ variant: 'outline', size: 'sm' }),
-                    "rounded-none min-h-[44px] h-11 sm:h-9 sm:min-h-[36px] gap-1.5 px-3.5 text-xs bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border-zinc-200 font-bold"
-                  )}
-                  rel="noopener noreferrer"
-                >
-                  <FontAwesomeIcon icon={faXTwitter} className="h-3 w-3" /> Post
-                </a>
-              </div>
-            </div>
-          </div>
-
           {/* --- EDITORIAL CREDITS & AUTHORSHIP SECTION --- */}
           <div className="my-8 rounded-sm border border-zinc-200 bg-zinc-50/70 p-5 sm:p-6 shadow-xs">
             <div className="flex items-center justify-between pb-3 mb-4 border-b border-zinc-200">
