@@ -258,7 +258,7 @@ const Header: React.FC = () => {
       </div>
 
       {/* MOBILE BOTTOM NAVIGATION */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 flex h-16 w-full items-center justify-around border-t bg-white md:hidden shadow-[0_-2px_15px_rgba(0,0,0,0.1)]">
+      <div className="fixed bottom-0 left-0 right-0 z-50 flex h-[calc(4rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] w-full items-center justify-around border-t bg-white/95 backdrop-blur-md md:hidden shadow-[0_-2px_15px_rgba(0,0,0,0.08)]">
         <NavLink to="/" className={({ isActive }) => cn("flex flex-col items-center justify-center min-h-[48px] py-1 gap-1 min-w-[60px]", isActive ? "text-secondary font-bold" : "text-muted-foreground")}>
           <FontAwesomeIcon icon={faHome} className="text-xl" />
           <span className="text-[10px]">Home</span>
@@ -274,7 +274,7 @@ const Header: React.FC = () => {
             <FontAwesomeIcon icon={faBars} className="text-xl" />
             <span className="text-[10px]">Menu</span>
           </SheetTrigger>
-          <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl p-6 flex flex-col">
+          <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl p-6 flex flex-col pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
             <SheetHeader className="text-left border-b pb-4 flex-shrink-0">
               <SheetTitle className="text-2xl font-bold">Categories</SheetTitle>
             </SheetHeader>
@@ -285,7 +285,7 @@ const Header: React.FC = () => {
                 linkClassName={cn(buttonVariants({ variant: 'outline' }), "justify-start text-base py-6 w-full")}
                 data={NAV_LINKS}
               />
-              <div className="border-t mt-6 pt-6 pb-10 flex justify-center">
+              <div className="border-t mt-6 pt-6 pb-[calc(2.5rem+env(safe-area-inset-bottom))] flex justify-center">
                 <SocialLinks className="flex gap-6" />
               </div>
             </div>

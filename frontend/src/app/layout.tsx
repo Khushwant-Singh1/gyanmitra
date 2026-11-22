@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter, Noto_Sans_Devanagari } from 'next/font/google';
 import { Providers } from './providers';
 import { ClientAnalyticsTracker } from '@/components/ClientAnalyticsTracker';
@@ -8,6 +8,13 @@ import '@fortawesome/fontawesome-svg-core/styles.css';
 import './globals.css';
 
 config.autoAddCss = false;
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#ffffff',
+};
 
 const inter = Inter({
   subsets: ['latin'],

@@ -177,7 +177,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="h-20 md:hidden" />
+        <div className="h-[calc(5rem+env(safe-area-inset-bottom))] md:hidden" />
       </div>
     </footer>
   );
