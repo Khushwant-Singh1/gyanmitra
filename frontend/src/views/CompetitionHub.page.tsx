@@ -55,7 +55,7 @@ const CompetitionHub = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans antialiased pb-20 selection:bg-[#e98571]/20">
-      <div className="max-w-10xl mx-auto px-5 py-8 md:py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         
         {/* PREMIUM HEADER */}
         <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-200 pb-8">
@@ -85,7 +85,7 @@ const CompetitionHub = () => {
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           
           {/* SIDEBAR: Result Portal & Quick Links */}
-          <aside className="w-full lg:w-[380px] space-y-6 order-1 lg:order-2 sticky top-6">
+          <aside className="w-full lg:w-[380px] space-y-6 order-2 lg:order-2 sticky top-6">
             
             {/* ENHANCED RESULT VIEW */}
             <Card className="border-0 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] ring-1 ring-slate-200 relative overflow-hidden bg-white">
@@ -196,7 +196,7 @@ const CompetitionHub = () => {
           </aside>
 
           {/* MAIN GRID: Competitions */}
-          <main className="flex-1 order-2 lg:order-1">
+          <main className="flex-1 order-1 lg:order-1">
             <div className="flex items-center justify-between mb-6 px-1">
                <h3 className="text-sm font-bold text-slate-400 capitalize flex items-center gap-2">
                  <LayoutGrid className="h-4 w-4" /> Open Challenges

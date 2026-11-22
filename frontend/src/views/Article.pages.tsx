@@ -390,11 +390,12 @@ export const Article: React.FC<ArticleProps> = ({
             </h1>
             
             {/* --- ARTICLE BYLINE & METADATA BAR --- */}
-            <div className="flex flex-wrap items-center justify-between border-y border-zinc-200 py-3.5 gap-4">
-              <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-y border-zinc-200 py-3 gap-3 sm:gap-4">
+              {/* Row 1 on mobile / Left group on desktop */}
+              <div className="flex items-center justify-between sm:justify-start gap-3 sm:gap-6 w-full sm:w-auto">
                 {/* --- WRITTEN BY (REPORTER / PRIMARY AUTHOR / CO-AUTHORS) --- */}
                 {article.editorInfo ? (
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1 sm:flex-none">
                     <Avatar className="h-9 w-9 border border-zinc-200 shadow-xs ring-1 ring-black/5 shrink-0 overflow-hidden">
                       <AvatarImage
                         src={formatAvatarUrl(article.authorInfo?.avatar)}
@@ -409,14 +410,14 @@ export const Article: React.FC<ArticleProps> = ({
                         )}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex flex-col">
+                    <div className="flex flex-col min-w-0">
                       <div className="flex items-center gap-1">
                         <span className="text-[9px] font-black text-sky-600 uppercase tracking-wider flex items-center gap-1">
                           <Feather className="w-2.5 h-2.5" />
                           Written By
                         </span>
                       </div>
-                      <span className="font-bold text-xs md:text-sm text-zinc-900 capitalize leading-tight">
+                      <span className="font-bold text-xs md:text-sm text-zinc-900 capitalize leading-tight truncate">
                         {displayAuthorName}
                         {article.coAuthors && article.coAuthors.length > 0 &&
                           `, ${article.coAuthors.map((c) => c.name || `${c.firstName || ''} ${c.lastName || ''}`.trim()).join(', ')}`}
@@ -424,7 +425,7 @@ export const Article: React.FC<ArticleProps> = ({
                     </div>
                   </div>
                 ) : article.coAuthors && article.coAuthors.length > 0 ? (
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1 sm:flex-none">
                     <div className="flex -space-x-2 overflow-hidden shrink-0">
                       {article.coAuthors.map((c, idx) => {
                         const name = c.name || `${c.firstName || ''} ${c.lastName || ''}`.trim();
@@ -441,18 +442,18 @@ export const Article: React.FC<ArticleProps> = ({
                         );
                       })}
                     </div>
-                    <div className="flex flex-col">
+                    <div className="flex flex-col min-w-0">
                       <div className="flex items-center gap-1">
                         <span className="text-[9px] font-black text-sky-600 uppercase tracking-wider flex items-center gap-1">
                           <Feather className="w-2.5 h-2.5" />
                           Written By
                         </span>
                       </div>
-                      <div className="flex flex-wrap items-center gap-1">
+                      <div className="flex items-center gap-1 truncate">
                         {article.coAuthors.map((c, idx) => {
                           const name = c.name || `${c.firstName || ''} ${c.lastName || ''}`.trim();
                           return (
-                            <span key={c._id || idx} className="font-bold text-xs md:text-sm text-zinc-800 capitalize leading-tight">
+                            <span key={c._id || idx} className="font-bold text-xs md:text-sm text-zinc-800 capitalize leading-tight truncate">
                               {name}{idx < (article.coAuthors?.length ?? 0) - 1 ? ', ' : ''}
                             </span>
                           );
@@ -461,7 +462,7 @@ export const Article: React.FC<ArticleProps> = ({
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1 sm:flex-none">
                     <Avatar className="h-9 w-9 border border-zinc-200 shadow-xs ring-1 ring-black/5 shrink-0 overflow-hidden">
                       <AvatarImage
                         src={formatAvatarUrl(article.authorInfo?.avatar)}
@@ -476,23 +477,23 @@ export const Article: React.FC<ArticleProps> = ({
                         )}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex flex-col">
+                    <div className="flex flex-col min-w-0">
                       <div className="flex items-center gap-1">
                         <span className="text-[9px] font-black text-sky-600 uppercase tracking-wider flex items-center gap-1">
                           <Feather className="w-2.5 h-2.5" />
                           Written By
                         </span>
                       </div>
-                      <span className="font-bold text-xs md:text-sm text-zinc-900 capitalize leading-tight">
+                      <span className="font-bold text-xs md:text-sm text-zinc-900 capitalize leading-tight truncate">
                         {displayAuthorName}
                       </span>
                     </div>
                   </div>
                 )}
 
-                {/* --- CATEGORY IN BYLINE --- */}
+                {/* --- CATEGORY IN BYLINE (DESKTOP ONLY: ALREADY IN HEADER BADGE ON MOBILE) --- */}
                 <Separator orientation="vertical" className="h-7 hidden sm:block bg-zinc-200" />
-                <div className="flex flex-col justify-center">
+                <div className="hidden sm:flex flex-col justify-center">
                   <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1">
                     <BookOpen className="w-2.5 h-2.5" />
                     Category
@@ -505,11 +506,11 @@ export const Article: React.FC<ArticleProps> = ({
                   </Link>
                 </div>
 
-                {/* --- EDITED BY (WHEN EDITOR EXISTS OR CO-AUTHORS EXIST) --- */}
+                {/* --- EDITED BY (DESKTOP ONLY: DETAILED IN EDITORIAL CREDITS AT BOTTOM) --- */}
                 {(article.editorInfo || (article.coAuthors && article.coAuthors.length > 0)) && (
                   <>
                     <Separator orientation="vertical" className="h-7 hidden sm:block bg-zinc-200" />
-                    <div className="flex items-center gap-2.5">
+                    <div className="hidden sm:flex items-center gap-2.5">
                       <Avatar className="h-9 w-9 border border-zinc-200 shadow-xs ring-1 ring-black/5 shrink-0 overflow-hidden">
                         <AvatarImage
                           src={formatAvatarUrl(article.editorInfo?.avatar || article.authorInfo?.avatar)}
@@ -539,32 +540,33 @@ export const Article: React.FC<ArticleProps> = ({
                   </>
                 )}
 
-                {/* --- TIMELINE & READ TIME --- */}
-                <Separator orientation="vertical" className="h-7 hidden md:block bg-zinc-200" />
-                <div className="flex flex-col justify-center">
-                  <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1">
+                {/* --- TIMELINE & READ TIME (ROW 1 RIGHT ON MOBILE) --- */}
+                <Separator orientation="vertical" className="h-7 hidden sm:block bg-zinc-200" />
+                <div className="flex flex-col justify-center shrink-0 text-right sm:text-left">
+                  <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1 justify-end sm:justify-start">
                     <Clock className="w-2.5 h-2.5" />
                     Timeline
                   </span>
-                  <div className="flex items-center gap-1.5 text-zinc-500 font-bold text-[10px] sm:text-[11px] leading-tight">
+                  <div className="flex items-center gap-1.5 text-zinc-500 font-bold text-[10px] sm:text-[11px] leading-tight justify-end sm:justify-start">
                     <DateDisplay date={new Date(article.publishedDate)} />
                     <span className="opacity-30">•</span>
                     <TimeAgo timestamp={new Date(article.publishedDate)} />
-                    <span className="opacity-30 hidden sm:inline">•</span>
-                    <span className="text-zinc-600 font-semibold hidden sm:inline">
+                    <span className="opacity-30 hidden md:inline">•</span>
+                    <span className="text-zinc-600 font-semibold hidden md:inline">
                       {getEstimatedReadTime(article.contentData)}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0 border-l border-zinc-200 pl-4">
+              {/* Row 2 on mobile / Right group on desktop */}
+              <div className="flex items-center gap-2 shrink-0 sm:border-l sm:border-zinc-200 sm:pl-4 pt-2.5 sm:pt-0 border-t sm:border-t-0 border-zinc-100 sm:border-none w-full sm:w-auto">
                 {/* 1-Click Copy Article Link directly on byline */}
                 <Button
                   variant={copied ? 'default' : 'outline'}
                   size="sm"
                   className={cn(
-                    "rounded-none h-9 gap-1.5 px-3 text-xs font-bold transition-all shadow-2xs",
+                    "flex-1 sm:flex-none justify-center rounded-none min-h-[44px] h-11 sm:h-9 sm:min-h-[36px] gap-1.5 px-3 text-xs font-bold transition-all shadow-xs",
                     copied
                       ? "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600"
                       : "border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-800 hover:border-zinc-300"
@@ -588,7 +590,7 @@ export const Article: React.FC<ArticleProps> = ({
                 {/* --- SHARE DIALOG BUTTON --- */}
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button variant="default" className="rounded-none h-9 gap-2 px-4 bg-[#e98571] hover:bg-[#d87460] text-white transition-all text-xs font-black uppercase tracking-wider shrink-0 shadow-xs">
+                    <Button variant="default" className="flex-1 sm:flex-none justify-center rounded-none min-h-[44px] h-11 sm:h-9 sm:min-h-[36px] gap-2 px-4 bg-[#e98571] hover:bg-[#d87460] text-white transition-all text-xs font-black uppercase tracking-wider shrink-0 shadow-xs">
                       <FontAwesomeIcon icon={faShareNodes} className="h-3 w-3" /> Share
                     </Button>
                   </DialogTrigger>
@@ -727,7 +729,7 @@ export const Article: React.FC<ArticleProps> = ({
                           aria-label="Share on WhatsApp"
                           className={cn(
                             buttonVariants({ variant: 'outline' }),
-                            "rounded-none justify-start gap-2.5 text-xs bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] border-[#25D366]/30 font-bold transition-all"
+                            "rounded-none min-h-[44px] justify-start gap-2.5 text-xs bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] border-[#25D366]/30 font-bold transition-all"
                           )}
                           rel="noopener noreferrer"
                         >
@@ -739,7 +741,7 @@ export const Article: React.FC<ArticleProps> = ({
                           aria-label="Share on Telegram"
                           className={cn(
                             buttonVariants({ variant: 'outline' }),
-                            "rounded-none justify-start gap-2.5 text-xs bg-[#229ED9]/10 hover:bg-[#229ED9]/20 text-[#1D84B5] border-[#229ED9]/30 font-bold transition-all"
+                            "rounded-none min-h-[44px] justify-start gap-2.5 text-xs bg-[#229ED9]/10 hover:bg-[#229ED9]/20 text-[#1D84B5] border-[#229ED9]/30 font-bold transition-all"
                           )}
                           rel="noopener noreferrer"
                         >
@@ -751,7 +753,7 @@ export const Article: React.FC<ArticleProps> = ({
                           aria-label="Share on X (Twitter)"
                           className={cn(
                             buttonVariants({ variant: 'outline' }),
-                            "rounded-none justify-start gap-2.5 text-xs bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border-zinc-200 font-bold transition-all"
+                            "rounded-none min-h-[44px] justify-start gap-2.5 text-xs bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border-zinc-200 font-bold transition-all"
                           )}
                           rel="noopener noreferrer"
                         >
@@ -763,7 +765,7 @@ export const Article: React.FC<ArticleProps> = ({
                           aria-label="Share on Facebook"
                           className={cn(
                             buttonVariants({ variant: 'outline' }),
-                            "rounded-none justify-start gap-2.5 text-xs bg-[#1877F2]/10 hover:bg-[#1877F2]/20 text-[#1877F2] border-[#1877F2]/30 font-bold transition-all"
+                            "rounded-none min-h-[44px] justify-start gap-2.5 text-xs bg-[#1877F2]/10 hover:bg-[#1877F2]/20 text-[#1877F2] border-[#1877F2]/30 font-bold transition-all"
                           )}
                           rel="noopener noreferrer"
                         >
@@ -775,7 +777,7 @@ export const Article: React.FC<ArticleProps> = ({
                           aria-label="Share on LinkedIn"
                           className={cn(
                             buttonVariants({ variant: 'outline' }),
-                            "rounded-none justify-start gap-2.5 text-xs bg-[#0A66C2]/10 hover:bg-[#0A66C2]/20 text-[#0A66C2] border-[#0A66C2]/30 font-bold transition-all"
+                            "rounded-none min-h-[44px] justify-start gap-2.5 text-xs bg-[#0A66C2]/10 hover:bg-[#0A66C2]/20 text-[#0A66C2] border-[#0A66C2]/30 font-bold transition-all"
                           )}
                           rel="noopener noreferrer"
                         >
@@ -786,7 +788,7 @@ export const Article: React.FC<ArticleProps> = ({
                           aria-label="Share via Email"
                           className={cn(
                             buttonVariants({ variant: 'outline' }),
-                            "rounded-none justify-start gap-2.5 text-xs bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border-zinc-200 font-bold transition-all"
+                            "rounded-none min-h-[44px] justify-start gap-2.5 text-xs bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border-zinc-200 font-bold transition-all"
                           )}
                         >
                           <FontAwesomeIcon icon={faEnvelope} className="h-3.5 w-3.5 text-[#e98571]" /> Email
@@ -839,7 +841,7 @@ export const Article: React.FC<ArticleProps> = ({
                   variant={copied ? 'default' : 'outline'}
                   size="sm"
                   className={cn(
-                    "rounded-none h-9 gap-1.5 px-3 text-xs font-bold transition-all shadow-2xs",
+                    "rounded-none min-h-[44px] h-11 sm:h-9 sm:min-h-[36px] gap-1.5 px-3.5 text-xs font-bold transition-all shadow-xs",
                     copied
                       ? "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600"
                       : "bg-white border-zinc-200 hover:bg-zinc-100 text-zinc-800"
@@ -861,7 +863,7 @@ export const Article: React.FC<ArticleProps> = ({
                   target="_blank"
                   className={cn(
                     buttonVariants({ variant: 'outline', size: 'sm' }),
-                    "rounded-none h-9 gap-1.5 px-3 text-xs bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] border-[#25D366]/30 font-bold"
+                    "rounded-none min-h-[44px] h-11 sm:h-9 sm:min-h-[36px] gap-1.5 px-3.5 text-xs bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] border-[#25D366]/30 font-bold"
                   )}
                   rel="noopener noreferrer"
                 >
@@ -872,7 +874,7 @@ export const Article: React.FC<ArticleProps> = ({
                   target="_blank"
                   className={cn(
                     buttonVariants({ variant: 'outline', size: 'sm' }),
-                    "rounded-none h-9 gap-1.5 px-3 text-xs bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border-zinc-200 font-bold"
+                    "rounded-none min-h-[44px] h-11 sm:h-9 sm:min-h-[36px] gap-1.5 px-3.5 text-xs bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border-zinc-200 font-bold"
                   )}
                   rel="noopener noreferrer"
                 >

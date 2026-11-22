@@ -231,3 +231,25 @@ svg.svg-inline--fa {
 .animate-marquee-scroll:hover {
   animation-play-state: paused;
 }
+
+/* Responsive constraints for markdown/rich-text content */
+.prose table {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.prose pre {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.prose img,
+.prose iframe,
+.prose video {
+  max-width: 100%;
+  height: auto;
+}

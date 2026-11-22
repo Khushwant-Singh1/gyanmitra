@@ -119,7 +119,7 @@ const CompetitionDetails = () => {
         </div>
       )}
 
-      <div className="max-w-10xl mx-auto px-4 py-2">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         
         {/* HEADER SECTION */}
         <div className="mb-10 space-y-4">
@@ -139,9 +139,17 @@ const CompetitionDetails = () => {
                 {comp.title}
               </h1>
             </div>
-            <Badge variant="outline" className="border-[#e98571] text-[#e98571] font-bold py-1.5 px-5 text-[10px] capitalize bg-orange-50/50 w-fit">
-              Registration Active
-            </Badge>
+            <div className="flex items-center gap-3">
+              <Badge variant="outline" className="border-[#e98571] text-[#e98571] font-bold py-1.5 px-4 text-[10px] capitalize bg-orange-50/50 w-fit">
+                Registration Active
+              </Badge>
+              <a 
+                href="#register" 
+                className="lg:hidden inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#e98571] text-white text-xs font-bold rounded-lg shadow-sm active:scale-95 transition-all"
+              >
+                Register Now ↓
+              </a>
+            </div>
           </div>
         </div>
 
@@ -149,7 +157,7 @@ const CompetitionDetails = () => {
         <div className="flex flex-col lg:flex-row gap-8 items-start w-full">
           
           {/* SIDEBAR: Registration Form */}
-          <aside className="w-full lg:w-[420px] order-1 lg:order-2 shrink-0">
+          <aside id="register" className="w-full lg:w-[420px] order-2 lg:order-2 shrink-0 scroll-mt-20">
             <div className="bg-zinc-900 rounded-2xl shadow-2xl overflow-hidden border border-zinc-800 ring-1 ring-white/5 w-full">
               <div className="h-1.5 bg-[#e98571] w-full" />
               <div className="p-6 md:p-8">
@@ -208,7 +216,7 @@ const CompetitionDetails = () => {
           </aside>
 
           {/* MAIN CONTENT Area */}
-          <main className="flex-1 order-2 lg:order-1 space-y-6 w-full min-w-0">
+          <main className="flex-1 order-1 lg:order-1 space-y-6 w-full min-w-0">
             <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-10 space-y-10 shadow-sm w-full">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 pb-8 border-b border-slate-100">
                 <div className="space-y-1.5">

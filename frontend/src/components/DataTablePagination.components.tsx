@@ -76,7 +76,7 @@ export function DataTablePagination<TData>({
           </Button>
           <Button
             variant="outline"
-            className="h-9 w-9 sm:h-8 sm:w-8 p-0 text-zinc-700"
+            className="h-11 w-11 min-h-[44px] min-w-[44px] sm:h-8 sm:w-8 sm:min-h-[32px] sm:min-w-[32px] p-0 text-zinc-700"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
             title="Previous page"
@@ -86,7 +86,7 @@ export function DataTablePagination<TData>({
           </Button>
           <Button
             variant="outline"
-            className="h-9 w-9 sm:h-8 sm:w-8 p-0 text-zinc-700"
+            className="h-11 w-11 min-h-[44px] min-w-[44px] sm:h-8 sm:w-8 sm:min-h-[32px] sm:min-w-[32px] p-0 text-zinc-700"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
             title="Next page"

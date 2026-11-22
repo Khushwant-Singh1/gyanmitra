@@ -41,7 +41,7 @@ const SocialLinks: React.FC<SocialLinksProps> = ({
   className = '',
   itemClassName = '',
 }) => (
-  <ul className={`*:inline *:duration-200 ${className}`}>
+  <ul className={`flex items-center gap-1 ${className}`}>
     {FOLLOW_US_LINKS.map((val, i) => (
       <li key={i} className={`hover:text-tertiary ${itemClassName}`}>
         <a
@@ -49,11 +49,12 @@ const SocialLinks: React.FC<SocialLinksProps> = ({
           target="_blank"
           aria-label="Follow us on more platforms"
           rel="noopener noreferrer"
-          className={
-            buttonVariants({ variant: 'ghost', size: 'sm' }) + ' ' + '!px-1.5'
-          }
+          className={cn(
+            buttonVariants({ variant: 'ghost' }),
+            'h-11 w-11 min-h-[44px] min-w-[44px] md:h-9 md:w-9 md:min-h-[36px] md:min-w-[36px] p-0 flex items-center justify-center text-slate-600 hover:text-tertiary transition-colors'
+          )}
         >
-          <FontAwesomeIcon icon={val.icon} />
+          <FontAwesomeIcon icon={val.icon} className="text-base md:text-sm" />
         </a>
       </li>
     ))}
