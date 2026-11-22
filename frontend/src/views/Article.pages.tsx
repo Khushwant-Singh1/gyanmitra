@@ -55,6 +55,8 @@ import {
   Globe,
   Eye,
   Loader2,
+  Bookmark,
+  Share2,
 } from 'lucide-react';
 
 const formatAvatarUrl = (url?: string | null): string => {
@@ -291,8 +293,157 @@ export const Article: React.FC<ArticleProps> = ({
     }
   };
 
+  // --- READING PROGRESS & STICKY HEADER STATE ---
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [showStickyHeader, setShowStickyHeader] = useState(false);
+  const [fontSize, setFontSize] = useState<'normal' | 'large' | 'xlarge'>('normal');
+  const [resumePrompt, setResumePrompt] = useState<{ show: boolean; progress: number } | null>(null);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+
+  // Load saved font size on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('gyanmitra_article_font_size');
+      if (saved === 'large' || saved === 'xlarge' || saved === 'normal') {
+        setFontSize(saved);
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+  }, []);
+
+  const changeFontSize = (size: 'normal' | 'large' | 'xlarge') => {
+    setFontSize(size);
+    try {
+      localStorage.setItem('gyanmitra_article_font_size', size);
+    } catch {
+      // Ignore
+    }
+  };
+
+  // Check and toggle bookmarks in localStorage
+  useEffect(() => {
+    if (!articleSlug) return;
+    try {
+      const saved = JSON.parse(localStorage.getItem('gyanmitra_bookmarks') || '[]');
+      setIsBookmarked(saved.includes(articleSlug));
+    } catch {
+      // Ignore
+    }
+  }, [articleSlug]);
+
+  const toggleBookmark = () => {
+    if (!articleSlug) return;
+    try {
+      const saved: string[] = JSON.parse(localStorage.getItem('gyanmitra_bookmarks') || '[]');
+      let updated: string[];
+      if (saved.includes(articleSlug)) {
+        updated = saved.filter((s) => s !== articleSlug);
+        setIsBookmarked(false);
+        toast.info('लेख बुकमार्क से हटाया गया (Removed from bookmarks)');
+      } else {
+        updated = [...saved, articleSlug];
+        setIsBookmarked(true);
+        toast.success('लेख बुकमार्क में सहेजा गया (Saved to bookmarks)');
+      }
+      localStorage.setItem('gyanmitra_bookmarks', JSON.stringify(updated));
+    } catch {
+      toast.error('Unable to update bookmarks');
+    }
+  };
+
+  // Scroll listener for 60fps Progress Bar & Sticky Header
+  useEffect(() => {
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+          const currentScroll = window.scrollY;
+
+          if (totalHeight > 0) {
+            const progress = Math.min(100, Math.max(0, (currentScroll / totalHeight) * 100));
+            setScrollProgress(progress);
+
+            // Save reading progress if actively reading (between 15% and 92%)
+            if (articleSlug && progress > 15 && progress < 92) {
+              try {
+                localStorage.setItem(
+                  `read_prog_${articleSlug}`,
+                  JSON.stringify({
+                    progress,
+                    scrollY: currentScroll,
+                    updatedAt: Date.now(),
+                  })
+                );
+              } catch {
+                // Ignore localStorage errors
+              }
+            } else if (articleSlug && progress >= 95) {
+              // Article finished
+              try {
+                localStorage.removeItem(`read_prog_${articleSlug}`);
+              } catch {
+                // Ignore
+              }
+            }
+          }
+
+          // Show sticky header after scrolling past 360px (headline area)
+          setShowStickyHeader(currentScroll > 360);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [articleSlug]);
+
+  // Check for saved reading position to resume
+  useEffect(() => {
+    if (!articleSlug) return;
+    try {
+      const savedRaw = localStorage.getItem(`read_prog_${articleSlug}`);
+      if (savedRaw) {
+        const saved = JSON.parse(savedRaw);
+        // Only show if saved within last 7 days and between 15% and 90%
+        if (
+          saved?.progress >= 15 &&
+          saved?.progress <= 90 &&
+          Date.now() - saved.updatedAt < 7 * 86400000
+        ) {
+          setResumePrompt({ show: true, progress: Math.round(saved.progress) });
+        }
+      }
+    } catch {
+      // Ignore
+    }
+  }, [articleSlug]);
+
+  const handleResumeReading = () => {
+    try {
+      const savedRaw = localStorage.getItem(`read_prog_${articleSlug}`);
+      if (savedRaw) {
+        const saved = JSON.parse(savedRaw);
+        if (saved?.scrollY) {
+          window.scrollTo({ top: saved.scrollY, behavior: 'smooth' });
+        }
+      }
+    } catch {
+      // Ignore
+    }
+    setResumePrompt(null);
+  };
+
   return (
-    <main className="max-w-[1350px] mx-auto px-4 sm:px-6">
+    <main className="max-w-[1350px] mx-auto px-4 sm:px-6 pb-24 md:pb-12">
       <Helmet>
         {/* --- DYNAMIC SEO META TAGS --- */}
         <title>{seoTitle}</title>
@@ -328,6 +479,173 @@ export const Article: React.FC<ArticleProps> = ({
         <meta name="keywords" content={displayTags.join(', ')} />
         <meta name="news_keywords" content={displayTags.join(', ')} />
       </Helmet>
+
+      {/* 2.5px Coral-Orange Reading Progress Bar pinned at the very top of viewport */}
+      <div 
+        role="progressbar" 
+        aria-valuenow={Math.round(scrollProgress)} 
+        aria-valuemin={0} 
+        aria-valuemax={100}
+        aria-label="Article reading progress"
+        className="fixed top-0 left-0 right-0 z-[70] h-[3px] bg-zinc-200/50 pointer-events-none"
+      >
+        <div 
+          className="h-full bg-gradient-to-r from-[#e98571] via-orange-500 to-[#e98571] transition-[width] duration-150 ease-out shadow-[0_0_8px_rgba(233,133,113,0.6)]"
+          style={{ width: `${scrollProgress}%` }}
+        />
+      </div>
+
+      {/* Slim Sticky Reading Header (Slides in after scrolling past headline) */}
+      <div
+        className={cn(
+          "fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-zinc-200 shadow-xs transition-transform duration-300 ease-in-out px-3 sm:px-6 md:px-8 h-12 flex items-center justify-between",
+          showStickyHeader ? "translate-y-0" : "-translate-y-full pointer-events-none"
+        )}
+      >
+        {/* Left: Branding, Category & Truncated Headline */}
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 mr-3">
+          <Link to="/" className="shrink-0 flex items-center" title="Gyanmitra Home">
+            <img
+              src="/assets/gyanmitra.webp"
+              alt="GyanMitra Logo"
+              className="h-6 w-auto object-contain hidden sm:block"
+            />
+          </Link>
+          <div className="h-4 w-px bg-zinc-200 hidden sm:block shrink-0" />
+          <Badge 
+            variant="outline" 
+            className="hidden md:inline-flex text-[9px] font-bold text-[#e98571] border-[#e98571]/30 bg-[#e98571]/5 shrink-0 px-2 py-0 h-5"
+          >
+            {displayCategoryName}
+          </Badge>
+          <h2 className="text-xs sm:text-sm font-bold text-zinc-900 truncate leading-tight">
+            {article.headline}
+          </h2>
+        </div>
+
+        {/* Right: Reading Controls & 1-Tap Shares */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Scroll progress pill */}
+          <span className="text-[10px] font-bold text-zinc-500 font-mono hidden sm:inline-block px-1.5 py-0.5 rounded bg-zinc-100 border border-zinc-200/60">
+            {Math.round(scrollProgress)}%
+          </span>
+
+          {/* Font Size Toggle Pill */}
+          <div className="flex items-center border border-zinc-200 rounded-md p-0.5 bg-zinc-50 text-[10px] font-bold">
+            <button
+              onClick={() => changeFontSize('normal')}
+              className={cn(
+                "px-1.5 py-0.5 rounded transition-colors",
+                fontSize === 'normal' ? "bg-white text-zinc-900 shadow-xs font-black" : "text-zinc-500 hover:text-zinc-800"
+              )}
+              title="सामान्य फ़ॉन्ट (Default Font Size: 16px)"
+            >
+              A
+            </button>
+            <button
+              onClick={() => changeFontSize('large')}
+              className={cn(
+                "px-1.5 py-0.5 rounded transition-colors",
+                fontSize === 'large' ? "bg-white text-zinc-900 shadow-xs font-black" : "text-zinc-500 hover:text-zinc-800"
+              )}
+              title="मध्यम फ़ॉन्ट (Medium Font Size: 18px)"
+            >
+              A+
+            </button>
+            <button
+              onClick={() => changeFontSize('xlarge')}
+              className={cn(
+                "px-1.5 py-0.5 rounded transition-colors",
+                fontSize === 'xlarge' ? "bg-white text-zinc-900 shadow-xs font-black" : "text-zinc-500 hover:text-zinc-800"
+              )}
+              title="बड़ा फ़ॉन्ट (Large Font Size: 20px)"
+            >
+              A++
+            </button>
+          </div>
+
+          {/* Bookmark Button */}
+          <button
+            onClick={toggleBookmark}
+            className={cn(
+              "h-8 w-8 rounded-md flex items-center justify-center transition-colors border",
+              isBookmarked
+                ? "bg-[#e98571]/10 border-[#e98571]/30 text-[#e98571]"
+                : "bg-white border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50"
+            )}
+            title={isBookmarked ? "बुकमार्क हटाया (Bookmarked)" : "लेख सहेजें (Save Bookmark)"}
+            aria-label="Bookmark article"
+          >
+            <Bookmark className={cn("h-3.5 w-3.5", isBookmarked && "fill-[#e98571]")} />
+          </button>
+
+          {/* 1-Tap WhatsApp Share */}
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Share on WhatsApp"
+            className={cn(
+              buttonVariants({ variant: 'ghost', size: 'sm' }),
+              "h-8 w-8 sm:w-auto sm:px-2.5 p-0 text-xs bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] font-bold flex items-center gap-1.5 rounded-md border border-[#25D366]/20"
+            )}
+            title="WhatsApp पर शेयर करें"
+          >
+            <FontAwesomeIcon icon={faWhatsapp} className="h-3.5 w-3.5 text-[#25D366]" />
+            <span className="hidden md:inline">Share</span>
+          </a>
+
+          {/* Copy Link Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleCopyLink}
+            className="h-8 w-8 p-0 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-md border border-zinc-200 bg-white"
+            title="Copy article link"
+          >
+            {copied ? (
+              <FontAwesomeIcon icon={faCheck} className="h-3.5 w-3.5 text-emerald-600" />
+            ) : (
+              <FontAwesomeIcon icon={faLink} className="h-3.5 w-3.5" />
+            )}
+          </Button>
+
+          {/* Native OS Share Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleNativeShare}
+            className="h-8 w-8 p-0 text-white bg-[#e98571] hover:bg-[#d87460] rounded-md shadow-xs"
+            title="Share article"
+            aria-label="Share article"
+          >
+            <FontAwesomeIcon icon={faShareNodes} className="h-3 w-3" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Resume Reading Toast (shows if reader previously started this article) */}
+      {resumePrompt?.show && (
+        <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-40 bg-zinc-900/95 backdrop-blur-md text-white px-4 py-2.5 rounded-full shadow-2xl border border-zinc-700/80 flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-300">
+          <span className="text-xs font-medium flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-[#e98571] animate-ping" />
+            आपने {resumePrompt.progress}% तक पढ़ लिया था
+          </span>
+          <button
+            onClick={handleResumeReading}
+            className="bg-[#e98571] hover:bg-[#d87460] text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm active:scale-95 transition-all"
+          >
+            वहीं से पढ़ें →
+          </button>
+          <button
+            onClick={() => setResumePrompt(null)}
+            className="text-zinc-400 hover:text-white text-xs p-1"
+            aria-label="Dismiss resume prompt"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* --- DYNAMIC BREAKING BAR --- */}
       <div className="bg-[#e98571] text-white py-2 rounded-sm shadow-sm overflow-hidden my-4 relative">
@@ -821,7 +1139,12 @@ export const Article: React.FC<ArticleProps> = ({
             </p>
           </div>
 
-          <div className="prose prose-slate max-w-none pt-4 prose-headings:font-bold prose-p:text-slate-700 prose-p:leading-relaxed prose-strong:text-slate-900 min-w-0 max-w-full overflow-hidden break-words" 
+          <div className={cn(
+                 "prose prose-slate max-w-none pt-4 prose-headings:font-bold prose-strong:text-slate-900 min-w-0 max-w-full overflow-hidden break-words transition-all duration-200",
+                 fontSize === 'normal' && "prose-base prose-p:text-base prose-p:leading-[1.75] prose-p:text-slate-700",
+                 fontSize === 'large' && "prose-lg prose-p:text-[1.125rem] prose-p:leading-[1.85] prose-p:text-slate-800",
+                 fontSize === 'xlarge' && "prose-xl prose-p:text-[1.25rem] prose-p:leading-[1.95] prose-p:text-slate-800"
+               )} 
                dangerouslySetInnerHTML={{ __html: content || '' }} 
           />
 
