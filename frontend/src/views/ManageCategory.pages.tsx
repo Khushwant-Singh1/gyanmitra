@@ -69,7 +69,11 @@ const DropDownMenuCat: React.FC<{
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost">
+            <Button
+              variant="ghost"
+              className="h-11 w-11 min-h-[44px] min-w-[44px] sm:h-8 sm:w-8 sm:min-h-[32px] sm:min-w-[32px] p-0 flex items-center justify-center"
+              aria-label="Category options"
+            >
               <FontAwesomeIcon icon={faEllipsisV} />
             </Button>
           </DropdownMenuTrigger>
@@ -137,7 +141,11 @@ const SubCategoryRow: React.FC<{
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost">
+          <Button
+            variant="ghost"
+            className="h-11 w-11 min-h-[44px] min-w-[44px] sm:h-8 sm:w-8 sm:min-h-[32px] sm:min-w-[32px] p-0 flex items-center justify-center"
+            aria-label="Subcategory options"
+          >
             <FontAwesomeIcon icon={faEllipsisV} />
           </Button>
         </DropdownMenuTrigger>

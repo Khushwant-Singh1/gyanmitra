@@ -419,7 +419,7 @@ export const EditArticle: React.FC = () => {
             />
           </div>
 
-          <div className="flex-1 min-h-[400px] sm:min-h-[500px] rounded-md border bg-white shadow-2xs overflow-hidden">
+          <div className="flex-1 min-h-[400px] sm:min-h-[500px] rounded-md border bg-white shadow-xs overflow-hidden">
             <MdxEditorComponent
               initialContent={data.data.content}
               onChange={(newContent) => handleInputChange('content', newContent)}

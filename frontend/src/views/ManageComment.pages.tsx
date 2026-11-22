@@ -117,7 +117,7 @@ export const ManageComment: React.FC = () => {
               data.data.map((comment) => (
                 <div
                   key={comment._id}
-                  className="min-w-[350px] flex-1 space-y-2 overflow-hidden rounded-xl border p-2 py-3"
+                  className="w-full min-w-0 sm:min-w-[320px] sm:max-w-md flex-1 space-y-2 overflow-hidden rounded-xl border p-3"
                 >
                   <div className="flex items-center justify-between overflow-auto">
                     <div className="flex gap-1.5">
@@ -140,7 +140,11 @@ export const ManageComment: React.FC = () => {
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost">
+                        <Button
+                          variant="ghost"
+                          className="h-11 w-11 min-h-[44px] min-w-[44px] sm:h-8 sm:w-8 sm:min-h-[32px] sm:min-w-[32px] p-0 flex items-center justify-center"
+                          aria-label="Comment options"
+                        >
                           <FontAwesomeIcon icon={faEllipsisV} />
                         </Button>
                       </DropdownMenuTrigger>

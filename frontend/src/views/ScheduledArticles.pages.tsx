@@ -196,7 +196,11 @@ export const ScheduledArticles: React.FC = () => {
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
+                          <Button
+                            variant="ghost"
+                            className="h-11 w-11 min-h-[44px] min-w-[44px] sm:h-8 sm:w-8 sm:min-h-[32px] sm:min-w-[32px] p-0 flex items-center justify-center ml-auto"
+                            aria-label="Manage scheduled article"
+                          >
                             <FontAwesomeIcon icon={faEllipsis} className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>

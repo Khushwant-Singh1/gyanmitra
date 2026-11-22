@@ -424,7 +424,7 @@ export const DraftArticle: React.FC = () => {
                 className="flex h-auto flex-col gap-4 overflow-auto rounded-xl border p-4 transition-colors hover:bg-gray-50 sm:h-36 sm:flex-row md:h-32"
                 key={article._id}
               >
-                <div className="relative aspect-video sm:aspect-square h-28 sm:h-full w-full sm:w-32 shrink-0 overflow-hidden rounded-md bg-zinc-100 border border-zinc-200/60 shadow-2xs">
+                <div className="relative aspect-video sm:aspect-square h-28 sm:h-full w-full sm:w-32 shrink-0 overflow-hidden rounded-md bg-zinc-100 border border-zinc-200/60 shadow-xs">
                   <FeaturedMedia
                     url={article.featuredMedia.fileUrl}
                     playable={false}
@@ -458,13 +458,18 @@ export const DraftArticle: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <Link
                           to={'/edit/' + article._id}
-                          className={buttonVariants({ variant: 'ghost' })}
+                          className={cn(buttonVariants({ variant: 'ghost' }), "h-11 w-11 min-h-[44px] min-w-[44px] sm:h-9 sm:w-9 sm:min-h-[36px] sm:min-w-[36px] p-0 flex items-center justify-center")}
+                          aria-label="Edit draft article"
                         >
                           <FontAwesomeIcon icon={faEdit} />
                         </Link>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant={'ghost'}>
+                            <Button
+                              variant={'ghost'}
+                              className="h-11 w-11 min-h-[44px] min-w-[44px] sm:h-9 sm:w-9 sm:min-h-[36px] sm:min-w-[36px] p-0 flex items-center justify-center"
+                              aria-label="Draft actions"
+                            >
                               <FontAwesomeIcon icon={faEllipsisVertical} />
                             </Button>
                           </DropdownMenuTrigger>

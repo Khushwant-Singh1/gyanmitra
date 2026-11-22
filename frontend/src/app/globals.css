@@ -233,6 +233,12 @@ svg.svg-inline--fa {
 }
 
 /* Responsive constraints for markdown/rich-text content */
+.prose {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
 .prose table {
   display: block;
   width: 100%;
@@ -245,6 +251,12 @@ svg.svg-inline--fa {
   max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  white-space: pre;
+  word-break: normal;
+}
+
+.prose code {
+  word-break: break-word;
 }
 
 .prose img,

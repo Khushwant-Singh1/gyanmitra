@@ -24,6 +24,7 @@ import type { IApiCurrentUserSession, IApiResponse } from '@/api/client.api';
 import axios from 'axios';
 import { cn } from '@/lib/utils';
 import { TranslateToggle } from './TranslateToggle.components';
+import { Trophy } from 'lucide-react';
 
 interface SocialLinksProps {
   className?: string;
@@ -158,8 +159,80 @@ const Header: React.FC = () => {
   return (
     <header className="bg-primary-foreground text-tertiary-foreground text-sm font-normal w-full overflow-x-hidden">
       {/* Top Section */}
-      <div className="border-b-customLightGray flex items-center justify-between border-b-2 px-4 py-1 w-full overflow-hidden">
-        <div className="flex items-center gap-4 overflow-hidden">
+      <div className="border-b-customLightGray flex items-center justify-between border-b-2 px-3 sm:px-4 py-1.5 w-full overflow-hidden">
+        <div className="flex items-center gap-2 sm:gap-4 overflow-hidden">
+          {/* Mobile Sidebar Category Drawer Trigger */}
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden h-10 w-10 min-h-[44px] min-w-[44px] text-zinc-800 hover:text-tertiary hover:bg-zinc-100 p-0 shrink-0"
+                aria-label="Open categories sidebar"
+              >
+                <FontAwesomeIcon icon={faBars} className="text-xl" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[300px] sm:w-[350px] p-0 flex flex-col bg-white">
+              <SheetHeader className="p-5 border-b border-zinc-100 flex-shrink-0 text-left bg-zinc-50/70">
+                <div className="flex items-center gap-2 mb-1">
+                  <img
+                    src="/assets/gyanmitra.webp"
+                    alt="GyanMitra Logo"
+                    className="h-8 w-auto object-contain"
+                  />
+                </div>
+                <SheetTitle className="text-lg font-bold text-zinc-900">समाचार श्रेणियां (Categories)</SheetTitle>
+                <SheetDescription className="text-xs text-zinc-500">
+                  सभी मुख्य समाचार श्रेणियां और अपडेट्स
+                </SheetDescription>
+              </SheetHeader>
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400 px-3 pb-1">
+                    Categories
+                  </p>
+                  <Navigation
+                    className="flex flex-col gap-1"
+                    onLinkClick={() => setOpen(false)}
+                    linkClassName={cn(
+                      buttonVariants({ variant: 'ghost' }),
+                      "justify-start text-sm font-semibold py-2.5 px-3 h-auto w-full hover:bg-zinc-100 hover:text-[#e98571] text-zinc-800 rounded-lg transition-colors"
+                    )}
+                    data={NAV_LINKS}
+                  />
+                </div>
+
+                <div className="border-t border-zinc-100 pt-4 space-y-2">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400 px-3 pb-1">
+                    Quick Links
+                  </p>
+                  <Link
+                    to="/competitions"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-zinc-700 hover:text-[#e98571] hover:bg-zinc-50 rounded-lg transition-colors"
+                  >
+                    <Trophy className="h-4 w-4 text-[#e98571]" />
+                    <span>Competition Hub</span>
+                  </Link>
+                  <Link
+                    to="/search"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-zinc-700 hover:text-[#e98571] hover:bg-zinc-50 rounded-lg transition-colors"
+                  >
+                    <FontAwesomeIcon icon={faSearch} className="h-3.5 w-3.5 text-zinc-400" />
+                    <span>Search News</span>
+                  </Link>
+                </div>
+
+                <div className="border-t border-zinc-100 pt-4 pb-[calc(2.5rem+env(safe-area-inset-bottom))] flex flex-col items-center gap-3">
+                  <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Follow Gyanmitra</p>
+                  <SocialLinks className="flex gap-4" />
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+
           <DateDisplay
             date={new Date((clientQuery.getQueryData(['time']) as any)?.data?.time || Date.now())}
             className="hidden md:flex items-center"
@@ -217,6 +290,18 @@ const Header: React.FC = () => {
         </div>
       </div>
 
+      {/* Mobile Horizontal Category Scroller */}
+      <div className="flex md:hidden border-b border-zinc-200 bg-white/95 backdrop-blur-sm w-full overflow-x-auto scroll-smooth no-scrollbar px-3 py-1.5 shadow-xs">
+        <Navigation
+          className="flex items-center gap-1.5 overflow-x-auto scroll-smooth no-scrollbar"
+          linkClassName={cn(
+            buttonVariants({ variant: 'ghost', size: 'sm' }),
+            "h-8 px-3 text-xs font-semibold shrink-0 rounded-full bg-zinc-50 border border-zinc-200/80 text-zinc-700 hover:text-black hover:bg-zinc-100"
+          )}
+          data={NAV_LINKS}
+        />
+      </div>
+
       {/* Desktop Navigation - FIXED OVERFLOW & ADDED SMOOTH SCROLLER */}
       <div className="hidden shadow-sm shadow-black/10 md:flex px-4 bg-white w-full overflow-hidden justify-between">
         <div className="flex items-center overflow-hidden flex-1">
@@ -270,28 +355,15 @@ const Header: React.FC = () => {
           <span className="text-[10px]">Search</span>
         </NavLink>
 
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger className="flex flex-col items-center justify-center min-h-[48px] py-1 gap-1 min-w-[60px] text-muted-foreground">
-            <FontAwesomeIcon icon={faBars} className="text-xl" />
-            <span className="text-[10px]">Menu</span>
-          </SheetTrigger>
-          <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl p-6 flex flex-col pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
-            <SheetHeader className="text-left border-b pb-4 flex-shrink-0">
-              <SheetTitle className="text-2xl font-bold">Categories</SheetTitle>
-            </SheetHeader>
-            <div className="flex-1 overflow-y-auto mt-4 pr-2">
-              <Navigation
-                className="flex flex-col gap-2"
-                onLinkClick={() => setOpen(false)} 
-                linkClassName={cn(buttonVariants({ variant: 'outline' }), "justify-start text-base py-6 w-full")}
-                data={NAV_LINKS}
-              />
-              <div className="border-t mt-6 pt-6 pb-[calc(2.5rem+env(safe-area-inset-bottom))] flex justify-center">
-                <SocialLinks className="flex gap-6" />
-              </div>
-            </div>
-          </SheetContent>
-        </Sheet>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="flex flex-col items-center justify-center min-h-[48px] py-1 gap-1 min-w-[60px] text-muted-foreground hover:text-secondary transition-colors"
+          aria-label="Open categories sidebar"
+        >
+          <FontAwesomeIcon icon={faShapes} className="text-xl" />
+          <span className="text-[10px]">Categories</span>
+        </button>
 
         {user ? (
           user.role === USER_ROLE.Viewer ? (

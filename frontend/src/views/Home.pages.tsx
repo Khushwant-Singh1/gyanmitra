@@ -173,7 +173,7 @@ const Home: React.FC<HomeProps> = ({ initialHomeData }) => {
         </div>
       </div>
 
-      <div className="max-w-[95%] mx-auto px-4 mt-4">
+      <div className="max-w-[95%] mx-auto px-4 mt-4 pb-20 md:pb-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           
           {/* MAIN COLUMN */}

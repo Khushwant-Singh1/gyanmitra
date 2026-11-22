@@ -284,7 +284,7 @@ export const Dashboard: React.FC = () => {
                       </span>
 
                       {/* Thumbnail Container: STRICTLY CONSTRAINED */}
-                      <div className="relative aspect-video h-14 w-24 sm:h-16 sm:w-28 shrink-0 overflow-hidden rounded-md bg-zinc-100 border border-zinc-200/70 shadow-2xs">
+                      <div className="relative aspect-video h-14 w-24 sm:h-16 sm:w-28 shrink-0 overflow-hidden rounded-md bg-zinc-100 border border-zinc-200/70 shadow-xs">
                         <FeaturedMedia
                           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                           fileType={article.featuredMedia.fileType}
@@ -365,7 +365,7 @@ export const Dashboard: React.FC = () => {
                       key={article._id}
                     >
                       {/* Thumbnail Container: STRICTLY CONSTRAINED */}
-                      <div className="relative aspect-video h-14 w-24 sm:h-16 sm:w-28 shrink-0 overflow-hidden rounded-md bg-zinc-100 border border-zinc-200/70 shadow-2xs">
+                      <div className="relative aspect-video h-14 w-24 sm:h-16 sm:w-28 shrink-0 overflow-hidden rounded-md bg-zinc-100 border border-zinc-200/70 shadow-xs">
                         <FeaturedMedia
                           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                           fileType={article.featuredMedia.fileType}

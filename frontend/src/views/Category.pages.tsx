@@ -79,7 +79,7 @@ export const Category: React.FC = () => {
   const canonicalSlug = displayName.toLowerCase().replace(/\s+/g, '-');
 
   return (
-    <div className="max-w-[1350px] mx-auto px-4 sm:px-6 py-6 space-y-8">
+    <div className="max-w-[1350px] mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-8 space-y-8">
       <Helmet>
         <title>{formattedTitle} News - Gyanmitra</title>
         <meta

@@ -221,7 +221,11 @@ export const SelectMediaFile: React.FC<{
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant={'ghost'} size={'xs'}>
+                              <Button
+                                variant={'ghost'}
+                                className="h-11 w-11 min-h-[44px] min-w-[44px] sm:h-8 sm:w-8 sm:min-h-[32px] sm:min-w-[32px] p-0 flex items-center justify-center"
+                                aria-label="Media file actions"
+                              >
                                 <FontAwesomeIcon icon={faEllipsisV} />
                               </Button>
                             </DropdownMenuTrigger>

@@ -690,7 +690,7 @@ const publishMutation = useMutation({
       </div>
       {/* Pagination Controls */}
       <div className="flex items-center justify-center gap-1 md:gap-2">
-        <Button variant="outline" size="sm" className="h-8 w-8 md:w-auto p-0 md:px-4 border-zinc-200" onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1}>
+        <Button variant="outline" size="sm" className="h-11 w-11 min-h-[44px] min-w-[44px] sm:h-8 sm:w-8 md:w-auto p-0 md:px-4 border-zinc-200" onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1}>
           <FontAwesomeIcon icon={faChevronLeft} className="md:mr-2 h-3" /> <span className="hidden md:inline font-bold">Prev</span>
         </Button>
         <div className="flex gap-1">
@@ -698,13 +698,13 @@ const publishMutation = useMutation({
             <button 
               key={i} 
               onClick={() => setCurrentPage(i + 1)}
-              className={cn("h-8 w-8 rounded-md text-[10px] font-black transition-all", currentPage === i + 1 ? "bg-[#e98571] text-white shadow-md shadow-[#e98571]/30" : "bg-white border text-zinc-400 hover:border-zinc-300")}
+              className={cn("h-11 w-11 min-h-[44px] min-w-[44px] sm:h-8 sm:w-8 rounded-md text-xs font-black transition-all flex items-center justify-center", currentPage === i + 1 ? "bg-[#e98571] text-white shadow-md shadow-[#e98571]/30" : "bg-white border text-zinc-400 hover:border-zinc-300")}
             >
               {i + 1}
             </button>
           ))}
         </div>
-        <Button variant="outline" size="sm" className="h-8 w-8 md:w-auto p-0 md:px-4 border-zinc-200" onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages}>
+        <Button variant="outline" size="sm" className="h-11 w-11 min-h-[44px] min-w-[44px] sm:h-8 sm:w-8 md:w-auto p-0 md:px-4 border-zinc-200" onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages}>
           <span className="hidden md:inline font-bold text-xs">Next</span> <FontAwesomeIcon icon={faChevronRight} className="md:ml-2 h-3" />
         </Button>
       </div>

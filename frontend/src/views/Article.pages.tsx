@@ -361,7 +361,7 @@ export const Article: React.FC<ArticleProps> = ({
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         {/* --- MAIN CONTENT AREA --- */}
-        <article className="lg:col-span-8 space-y-6 pt-4">
+        <article className="lg:col-span-8 space-y-6 pt-4 min-w-0 max-w-full">
           <div className="space-y-4">
             {/* --- BREADCRUMBS & CATEGORY PILL --- */}
             <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-xs font-semibold text-zinc-500">
@@ -379,7 +379,7 @@ export const Article: React.FC<ArticleProps> = ({
 
             <div className="flex items-center gap-2">
               <Link to={`/categories/${encodeURIComponent(displayCategorySlug)}`}>
-                <Badge className="bg-[#e98571] hover:bg-[#d87460] text-white rounded-none uppercase text-[10px] font-black tracking-widest px-3 py-1 border-none shadow-2xs transition-all cursor-pointer">
+                <Badge className="bg-[#e98571] hover:bg-[#d87460] text-white rounded-none uppercase text-[10px] font-black tracking-widest px-3 py-1 border-none shadow-xs transition-all cursor-pointer">
                   {displayCategoryName}
                 </Badge>
               </Link>
@@ -667,7 +667,7 @@ export const Article: React.FC<ArticleProps> = ({
                           type="text"
                           readOnly
                           value={articleLink}
-                          className="flex-1 bg-white border border-zinc-200 px-3 py-2 text-xs text-zinc-800 font-mono rounded-none focus:outline-none focus:border-[#e98571] select-all truncate shadow-2xs"
+                          className="flex-1 bg-white border border-zinc-200 px-3 py-2 text-xs text-zinc-800 font-mono rounded-none focus:outline-none focus:border-[#e98571] select-all truncate shadow-xs"
                           onClick={(e) => (e.target as HTMLInputElement).select()}
                         />
                         <Button
@@ -821,7 +821,7 @@ export const Article: React.FC<ArticleProps> = ({
             </p>
           </div>
 
-          <div className="prose prose-slate max-w-none pt-4 prose-headings:font-bold prose-p:text-slate-700 prose-p:leading-relaxed prose-strong:text-slate-900" 
+          <div className="prose prose-slate max-w-none pt-4 prose-headings:font-bold prose-p:text-slate-700 prose-p:leading-relaxed prose-strong:text-slate-900 min-w-0 max-w-full overflow-hidden break-words" 
                dangerouslySetInnerHTML={{ __html: content || '' }} 
           />
 

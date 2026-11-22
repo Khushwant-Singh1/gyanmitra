@@ -302,7 +302,7 @@ export const Profile: React.FC = () => {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isSaving}
-                className="absolute inset-0 rounded-2xl bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-xs font-semibold cursor-pointer backdrop-blur-xs gap-1"
+                className="absolute inset-0 rounded-2xl bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-xs font-semibold cursor-pointer backdrop-blur-sm gap-1"
                 title="Change profile picture"
               >
                 {uploadAvatarMutation.isPending ? (
