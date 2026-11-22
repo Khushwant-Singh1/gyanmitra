@@ -29,7 +29,18 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { SlidersHorizontal } from 'lucide-react';
+import {
+  SlidersHorizontal,
+  UploadCloud,
+  Clock,
+  FileText,
+  Sparkles,
+  Trash2,
+  Loader2,
+  Image as ImageIcon,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { ACCEPTED_FILE_TYPES } from '@/constants/index.constants';
 
 const formatDateForInput = (dateString?: string) => {
   if (!dateString) return '';
@@ -107,6 +118,123 @@ export const EditArticle: React.FC = () => {
   };
 
   const seoIssues = getSeoIssues();
+
+  // --- LIVE STORY METRICS ---
+  const storyMetrics = React.useMemo(() => {
+    const rawContent = formData.content || '';
+    const rawHeadline = formData.headline || '';
+    // Strip markdown formatting tokens and HTML tags for accurate word/char counting
+    const cleanContent = rawContent
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/[#*`_~\[\]()!>+-]/g, ' ')
+      .trim();
+
+    const fullText = `${rawHeadline} ${cleanContent}`.trim();
+    const wordList = fullText ? fullText.split(/\s+/).filter(Boolean) : [];
+    const wordCount = wordList.length;
+    const charCount = fullText.length;
+    // Hindi Devanagari character count (range: \u0900-\u097F)
+    const devanagariCount = (fullText.match(/[\u0900-\u097F]/g) || []).length;
+    // Estimated reading speed: ~180 words/min
+    const readingTimeMinutes = Math.max(1, Math.ceil(wordCount / 180));
+    // SEO Score calculation (0-100)
+    const seoScore = Math.max(0, 100 - (seoIssues.length * 20));
+
+    return {
+      wordCount,
+      charCount,
+      devanagariCount,
+      readingTimeMinutes,
+      seoScore,
+    };
+  }, [formData.content, formData.headline, seoIssues]);
+
+  // --- FEATURED MEDIA DRAG & DROP AND ASPECT RATIO PREVIEW STATE ---
+  type AspectRatioMode = '16:9' | '1:1' | '4:5';
+  const [previewRatio, setPreviewRatio] = useState<AspectRatioMode>('16:9');
+  const [featuredMediaUrl, setFeaturedMediaUrl] = useState<string | null>(null);
+  const [featuredMediaName, setFeaturedMediaName] = useState<string | null>(null);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [isDraggingMedia, setIsDraggingMedia] = useState(false);
+  const mediaFileInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  // Fetch media URL for initial/existing featuredMediaId
+  useEffect(() => {
+    if (formData.featuredMediaId && !featuredMediaUrl) {
+      axios
+        .get<IApiResponse<{ _id: string; name: string; fileUrl: string }>>(
+          `/api/media/${formData.featuredMediaId}`
+        )
+        .then((res) => {
+          if (res.data?.data?.fileUrl) {
+            setFeaturedMediaUrl(res.data.data.fileUrl);
+            setFeaturedMediaName(res.data.data.name);
+          }
+        })
+        .catch(() => {
+          // ignore error
+        });
+    }
+  }, [formData.featuredMediaId, featuredMediaUrl]);
+
+  const handleMediaUploadFile = async (file: File) => {
+    if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
+      toast.error('Invalid file type. Please upload a PNG, JPEG, or WebP image.');
+      return;
+    }
+    const cleanFileName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+    setIsUploadingMedia(true);
+    const localPreview = URL.createObjectURL(file);
+    setFeaturedMediaUrl(localPreview);
+    setFeaturedMediaName(cleanFileName);
+
+    try {
+      const uploadData = new FormData();
+      uploadData.append('file', file);
+      uploadData.append('name', cleanFileName || 'Featured Image');
+
+      const res = await axios.post('/api/media/', uploadData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      if (res.data?.data?._id) {
+        handleInputChange('featuredMediaId', res.data.data._id);
+        if (res.data.data.fileUrl) {
+          setFeaturedMediaUrl(res.data.data.fileUrl);
+        }
+        setFeaturedMediaName(res.data.data.name || cleanFileName);
+        toast.success('Featured image uploaded & selected!');
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to upload image');
+      setFeaturedMediaUrl(null);
+      setFeaturedMediaName(null);
+    } finally {
+      setIsUploadingMedia(false);
+    }
+  };
+
+  const handleDragOverMedia = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingMedia(true);
+  };
+
+  const handleDragLeaveMedia = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingMedia(false);
+  };
+
+  const handleDropMedia = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingMedia(false);
+    const droppedFile = e.dataTransfer.files?.[0];
+    if (droppedFile) {
+      handleMediaUploadFile(droppedFile);
+    }
+  };
 
   const saveMutation = useMutation({
     mutationFn: async (updatedArticle: typeof formData) => {
@@ -458,11 +586,208 @@ export const EditArticle: React.FC = () => {
           </div>
         </div>
 
-        <div>
-          <Label className="text-xs">Featured Image</Label>
-          <div className="mt-1">
-            <SelectMediaFile value={{ id: formData.featuredMediaId }} onChange={(val) => val && handleInputChange('featuredMediaId', val.id)} />
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold text-slate-700">Featured Media</Label>
+            {featuredMediaUrl && (
+              <span className="text-[10px] text-zinc-400 font-medium">
+                Live Aspect Preview
+              </span>
+            )}
           </div>
+
+          {featuredMediaUrl ? (
+            /* Selected / Uploaded Image with 3-Way Aspect Ratio Preview */
+            <div className="space-y-2.5 bg-white border border-zinc-200 rounded-md p-3 shadow-2xs">
+              {/* 3-Way Aspect Ratio Toggle */}
+              <div className="flex items-center justify-between bg-zinc-100 p-0.5 rounded-md text-[10px] font-bold text-zinc-600">
+                <button
+                  type="button"
+                  onClick={() => setPreviewRatio('16:9')}
+                  className={cn(
+                    "flex-1 py-1 px-1.5 rounded transition-all text-center",
+                    previewRatio === '16:9'
+                      ? "bg-white text-zinc-900 shadow-2xs font-extrabold"
+                      : "hover:text-zinc-900"
+                  )}
+                  title="Hero 16:9 — Article Header, Social Shares & Top News"
+                >
+                  Hero 16:9
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewRatio('1:1')}
+                  className={cn(
+                    "flex-1 py-1 px-1.5 rounded transition-all text-center",
+                    previewRatio === '1:1'
+                      ? "bg-white text-zinc-900 shadow-2xs font-extrabold"
+                      : "hover:text-zinc-900"
+                  )}
+                  title="Square 1:1 — Trending Widgets, Right Cards & Thumbnails"
+                >
+                  Square 1:1
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewRatio('4:5')}
+                  className={cn(
+                    "flex-1 py-1 px-1.5 rounded transition-all text-center",
+                    previewRatio === '4:5'
+                      ? "bg-white text-zinc-900 shadow-2xs font-extrabold"
+                      : "hover:text-zinc-900"
+                  )}
+                  title="Vertical 4:5 — Mobile Feed Cards & Status Updates"
+                >
+                  Vertical 4:5
+                </button>
+              </div>
+
+              {/* Interactive Aspect Ratio Preview Frame */}
+              <div className="w-full rounded-md overflow-hidden bg-zinc-950 border border-zinc-200 flex items-center justify-center p-2 min-h-[140px] max-h-60 relative group">
+                <div
+                  className={cn(
+                    "relative overflow-hidden rounded transition-all duration-300 w-full flex items-center justify-center bg-black/40 shadow-inner",
+                    previewRatio === '16:9' && "aspect-[16/9] max-h-48",
+                    previewRatio === '1:1' && "aspect-square max-w-[170px] max-h-44",
+                    previewRatio === '4:5' && "aspect-[4/5] max-w-[150px] max-h-48"
+                  )}
+                >
+                  <img
+                    src={featuredMediaUrl}
+                    alt={featuredMediaName || 'Featured Preview'}
+                    className="w-full h-full object-cover transition-all duration-300"
+                  />
+                  <div className="absolute bottom-1 left-1 bg-black/75 backdrop-blur-xs text-white text-[9px] font-mono font-bold px-1.5 py-0.5 rounded shadow-xs">
+                    {previewRatio === '16:9' && '16:9 Hero'}
+                    {previewRatio === '1:1' && '1:1 Square'}
+                    {previewRatio === '4:5' && '4:5 Vertical'}
+                  </div>
+                </div>
+
+                {isUploadingMedia && (
+                  <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex flex-col items-center justify-center gap-1.5 text-white">
+                    <Loader2 className="w-5 h-5 animate-spin text-[#e98571]" />
+                    <span className="text-[11px] font-bold">Uploading media...</span>
+                  </div>
+                )}
+              </div>
+
+              {featuredMediaName && (
+                <p className="text-[11px] text-zinc-500 truncate font-medium">
+                  {featuredMediaName}
+                </p>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 pt-1 border-t border-zinc-100">
+                <input
+                  ref={mediaFileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleMediaUploadFile(f);
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 h-8 text-[11px] font-semibold"
+                  onClick={() => mediaFileInputRef.current?.click()}
+                  disabled={isUploadingMedia}
+                >
+                  <UploadCloud className="w-3 h-3 mr-1 text-[#e98571]" />
+                  Replace
+                </Button>
+                <SelectMediaFile
+                  value={{ id: formData.featuredMediaId }}
+                  onChange={(val) => {
+                    if (val) {
+                      handleInputChange('featuredMediaId', val.id);
+                      setFeaturedMediaUrl(val.url);
+                      setFeaturedMediaName(val.name);
+                    } else {
+                      handleInputChange('featuredMediaId', '');
+                      setFeaturedMediaUrl(null);
+                      setFeaturedMediaName(null);
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-[11px] text-red-600 hover:text-red-700 hover:bg-red-50 font-bold"
+                  onClick={() => {
+                    handleInputChange('featuredMediaId', '');
+                    setFeaturedMediaUrl(null);
+                    setFeaturedMediaName(null);
+                  }}
+                  title="Remove image"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              </div>
+            </div>
+          ) : (
+            /* Drag and Drop Zone when no image is selected */
+            <div className="space-y-2">
+              <div
+                onDragOver={handleDragOverMedia}
+                onDragLeave={handleDragLeaveMedia}
+                onDrop={handleDropMedia}
+                onClick={() => mediaFileInputRef.current?.click()}
+                className={cn(
+                  "border-2 border-dashed rounded-md p-4 text-center cursor-pointer transition-all duration-200 flex flex-col items-center justify-center gap-2 bg-white",
+                  isDraggingMedia
+                    ? "border-[#e98571] bg-[#e98571]/10 scale-[0.99]"
+                    : "border-zinc-300 hover:border-[#e98571] hover:bg-zinc-50/80 shadow-2xs"
+                )}
+              >
+                <input
+                  ref={mediaFileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleMediaUploadFile(f);
+                  }}
+                />
+                <div className="h-9 w-9 rounded-full bg-[#e98571]/10 flex items-center justify-center text-[#e98571]">
+                  {isUploadingMedia ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <UploadCloud className="w-4 h-4" />
+                  )}
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-xs font-bold text-zinc-800">
+                    {isUploadingMedia ? 'Uploading image...' : 'ड्रैग करें या इमेज चुनें'}
+                  </p>
+                  <p className="text-[10px] text-zinc-500">
+                    PNG, JPG, WebP (Max 10MB)
+                  </p>
+                </div>
+              </div>
+
+              {/* Or Select from Media Library */}
+              <div className="flex items-center justify-center">
+                <SelectMediaFile
+                  value={{ id: formData.featuredMediaId }}
+                  onChange={(val) => {
+                    if (val) {
+                      handleInputChange('featuredMediaId', val.id);
+                      setFeaturedMediaUrl(val.url);
+                      setFeaturedMediaName(val.name);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         <div>
@@ -628,6 +953,54 @@ export const EditArticle: React.FC = () => {
               onChange={(e) => handleHeadlineChange(e.target.value)}
               placeholder="Enter article headline..."
             />
+          </div>
+
+          {/* --- LIVE STORY METRICS PILL BAR --- */}
+          <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 py-2 px-3.5 bg-zinc-50 border border-zinc-200/80 rounded-md text-xs text-zinc-600 shadow-2xs">
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-4">
+              {/* Word Count */}
+              <div className="flex items-center gap-1.5 font-medium">
+                <FileText className="w-3.5 h-3.5 text-[#e98571]" />
+                <span className="text-zinc-500 font-bold text-[11px]">शब्द:</span>
+                <span className="font-bold text-zinc-900 font-mono text-xs">{storyMetrics.wordCount}</span>
+              </div>
+
+              <span className="text-zinc-300 hidden sm:inline">•</span>
+
+              {/* Reading Time */}
+              <div className="flex items-center gap-1.5 font-medium">
+                <Clock className="w-3.5 h-3.5 text-[#e98571]" />
+                <span className="text-zinc-500 font-bold text-[11px]">पढ़ने का समय:</span>
+                <span className="font-bold text-zinc-900">~{storyMetrics.readingTimeMinutes} मिनट</span>
+              </div>
+
+              <span className="text-zinc-300 hidden sm:inline">•</span>
+
+              {/* Character & Hindi metrics */}
+              <div className="flex items-center gap-1.5 font-medium">
+                <span className="text-zinc-500 font-bold text-[11px]">अक्षर:</span>
+                <span className="font-bold text-zinc-900 font-mono text-xs">{storyMetrics.charCount}</span>
+                {storyMetrics.devanagariCount > 0 && (
+                  <span className="text-[10px] text-zinc-400 font-medium">
+                    (हिंदी: {storyMetrics.devanagariCount})
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* SEO Score Pill */}
+            <div className="flex items-center gap-1.5 font-medium">
+              <Sparkles className="w-3.5 h-3.5 text-[#e98571]" />
+              <span className="text-zinc-500 font-bold text-[11px]">SEO स्कोर:</span>
+              <span className={cn(
+                "px-2 py-0.5 rounded-full text-[11px] font-bold font-mono shadow-2xs",
+                storyMetrics.seoScore >= 80 ? "bg-emerald-50 text-emerald-700 border border-emerald-200" :
+                storyMetrics.seoScore >= 60 ? "bg-amber-50 text-amber-700 border border-amber-200" :
+                "bg-red-50 text-red-700 border border-red-200"
+              )}>
+                {storyMetrics.seoScore}/100
+              </span>
+            </div>
           </div>
 
           <div className="flex-1 min-h-[400px] sm:min-h-[500px] rounded-md border bg-white shadow-xs overflow-hidden">
