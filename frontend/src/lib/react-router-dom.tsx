@@ -50,22 +50,25 @@ export function useNavigate(): NavigateFunction {
   const router = useNextRouter();
   const [, startTransition] = useTransition();
 
-  return (to: string | number, options?: { replace?: boolean; state?: any }) => {
-    if (typeof to === 'number') {
-      if (typeof window !== 'undefined') {
-        window.history.go(to);
+  return React.useCallback(
+    (to: string | number, options?: { replace?: boolean; state?: any }) => {
+      if (typeof to === 'number') {
+        if (typeof window !== 'undefined') {
+          window.history.go(to);
+        }
+        return;
       }
-      return;
-    }
 
-    startTransition(() => {
-      if (options?.replace) {
-        router.replace(to);
-      } else {
-        router.push(to);
-      }
-    });
-  };
+      startTransition(() => {
+        if (options?.replace) {
+          router.replace(to);
+        } else {
+          router.push(to);
+        }
+      });
+    },
+    [router]
+  );
 }
 
 export function useParams<T extends Record<string, string | string[]> = Record<string, string>>(): T {
@@ -119,13 +122,16 @@ export const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(
 Link.displayName = 'Link';
 
 export interface NavLinkProps extends Omit<LinkProps, 'className'> {
+  end?: boolean;
   className?: string | ((props: { isActive: boolean; isPending: boolean }) => string | undefined);
 }
 
 export const NavLink = React.forwardRef<HTMLAnchorElement, NavLinkProps>(
-  ({ to, replace, prefetch = false, children, className, ...props }, ref) => {
-    const pathname = useNextPathname();
-    const isActive = pathname === to || (to !== '/' && pathname.startsWith(to));
+  ({ to, replace, prefetch = false, end = false, children, className, ...props }, ref) => {
+    const pathname = useNextPathname() || '/';
+    const isActive =
+      pathname === to ||
+      (!end && to !== '/' && pathname.startsWith(to.endsWith('/') ? to : `${to}/`));
 
     const computedClassName =
       typeof className === 'function'

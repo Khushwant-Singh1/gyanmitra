@@ -804,7 +804,7 @@ export const EditArticle: React.FC = () => {
   );
 
   return (
-    <div className="flex h-screen w-full flex-col">
+    <div className="flex h-screen w-full flex-col overflow-hidden">
       <Helmet>
         <title>{formData.metaTitle || 'Edit Article'}</title>
         <meta name="description" content={formData.description} />
@@ -908,9 +908,9 @@ export const EditArticle: React.FC = () => {
         </div>
       </header>
 
-      <section className="flex flex-1 flex-col lg:flex-row h-[calc(100vh-57px)] overflow-hidden">
+      <section className="flex flex-1 min-h-0 flex-col lg:flex-row overflow-hidden">
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col gap-4 overflow-y-auto p-4 sm:p-6 min-w-0 bg-[#fcfcfc]">
+        <div className="flex-1 min-h-0 flex flex-col gap-4 overflow-y-auto p-4 sm:p-6 min-w-0 bg-[#fcfcfc]">
           {/* Recovery banner if restored from sessionStorage */}
           {isRestoredFromSession && (
             <div className="flex items-center justify-between gap-3 bg-amber-50/90 border border-amber-200/80 text-amber-900 px-3.5 py-2.5 rounded-md text-xs font-medium shadow-2xs animate-in fade-in slide-in-from-top-1 duration-200">
@@ -1003,7 +1003,7 @@ export const EditArticle: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex-1 min-h-[400px] sm:min-h-[500px] rounded-md border bg-white shadow-xs overflow-hidden">
+          <div className="min-h-[400px] sm:min-h-[500px] rounded-md border bg-white shadow-xs">
             <MdxEditorComponent
               key={editorKey}
               initialContent={formData.content}

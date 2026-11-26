@@ -73,11 +73,12 @@ export const RequestArticle: React.FC<{
 
   const queryClient = useQueryClient();
 
-  const userNames = (
-    queryClient.getQueryData(['users', 'all', 'name']) as IApiResponse<
-      { _id: string; name: string }[]
-    >
-  ).data;
+  const userNames =
+    (
+      queryClient.getQueryData(['users', 'all', 'name']) as
+        | IApiResponse<{ _id: string; name: string }[]>
+        | undefined
+    )?.data ?? [];
 
   const requestArticle = useMutation({
     mutationFn: async ({

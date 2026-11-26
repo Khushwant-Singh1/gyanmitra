@@ -47,6 +47,18 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: '/administrator',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate' },
+        ],
+      },
+      {
+        source: '/administrator/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate' },
+        ],
+      },
+      {
         source: '/assets/:path*',
         headers: [
           { key: 'Cache-Control', value: 'public, max-age=2592000, stale-while-revalidate=86400' },

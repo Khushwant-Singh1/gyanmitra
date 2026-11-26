@@ -10,10 +10,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { ADMINISTRATOR_SIDEBAR } from '@/constants/links.constants';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +40,9 @@ import { ProfileSettings } from './ProfileSettings.components';
 export function AppSidebar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const clientQuery = useQueryClient();
+  const { setOpenMobile } = useSidebar();
+  const { pathname } = useLocation();
+  const currentPath = pathname.replace(/\/+$/, '');
 
   const user = (
     (clientQuery.getQueryData(['me']) as any)?.data as IApiCurrentUserSession | undefined
@@ -87,32 +91,42 @@ export function AppSidebar() {
                 <SidebarMenu>
                   {ADMINISTRATOR_SIDEBAR.filter(({ access }) => {
                     return access.includes(user.role as USER_ROLE);
-                  }).map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild tooltip={item.title}>
-                        <NavLink
-                          to={item.url}
-                          key={item.title}
-                          className={({ isActive }) =>
-                            cn(
+                  }).map((item) => {
+                    const isActive =
+                      currentPath === item.url ||
+                      (item.url !== '/administrator' &&
+                        currentPath.startsWith(`${item.url}/`));
+
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={isActive}
+                          tooltip={item.title}
+                        >
+                          <NavLink
+                            to={item.url}
+                            end={item.url === '/administrator'}
+                            onClick={() => setOpenMobile(false)}
+                            className={cn(
                               'flex items-center gap-2.5 w-full py-2 px-2.5 rounded-md text-sm transition-colors',
                               isActive
                                 ? 'text-secondary font-semibold bg-secondary/10'
                                 : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
-                            )
-                          }
-                        >
-                          <FontAwesomeIcon
-                            icon={item.icon}
-                            className="h-4 w-4 shrink-0 text-current"
-                          />
-                          <span className="truncate group-data-[collapsible=icon]:hidden">
-                            {item.title}
-                          </span>
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
+                            )}
+                          >
+                            <FontAwesomeIcon
+                              icon={item.icon}
+                              className="h-4 w-4 shrink-0 text-current"
+                            />
+                            <span className="truncate group-data-[collapsible=icon]:hidden">
+                              {item.title}
+                            </span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
